@@ -6,9 +6,17 @@ log (read-only from this dashboard's perspective) and lets a reviewer see
 every decision, its risk score breakdown, and its explanation - the
 "human review interface" component from the architecture diagram.
 """
+import os
+import sys
 import sqlite3
 import pandas as pd
 import streamlit as st
+
+# Streamlit Cloud (and some other launchers) execute this file with its own
+# directory as sys.path[0], not the repo root, so the top-level "app"
+# package isn't importable by default. Add the repo root explicitly.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from app.config import get_settings
 
 st.set_page_config(page_title="AURA Shield Dashboard", layout="wide")
