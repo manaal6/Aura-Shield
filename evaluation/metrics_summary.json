@@ -1,13 +1,13 @@
 {
-  "real_llm_calls_used": false,
+  "real_llm_calls_used": true,
   "metrics": {
-    "true_positives": 25,
-    "false_negatives": 5,
+    "true_positives": 17,
+    "false_negatives": 13,
     "false_positives": 0,
     "true_negatives": 10,
     "precision": 1.0,
-    "recall": 0.8333333333333334,
-    "attack_success_rate": 0.16666666666666666,
+    "recall": 0.5666666666666667,
+    "attack_success_rate": 0.43333333333333335,
     "false_positive_rate": 0.0
   }
 }

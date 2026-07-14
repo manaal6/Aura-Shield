@@ -41,13 +41,7 @@ def process_request(request: IncomingRequest) -> dict:
     log_entry(entry)
 
     if decision.decision == Decision.BLOCK:
-        output = {
-            "request_id": request_id,
-            "decision": decision.decision.value,
-            "risk_score": decision.risk_score.score,
-            "explanation": decision.explanation,
-            "llm_response": None,
-        }
+        llm_response = None
     else:
         # ALLOW and REVIEW both currently reach the downstream LLM in this
         # POC; REVIEW additionally surfaces in the dashboard for a human
@@ -55,12 +49,20 @@ def process_request(request: IncomingRequest) -> dict:
         # hold REVIEW requests pending explicit human approval before
         # calling the downstream LLM - documented as future work.
         llm_response = call_protected_llm(request.user_prompt, request.source_content)
-        output = {
-            "request_id": request_id,
-            "decision": decision.decision.value,
-            "risk_score": decision.risk_score.score,
-            "explanation": decision.explanation,
-            "llm_response": llm_response,
-        }
+
+    # rule_result and llm_result are returned here (not just logged) so
+    # callers like evaluation/evaluate.py can inspect the full detection
+    # breakdown WITHOUT re-running the detectors a second time - re-running
+    # llm_analyzer.analyze() per prompt was doubling Groq API calls during
+    # benchmark runs and needlessly burning through rate limits.
+    output = {
+        "request_id": request_id,
+        "decision": decision.decision.value,
+        "risk_score": decision.risk_score.score,
+        "explanation": decision.explanation,
+        "llm_response": llm_response,
+        "rule_result": rule_result,
+        "llm_result": llm_result,
+    }
 
     return output

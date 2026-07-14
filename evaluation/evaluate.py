@@ -14,11 +14,17 @@ a full evaluation.
 """
 import json
 import logging
+import time
 from pathlib import Path
 
 from app.storage.database import init_db
 from app.models import IncomingRequest
 from app.pipeline import process_request
+
+# Small delay between benchmark requests so a 40-prompt run doesn't burst
+# past Groq's free-tier requests-per-minute limit and trigger 429 retries.
+# Adjust based on your account's actual rate limit if needed.
+REQUEST_DELAY_SECONDS = 2.0
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -46,12 +52,12 @@ def run_benchmark() -> list[dict]:
         )
         outcome = process_request(request)
 
-        # Re-run detectors directly to capture whether the LLM analyzer
-        # used a real call or the fail-safe fallback, for transparent
-        # reporting (process_request already logged this to SQLite too).
-        from app.detectors import rule_detector, llm_analyzer
-        rule_result = rule_detector.detect(request.user_prompt, request.source_content)
-        llm_result = llm_analyzer.analyze(request.user_prompt, request.source_content)
+        # process_request() now returns the rule/llm detection results
+        # directly, so we don't need (and must not) call the detectors a
+        # second time here - doing so was doubling Groq API calls and
+        # burning through the free-tier rate limit during a benchmark run.
+        rule_result = outcome["rule_result"]
+        llm_result = outcome["llm_result"]
         if not llm_result.used_fallback:
             any_real_llm_call = True
 
@@ -71,6 +77,11 @@ def run_benchmark() -> list[dict]:
             "is_attack_ground_truth": is_attack,
             "flagged_by_shield": flagged,
         })
+
+        # Only worth pausing if we're actually hitting the network -
+        # rule-only fallback runs don't need to be rate-limited.
+        if not llm_result.used_fallback:
+            time.sleep(REQUEST_DELAY_SECONDS)
 
     RESULTS_PATH.write_text(json.dumps(results, indent=2))
     return results, any_real_llm_call
