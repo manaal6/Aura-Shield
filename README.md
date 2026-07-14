@@ -130,11 +130,10 @@ pytest tests/ -v
 ## Evaluation results
 
 The benchmark (`evaluation/benchmark_dataset.json`, 40 prompts: 10 direct
-injection, 10 indirect injection, 10 jailbreak, 10 benign) was run in this
-development environment **with a Groq API key**, so the LLM Security
-Analyzer operated in its documented fail-safe fallback mode rather than
-making real semantic judgments. The numbers below reflect the
-**rule-detector-driven portion of the pipeline only**:
+injection, 10 indirect injection, 10 jailbreak, 10 benign) was run with a
+configured `GROQ_API_KEY`, so the LLM Security Analyzer made real API
+calls for this run. The numbers below reflect the full two-layer
+pipeline (rule-based detector + LLM security analyzer):
 
 | Metric | Result |
 |---|---|
@@ -143,21 +142,27 @@ making real semantic judgments. The numbers below reflect the
 | Attack Success Rate | 43.33% |
 | False Positive Rate | 0.00% |
 
-This is a genuine partial result, not a claim about the full two-layer
-system described in the architecture. **The LLM Security Analyzer has not
-yet been evaluated with real API calls** - running `evaluate.py` with a
-valid `GROQ_API_KEY` in `.env` is the immediate next step and is expected
-to catch some or all of the 5 attacks (all paraphrased jailbreak/direct
-variants) that the rule layer alone missed. See `docs/technical_report.md`
-for the full breakdown and analysis.
+By category: indirect injection reached full detection (10/10 blocked);
+direct injection and jailbreak prompts were only partially caught (2/10
+and 6/10 flagged, respectively); all 10 benign prompts were correctly
+allowed with zero false positives.
+
+This is a genuine full-pipeline result. The lower-than-expected recall on
+direct injection and jailbreak categories suggests the LLM analyzer's
+prompt design and/or the 0.6 weighting it receives in the risk formula
+may need further tuning — this is the immediate next investigation. See
+`docs/technical_report.md` for the full per-category breakdown and
+analysis.
 
 ## Limitations
 
 - Evaluated on a 40-prompt benchmark - too small to claim generalization
   to attacks outside this set, and too small for statistically meaningful
   confidence intervals.
-- The rule-detector-only run means the LLM analyzer's real contribution to
-  precision/recall is not yet measured.
+- Recall remains well below full coverage even with the LLM analyzer
+  active (56.67%), particularly for direct-injection and jailbreak
+  prompts, indicating room to improve the analyzer's prompt or scoring
+  weight.
 - No defense against adaptive attackers who have read this source code.
 - No defense against multi-turn manipulation across conversation history.
 - The LLM Security Analyzer uses the same model class it helps protect,
@@ -166,10 +171,11 @@ for the full breakdown and analysis.
 
 ## Future work
 
-- Re-run `evaluate.py` with a real Groq API key to get full-pipeline
-  metrics and compare against the rule-only baseline reported here.
+- Analyze per-prompt logs from this run to understand why specific
+  direct-injection and jailbreak prompts were still missed with the LLM
+  analyzer live, and tune its prompt/weighting accordingly.
 - Expand the benchmark beyond 40 prompts, including obfuscated/translated
-  injection variants to stress-test the rule layer's known blind spot.
+  injection variants to stress-test both detection layers.
 - Hold `review`-tier requests pending explicit human approval before
   reaching the downstream LLM, rather than passing them through
   immediately as this POC currently does.
