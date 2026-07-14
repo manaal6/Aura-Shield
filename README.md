@@ -139,8 +139,8 @@ making real semantic judgments. The numbers below reflect the
 | Metric | Result |
 |---|---|
 | Precision | 100.00% |
-| Recall | 83.33% |
-| Attack Success Rate | 16.67% |
+| Recall | 56.67% |
+| Attack Success Rate | 43.33% |
 | False Positive Rate | 0.00% |
 
 This is a genuine partial result, not a claim about the full two-layer
