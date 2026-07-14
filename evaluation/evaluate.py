@@ -14,8 +14,16 @@ a full evaluation.
 """
 import json
 import logging
+import os
+import sys
 import time
 from pathlib import Path
+
+# Ensure the repo root is importable regardless of the working directory
+# this script is launched from (e.g. `python evaluation/evaluate.py` from
+# root works either way, but this also covers CI runners or other tools
+# that may invoke it with a different cwd).
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.storage.database import init_db
 from app.models import IncomingRequest
