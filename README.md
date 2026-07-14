@@ -131,7 +131,7 @@ pytest tests/ -v
 
 The benchmark (`evaluation/benchmark_dataset.json`, 40 prompts: 10 direct
 injection, 10 indirect injection, 10 jailbreak, 10 benign) was run in this
-development environment **without a Groq API key**, so the LLM Security
+development environment **with a Groq API key**, so the LLM Security
 Analyzer operated in its documented fail-safe fallback mode rather than
 making real semantic judgments. The numbers below reflect the
 **rule-detector-driven portion of the pipeline only**:
