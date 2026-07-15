@@ -56,7 +56,7 @@ Downstream   Security
    +----+----+
         |
         v
-SQLite logs (append-only audit trail)
+Postgres (Supabase) logs (append-only audit trail)
         |
         v
 Streamlit dashboard (human review interface)
@@ -83,9 +83,11 @@ it. Full detail in the technical report.
 - Configurable, documented risk-scoring formula (not a black box)
 - Three-tier policy engine (allow / review / block) supporting
   human-in-the-loop review, not just binary pass/fail
-- SQLite audit logging of every decision with a non-empty, human-readable
-  explanation
-- Streamlit dashboard for reviewing logged decisions
+- Postgres (Supabase) audit logging of every decision with a non-empty,
+  human-readable explanation, shared between local runs and the deployed
+  dashboard so both read the same data
+- Streamlit dashboard for reviewing logged decisions, deployed persistently
+  at aura-shield.streamlit.app
 - A 40-prompt adversarial + benign benchmark and an evaluation script that
   computes precision, recall, attack success rate, and false-positive rate
   from an actual run - never invented numbers
@@ -97,7 +99,9 @@ git clone <this-repo>
 cd aura-shield
 pip install -r requirements.txt
 cp .env.example .env
-# edit .env and add your GROQ_API_KEY
+# edit .env and add your GROQ_API_KEY and DATABASE_URL
+# DATABASE_URL is a Supabase Postgres connection string (Session pooler URI)
+# - see Supabase project Settings -> Database -> Connect -> Session pooler
 ```
 
 ## Usage
@@ -129,11 +133,20 @@ pytest tests/ -v
 
 ## Evaluation results
 
+**Status: pending re-run.** A bug was found in `llm_analyzer.py` after the
+run below: `raw_signal` was hardcoded to `0.0` for every prompt the LLM
+judged not-suspicious, regardless of the model's actual confidence. This
+has been fixed, but the numbers below predate the fix and are kept here
+only as the last verified result, not as the current state of the system.
+They should not be cited as the project's current performance until the
+benchmark is re-run against the corrected analyzer.
+
 The benchmark (`evaluation/benchmark_dataset.json`, 40 prompts: 10 direct
 injection, 10 indirect injection, 10 jailbreak, 10 benign) was run with a
 configured `GROQ_API_KEY`, so the LLM Security Analyzer made real API
 calls for this run. The numbers below reflect the full two-layer
-pipeline (rule-based detector + LLM security analyzer):
+pipeline (rule-based detector + LLM security analyzer) **as it existed
+before the raw_signal fix**:
 
 | Metric | Result |
 |---|---|
@@ -147,12 +160,13 @@ direct injection and jailbreak prompts were only partially caught (2/10
 and 6/10 flagged, respectively); all 10 benign prompts were correctly
 allowed with zero false positives.
 
-This is a genuine full-pipeline result. The lower-than-expected recall on
-direct injection and jailbreak categories suggests the LLM analyzer's
-prompt design and/or the 0.6 weighting it receives in the risk formula
-may need further tuning — this is the immediate next investigation. See
-`docs/technical_report.md` for the full per-category breakdown and
-analysis.
+This was a genuine full-pipeline result at the time, but is now superseded
+by the `raw_signal` fix described above. Whether the low recall on direct
+injection and jailbreak categories was a real analyzer limitation, or was
+partly an artifact of that bug (which discarded confidence information on
+every non-suspicious verdict), is now an open question the re-run should
+answer. See `docs/technical_report.md` for the full per-category
+breakdown and analysis of the pre-fix run.
 
 ## Limitations
 
@@ -171,9 +185,12 @@ analysis.
 
 ## Future work
 
-- Analyze per-prompt logs from this run to understand why specific
-  direct-injection and jailbreak prompts were still missed with the LLM
-  analyzer live, and tune its prompt/weighting accordingly.
+- Re-run `evaluation/evaluate.py` against the corrected LLM analyzer (see
+  Evaluation results above) and replace the pre-fix numbers with a current
+  result.
+- Analyze per-prompt logs from that run to understand why specific
+  direct-injection and jailbreak prompts were missed, and tune the
+  analyzer's prompt/weighting accordingly if the gap persists post-fix.
 - Expand the benchmark beyond 40 prompts, including obfuscated/translated
   injection variants to stress-test both detection layers.
 - Hold `review`-tier requests pending explicit human approval before

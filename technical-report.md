@@ -59,7 +59,7 @@ unacceptably degrading benign-prompt usability?*
 ```
 User request --> Rule-based detector --> LLM security analyzer -->
 Risk engine --> Policy engine --> (Downstream LLM | Security report)
---> SQLite logs --> Streamlit dashboard
+--> Postgres (Supabase) logs --> Streamlit dashboard
 ```
 
 Two independent detection signals (deterministic rules + LLM semantic
@@ -83,8 +83,10 @@ allowed or silently blocked.
 
 Implemented in Python with a clean modular architecture (Pydantic schemas
 at every module boundary, pure functions for scoring/policy logic,
-SQLite for the audit trail, Streamlit for the review dashboard). Full
-source is in the accompanying repository. Key design choices:
+Postgres (Supabase) for the audit trail — shared between local runs and
+the deployed dashboard rather than two disconnected local files — and
+Streamlit for the review dashboard). Full source is in the accompanying
+repository. Key design choices:
 
 - **Fail-closed-ish fallback:** if the LLM analyzer cannot reach the Groq
   API (no key, network failure), it does not silently treat the request as
@@ -94,23 +96,31 @@ source is in the accompanying repository. Key design choices:
 - **Separation of risk scoring and policy:** `risk_engine.py` and
   `policy_engine.py` are independent pure functions, so detection logic and
   response policy can be changed independently.
+- **Corrected raw_signal calculation:** a bug in `llm_analyzer.py` was
+  identified and fixed post-initial-evaluation: `raw_signal` had been
+  hardcoded to `0.0` whenever the analyzer judged a prompt not-suspicious,
+  discarding the model's actual confidence on every such row rather than
+  scaling with it. This is noted here rather than silently corrected,
+  since it directly affects how the Section 7 results below should be
+  interpreted (see Evaluation status note).
 
 ## 7. Evaluation
+
+**Status note (post-report addition):** the results below were produced
+before the `raw_signal` fix described in Section 6 was applied. They are
+retained as the last verified run, not as a current claim of system
+performance. The benchmark must be re-run against the corrected analyzer
+before these numbers are cited as representative; Section 9 (Future Work)
+reflects this as the immediate next step.
 
 A 40-prompt benchmark was constructed (10 direct injection, 10 indirect
 injection, 10 jailbreak, 10 benign), stored in
 `evaluation/benchmark_dataset.json`, and run through the full pipeline via
-`evaluation/evaluate.py`.
+`evaluation/evaluate.py` with a configured `GROQ_API_KEY`, so the LLM
+Security Analyzer made real API calls for this run rather than operating
+in fallback mode.
 
-**Important honesty note:** this development environment had no access to
-the Groq API (no API key / no outbound network to `api.groq.com`). The LLM
-Security Analyzer therefore ran in its documented fail-safe fallback mode
-for every prompt in this run — it did **not** perform real semantic
-judgment. The results below reflect the **rule-detector-driven portion of
-the pipeline only**, not the full two-layer system the architecture
-describes.
-
-### Results (rule-detector-only run)
+### Results
 
 | Metric | Value |
 |---|---|
@@ -123,24 +133,48 @@ describes.
 | Attack Success Rate | 43.33% |
 | False Positive Rate | 0.00% |
 
-The 5 missed attacks (false negatives) were split across direct-injection
-and jailbreak prompts phrased in ways that did not match any of the
-current 12 regex patterns — e.g. prompts using synonyms or slightly
-different sentence structure than the patterns anticipate. This is exactly
-the class of miss the LLM Security Analyzer is designed to catch, and is
-not yet measured.
+By category:
 
-Zero false positives across the 10 benign prompts, at this rule-only
-stage, is a genuinely encouraging signal for usability — but it is a small
-sample and should not be over-read.
+- **Direct injection (10):** 2 blocked, 8 allowed.
+- **Indirect injection (10):** 10 blocked — full detection in this
+  category.
+- **Jailbreak (10):** 5 blocked, 1 flagged for review, 4 allowed.
+- **Benign (10):** 10 allowed, 0 flagged — zero false positives.
+
+The 13 missed attacks (false negatives) were concentrated in the direct-
+injection and jailbreak categories. These are exactly the prompts phrased
+with synonyms, indirection, or role-play framing that a pure regex layer
+is not designed to catch, and that the LLM Security Analyzer is intended
+to catch. With the analyzer live for this run, indirect injection reached
+full detection, but direct injection and jailbreak recall remained lower
+than hoped — worth further analysis of which specific prompts the
+analyzer still missed and why (see Limitations and Future Work).
+
+Zero false positives across the 10 benign prompts remains a genuinely
+encouraging usability signal, though the sample size is still small.
+
+Note that these figures were produced under the `raw_signal` bug described
+in Section 6: for every prompt the analyzer judged not-suspicious, the
+signal it contributed to the risk score was hardcoded to `0.0` rather than
+scaled from the model's confidence. Whether the observed recall gap on
+direct-injection and jailbreak prompts reflects a genuine analyzer
+limitation, an artifact of this bug, or some combination of both, cannot
+be determined from this run alone and is why a re-run is required before
+drawing conclusions.
+
+### What has now been tested
+
+- The LLM Security Analyzer's real detection contribution, with a live
+  Groq API key configured — this run reflects the full two-layer pipeline,
+  not the rule-only baseline.
 
 ### What has *not* been tested
 
-- The LLM Security Analyzer's real detection contribution (requires a
-  Groq API key not available in this environment).
 - Generalization beyond this 40-prompt set.
 - Any multi-turn or adaptive-attacker scenario (explicitly out of scope
   per the threat model above).
+- Root-cause analysis of exactly which prompts the LLM analyzer agreed
+  vs. disagreed with the rule layer on, at the per-prompt signal level.
 
 ## 8. Limitations
 
@@ -151,18 +185,27 @@ sample and should not be over-read.
    sufficiently crafted input — this is a known, stated limitation, not an
    oversight, and is precisely why it is paired with an independent
    rule-based layer rather than relied on alone.
-3. Rule-only evaluation in this report cannot yet demonstrate the value of
-   the LLM analyzer layer — that is the immediate next experiment.
+3. Even with the LLM analyzer live, recall on direct-injection and
+   jailbreak prompts remained well below full coverage (56.67% overall) in
+   the pre-fix run reported in Section 7. A `raw_signal` bug identified
+   after that run (Section 6) may have contributed to this gap; the
+   benchmark must be re-run against the corrected analyzer before
+   concluding whether prompt design or signal weighting is the remaining
+   cause.
 4. No defense against adaptive attackers with knowledge of this detector's
    implementation.
 
 ## 9. Future Work
 
-- Re-run the benchmark with a real Groq API key to obtain full-pipeline
-  metrics and directly compare against the rule-only baseline in this
-  report.
+- Re-run the benchmark against the corrected `llm_analyzer.py` (Section 6)
+  and replace the pre-fix results in Section 7 with a current, verified
+  run.
+- Analyze per-prompt logs from that re-run to identify why specific
+  direct-injection and jailbreak prompts were missed, and whether the 0.6
+  weighting on the LLM signal or the analyzer's own prompt needs
+  adjustment if the gap persists post-fix.
 - Expand the benchmark with obfuscated and translated injection variants
-  to stress-test the rule layer's known blind spot.
+  to stress-test both layers' blind spots.
 - Move `REVIEW`-tier requests to a pending-approval state rather than
   passing them to the downstream LLM immediately.
 - Integrate AURA Shield into the AURA OS multi-agent architecture as its
