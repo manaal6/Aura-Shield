@@ -1,14 +1,13 @@
 """
 dashboard/streamlit_app.py
 
-Human-in-the-loop review dashboard. Reads directly from the SQLite audit
-log (read-only from this dashboard's perspective) and lets a reviewer see
-every decision, its risk score breakdown, and its explanation - the
-"human review interface" component from the architecture diagram.
+Human-in-the-loop review dashboard. Reads from the shared Postgres
+(Supabase) audit log via app.storage.database.get_connection() - the same
+connection path main.py, evaluate.py, and logger.py use, so local and
+deployed instances of this dashboard always see the same data.
 """
 import os
 import sys
-import sqlite3
 import pandas as pd
 import streamlit as st
 
@@ -23,20 +22,23 @@ from app.storage.database import init_db
 st.set_page_config(page_title="AURA Shield Dashboard", layout="wide")
 st.title("AURA Shield - Security Review Dashboard")
 
-settings = get_settings()
-
-# On a fresh deploy (e.g. Streamlit Cloud, whose filesystem is separate from
-# wherever main.py/evaluate.py were run locally), the SQLite file may not
-# exist yet or may be missing the "logs" table. init_db() is idempotent
-# (CREATE TABLE IF NOT EXISTS), so it's safe to call on every app start and
-# guarantees the table exists before we ever query it.
+# init_db() is idempotent (CREATE TABLE IF NOT EXISTS), so it's safe to call
+# on every app start and guarantees the table exists before we ever query it.
 init_db()
+
+@st.cache_resource
+def get_engine():
+    # pandas' read_sql_query officially supports SQLAlchemy engines (or a
+    # sqlite3 DBAPI2 connection) - a raw psycopg2 connection works but
+    # triggers an "untested" warning, so we use an engine here instead.
+    from sqlalchemy import create_engine
+    settings = get_settings()
+    return create_engine(settings.database_url)
 
 @st.cache_data(ttl=5)
 def load_logs() -> pd.DataFrame:
-    conn = sqlite3.connect(settings.database_path)
-    df = pd.read_sql_query("SELECT * FROM logs ORDER BY id DESC", conn)
-    conn.close()
+    engine = get_engine()
+    df = pd.read_sql_query("SELECT * FROM logs ORDER BY id DESC", engine)
     return df
 
 df = load_logs()
