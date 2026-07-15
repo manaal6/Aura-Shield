@@ -76,10 +76,21 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
         confidence = max(0.0, min(1.0, confidence))
         reasoning = str(parsed.get("reasoning", "")).strip() or "No reasoning provided by model."
 
+        # raw_signal reflects how strongly this judgment pushes toward risk:
+        # - if suspicious, the model's confidence IS the risk signal
+        # - if not suspicious, the signal shrinks as confidence rises
+        #   (is_suspicious=False, confidence=0.95 -> signal 0.05;
+        #   is_suspicious=False, confidence=0.5 -> signal 0.5, i.e. "unsure")
+        # Previously this branch was hardcoded to 0.0 regardless of
+        # confidence, which silently discarded Groq's output on every
+        # non-suspicious row and made risk scores insensitive to run-to-run
+        # variance in the model's actual judgment.
+        raw_signal = confidence if is_suspicious else (1.0 - confidence)
+
         return LLMAnalysisResult(
             is_suspicious=is_suspicious,
             reasoning=reasoning,
-            raw_signal=confidence if is_suspicious else (1.0 - confidence) * 0.0,
+            raw_signal=raw_signal,
             used_fallback=False,
         )
 

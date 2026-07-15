@@ -16,7 +16,11 @@ class Settings(BaseSettings):
     groq_model: str = Field(default="llama-3.1-8b-instant", description="Model used for both the protected LLM call and the security analyzer")
 
     # --- Storage ---
-    database_path: str = Field(default="aura_shield.db", description="Path to the SQLite database file")
+    # database_path is kept only so the one-off sqlite->Postgres migration
+    # script can still open the old local file. The running app no longer
+    # reads or writes it.
+    database_path: str = Field(default="aura_shield.db", description="Path to the legacy local SQLite database file (migration only)")
+    database_url: str = Field(default="", description="Supabase Postgres connection string (Session Pooler URI), loaded from .env or Streamlit secrets")
 
     # --- Risk scoring weights ---
     # Both signals are normalized to 0.0-1.0 before weighting.
