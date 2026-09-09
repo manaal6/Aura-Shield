@@ -8,15 +8,40 @@ it" are independently swappable - policy can change without touching
 detection logic, and vice versa.
 """
 from app.config import get_settings
-from app.models import RiskScore, LLMAnalysisResult, Decision, SecurityDecision
+from app.models import RiskScore, LLMAnalysisResult, ConstitutionCheckResult, Decision, SecurityDecision
 
 
-def decide(risk_score: RiskScore, llm_result: LLMAnalysisResult | None = None) -> SecurityDecision:
+def decide(
+    risk_score: RiskScore,
+    llm_result: LLMAnalysisResult | None = None,
+    constitution_result: ConstitutionCheckResult | None = None,
+) -> SecurityDecision:
     settings = get_settings()
 
     # Escalation: the blended score can undershoot a near-certain LLM
     # detection when the rule signal is 0 (e.g. injection hidden in source
     # content, which no rule pattern covers). Block on the LLM signal alone.
+    # A constitution violation escalates the same way: if any principle was
+    # violated with confidence >= llm_block_signal, block regardless of the
+    # blended score. A confident, citable principle breach is not something
+    # a low rule signal should dilute.
+    if (
+        constitution_result is not None
+        and constitution_result.raw_signal >= settings.llm_block_signal
+    ):
+        violated = [v for v in constitution_result.verdicts if v.violated]
+        strongest = max(violated, key=lambda v: v.confidence)
+        return SecurityDecision(
+            decision=Decision.BLOCK,
+            risk_score=risk_score,
+            explanation=(
+                f"Blocked: constitution principle {strongest.principle_id} violated with "
+                f"confidence {strongest.confidence:.2f} (escalation threshold "
+                f"{settings.llm_block_signal:.2f}), overriding the blended risk score "
+                f"({risk_score.score:.2f}). {strongest.explanation}"
+            ),
+        )
+
     if llm_result is not None and llm_result.raw_signal >= settings.llm_block_signal:
         return SecurityDecision(
             decision=Decision.BLOCK,

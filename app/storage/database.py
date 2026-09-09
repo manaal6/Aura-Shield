@@ -38,6 +38,66 @@ CREATE TABLE IF NOT EXISTS logs (
 );
 """
 
+_SCHEMA_ADDITIONS = """
+CREATE TABLE IF NOT EXISTS constitution_checks (
+    id BIGSERIAL PRIMARY KEY,
+    request_id TEXT NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL,
+    user_prompt TEXT NOT NULL,
+    source_content TEXT,
+    constitution_version INTEGER NOT NULL,
+    principles_evaluated TEXT NOT NULL,
+    verdicts TEXT NOT NULL,
+    signal REAL NOT NULL,
+    used_fallback BOOLEAN NOT NULL,
+    reasoning TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS constitution (
+    id BIGSERIAL PRIMARY KEY,
+    version INTEGER NOT NULL,
+    principle_id TEXT NOT NULL,
+    version_added INTEGER NOT NULL,
+    principle_text TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    status TEXT NOT NULL,
+    added_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS pending_principles (
+    id BIGSERIAL PRIMARY KEY,
+    principle_id TEXT NOT NULL,
+    principle_text TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending_review',
+    triggered_by TEXT NOT NULL,
+    drafted_reasoning TEXT NOT NULL,
+    drafted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    reviewed_by TEXT,
+    reviewed_at TIMESTAMPTZ,
+    review_reason TEXT
+);
+
+CREATE TABLE IF NOT EXISTS constitution_changelog (
+    id BIGSERIAL PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT now(),
+    version INTEGER NOT NULL,
+    action TEXT NOT NULL,
+    principle_id TEXT NOT NULL,
+    principle_text TEXT,
+    triggered_by TEXT,
+    actor TEXT NOT NULL,
+    reason TEXT
+);
+
+CREATE TABLE IF NOT EXISTS human_flags (
+    id BIGSERIAL PRIMARY KEY,
+    request_id TEXT NOT NULL,
+    flagged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    note TEXT
+);
+"""
+
 
 def _resolve_database_url() -> str:
     """DATABASE_URL from env/.env first, then Streamlit secrets (deployed).
@@ -87,4 +147,5 @@ def init_db() -> None:
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(_SCHEMA)
+            cur.execute(_SCHEMA_ADDITIONS)
         conn.commit()

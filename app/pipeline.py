@@ -15,7 +15,8 @@ import logging
 from app.models import IncomingRequest, LogEntry
 from app.detectors import rule_detector, llm_analyzer
 from app.engine import risk_engine, policy_engine
-from app.storage.logger import log_entry
+from app.engine.constitution import constitution_checker
+from app.storage.logger import log_constitution_check, log_entry
 from app.llm_client import call_protected_llm
 from app.models import Decision
 
@@ -27,8 +28,9 @@ def process_request(request: IncomingRequest) -> dict:
 
     rule_result = rule_detector.detect(request.user_prompt, request.source_content)
     llm_result = llm_analyzer.analyze(request.user_prompt, request.source_content)
-    score = risk_engine.compute_risk(rule_result, llm_result)
-    decision = policy_engine.decide(score, llm_result)
+    constitution_result = constitution_checker.check(request.user_prompt, request.source_content)
+    score = risk_engine.compute_risk(rule_result, llm_result, constitution_result)
+    decision = policy_engine.decide(score, llm_result, constitution_result)
 
     entry = LogEntry(
         request_id=request_id,
@@ -36,9 +38,11 @@ def process_request(request: IncomingRequest) -> dict:
         source_content=request.source_content,
         rule_result=rule_result,
         llm_result=llm_result,
+        constitution_result=constitution_result,
         decision=decision,
     )
     log_entry(entry)
+    log_constitution_check(entry)
 
     if decision.decision == Decision.BLOCK:
         llm_response = None
@@ -63,6 +67,7 @@ def process_request(request: IncomingRequest) -> dict:
         "llm_response": llm_response,
         "rule_result": rule_result,
         "llm_result": llm_result,
+        "constitution_result": constitution_result,
     }
 
     return output

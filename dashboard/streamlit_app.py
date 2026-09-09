@@ -142,6 +142,17 @@ def render_dashboard():
     selected_id = st.selectbox("Request ID", options=filtered["request_id"].tolist())
     if selected_id:
         row = filtered[filtered["request_id"] == selected_id].iloc[0]
+        if st.button(
+            "⚠️ Flag as should-have-been-blocked",
+            help="Feeds this request to the adaptive constitution loop, which will draft a candidate principle to cover this attack class.",
+        ):
+            from app.adaptive_loop import add_human_flag
+
+            add_human_flag(selected_id, "Flagged from dashboard review")
+            st.success(
+                f"Flagged `{selected_id}`. Run the adaptive scan (Constitution Review tab) "
+                "to draft a candidate principle for this case."
+            )
         st.json({
             "user_prompt": row["user_prompt"],
             "source_content": row["source_content"],
@@ -158,8 +169,94 @@ def render_dashboard():
         })
 
 
-tab_tester, tab_dashboard = st.tabs(["🧪 Test a prompt", "📊 Review dashboard"])
+def render_constitution_review():
+    import json as _json
+
+    from app.adaptive_loop import (
+        approve_principle, list_pending, load_changelog, reject_principle,
+        run_adaptive_scan,
+    )
+    from app.engine.constitution import load_active_constitution
+
+    st.subheader("Constitution Review")
+    st.caption(
+        "Semi-automatic feedback loop: missed cases can trigger an LLM-drafted "
+        "candidate principle. Drafts are NEVER auto-added - a human approves or "
+        "rejects each one here. (Constitutional AI mechanism, inference-time "
+        "form; no weight fine-tuning is implemented.)"
+    )
+
+    version, principles = load_active_constitution()
+    st.markdown(f"**Active constitution: v{version}** - {len(principles)} principles")
+    with st.expander("View active principles"):
+        for p in principles:
+            st.markdown(
+                f"- **`{p['id']}`** (v{p['version_added']}): {p['principle_text']} \n\n"
+                f"  *Rationale:* {p['rationale']}"
+            )
+
+    st.divider()
+    col_scan, col_scan_info = st.columns([1, 3])
+    with col_scan:
+        if st.button("Run adaptive scan", type="primary"):
+            with st.spinner("Scanning for misses and drafting candidate principles..."):
+                queued = run_adaptive_scan()
+            if queued:
+                st.success(f"Queued {len(queued)} new draft(s) for review below.")
+            else:
+                st.info("No new drafts queued (no misses found, or all already pending).")
+
+    pending = list_pending()
+    st.markdown(f"### Pending principles ({len(pending)})")
+    if not pending:
+        st.info("Nothing pending. Run the adaptive scan after a benchmark run or after flagging requests in the dashboard.")
+    for item in pending:
+        triggered = item.get("triggered_by")
+        if isinstance(triggered, str):
+            try:
+                triggered = _json.loads(triggered)
+            except Exception:
+                triggered = {}
+        with st.container(border=True):
+            st.markdown(f"**`{item['principle_id']}`** (drafted {item['drafted_at']})")
+            st.markdown(f"**Principle:** {item['principle_text']}")
+            st.markdown(f"**Rationale:** {item['rationale']}")
+            st.markdown(f"**How it catches the case:** {item['drafted_reasoning']}")
+            if triggered:
+                st.caption(
+                    f"Triggered by {triggered.get('source', 'unknown')} case "
+                    f"`{triggered.get('request_id', '?')}` - {triggered.get('reason', '')}"
+                )
+            c1, c2, c3 = st.columns([1, 1, 3])
+            with c1:
+                if st.button("Approve", key=f"approve_{item['id']}", type="primary"):
+                    reviewer = st.session_state.get("reviewer_name") or "anonymous"
+                    new_v = approve_principle(item["id"], reviewer)
+                    st.success(f"Approved - constitution is now v{new_version and new_v}.")
+                    st.rerun()
+            with c2:
+                if st.button("Reject", key=f"reject_{item['id']}"):
+                    reject_principle(item["id"], st.session_state.get("reviewer_name") or "anonymous", "Rejected from dashboard without note")
+                    st.info("Rejected.")
+                    st.rerun()
+            with c3:
+                st.text_input("Reviewer name (used in changelog)", key="reviewer_name", placeholder="your name")
+
+    st.divider()
+    st.markdown("### Changelog")
+    for entry in load_changelog():
+        st.markdown(
+            f"- **v{entry['version']}** {entry['action']} `{entry['principle_id']}` "
+            f"by *{entry['actor']}* ({entry['timestamp']}) - {entry['reason'] or ''}"
+        )
+
+
+tab_tester, tab_dashboard, tab_constitution = st.tabs(
+    ["🧪 Test a prompt", "📊 Review dashboard", "⚖️ Constitution Review"]
+)
 with tab_tester:
     render_prompt_tester()
 with tab_dashboard:
     render_dashboard()
+with tab_constitution:
+    render_constitution_review()

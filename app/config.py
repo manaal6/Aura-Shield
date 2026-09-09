@@ -25,8 +25,12 @@ class Settings(BaseSettings):
     # --- Risk scoring weights ---
     # Both signals are normalized to 0.0-1.0 before weighting.
     # Weights sum to 1.0; documented here so the scoring logic is auditable.
-    rule_signal_weight: float = Field(default=0.4, description="Weight given to the rule-based detector's signal")
-    llm_signal_weight: float = Field(default=0.6, description="Weight given to the LLM security analyzer's signal")
+    # Weights sum to 1.0 across the three signals; documented here so the
+    # scoring logic is auditable. Constitution weight is absorbed
+    # proportionally by the other two when no constitution check ran.
+    rule_signal_weight: float = Field(default=0.35, description="Weight given to the rule-based detector's signal")
+    llm_signal_weight: float = Field(default=0.45, description="Weight given to the LLM security analyzer's signal")
+    constitution_signal_weight: float = Field(default=0.20, description="Weight given to the constitution checker's violation signal")
 
     # --- Policy thresholds (0.0-1.0 risk score scale) ---
     threshold_block: float = Field(default=0.75, description="Risk score at or above this value is blocked")

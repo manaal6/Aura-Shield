@@ -88,13 +88,30 @@ it. Full detail in the technical report.
   blended score falls short - e.g. injection hidden in source content,
   which no rule pattern covers and which therefore caps the blend at
   `llm_signal_weight`
+- Constitution Module: a versioned set of explicit safety principles
+  (seeded from `constitution.json`, stored in Postgres, citable by id)
+  that every input is explicitly evaluated against, producing per-principle
+  structured verdicts logged to their own audit table
+- Three-signal risk blending: rule-based, LLM semantic, and constitution
+  violation signals (weights 0.35/0.45/0.20, documented in config.py and
+  docs/technical-report.md), with constitution violations escalating to
+  block at the same confidence threshold as LLM detections
+- Adaptive Constitution Loop: scans benchmark false negatives,
+  near-threshold misses, and human-flagged requests; asks the LLM to draft
+  candidate principles for each case; queues them for human
+  approve/reject in a "Constitution Review" dashboard tab, with a full
+  changelog of every version bump. Drafts are never auto-added.
+  (Inference-time mechanism only - no weight fine-tuning; see the
+  technical report's scope statement.)
 - Postgres (Supabase) audit logging of every decision with a non-empty,
   human-readable explanation, shared between local runs and the deployed
   dashboard so both read the same data
-- Streamlit dashboard with two tabs: a prompt tester (submit a prompt
+- Streamlit dashboard with three tabs: a prompt tester (submit a prompt
   through the same pipeline as the API and immediately see the decision,
-  risk score, and explanation) and the review dashboard over the audit
-  log - deployed persistently at aura-shield.streamlit.app
+  risk score, and explanation), the review dashboard over the audit log
+  (including a "flag as should-have-been-blocked" action that feeds the
+  adaptive loop), and the Constitution Review tab for approving/rejecting
+  drafted principles - deployed persistently at aura-shield.streamlit.app
 - A 40-prompt adversarial + benign benchmark and an evaluation script that
   computes precision, recall, attack success rate, and false-positive rate
   from an actual run - never invented numbers
@@ -159,14 +176,14 @@ for this run:
 | False Positive Rate | 0.00% |
 
 All 30 attack prompts were blocked or flagged (0 false negatives) and all
-10 benign prompts were correctly allowed (0 false positives). Every
-attack category reached full detection, including direct injection and
-jailbreak prompts that the pre-fix run missed - confirming the earlier
-recall gap was largely an artifact of the `raw_signal` bug discarding
-confidence information on non-suspicious verdicts. Note the escalation
-rule's role: several detections relied on the LLM signal alone (rule
-signal 0) and would previously have landed in `review` under the blended
-score.
+10 benign prompts were correctly allowed (0 false positives), with real
+LLM calls on all 40 prompts. This run used the three-signal pipeline
+(rule + LLM semantic + constitution checker, two LLM calls per prompt).
+Every attack category reached full detection; note that several
+detections relied on signal escalation rather than the blended score
+crossing the block threshold, and that a 40-prompt benchmark cannot
+distinguish strong real performance from benchmark overfitting - the
+limitations below apply.
 
 See `docs/technical-report.md` for the full threat model and per-category
 breakdown.
@@ -191,11 +208,23 @@ breakdown.
 - Expand the benchmark and re-run periodically; a 100% recall on 40
   prompts is not a guarantee against paraphrased, obfuscated, or
   translated attacks.
+- Exercise the adaptive constitution loop against genuinely novel attack
+  families: so far it has only been verified mechanically (draft ->
+  approve/reject -> changelog), not end-to-end against a real miss,
+  because the current benchmark produces zero false negatives to feed it.
+  A 100%-recall benchmark is actually a *limitation* for testing this
+  component.
+- Add bulk drafting and deduplication to the adaptive loop before using
+  it on a noisy production log: the current scan drafts one principle
+  per missed case, which would flood the review queue at scale.
 - Expand the benchmark beyond 40 prompts, including obfuscated/translated
   injection variants to stress-test both detection layers.
 - Hold `review`-tier requests pending explicit human approval before
   reaching the downstream LLM, rather than passing them through
   immediately as this POC currently does.
+- Explore training-time constitution-based alignment (DPO/RLHF on
+  AI-feedback labels) - explicitly out of scope for this inference-time
+  POC; see the technical report's scope statement.
 - Integrate AURA Shield into AURA OS as its Input Security Agent.
 
 ## Connection to AURA OS
