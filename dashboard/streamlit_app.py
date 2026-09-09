@@ -23,6 +23,47 @@ from app.storage.database import _normalize_database_url, _resolve_database_url,
 st.set_page_config(page_title="AURA Shield", layout="wide")
 st.title("AURA Shield - Security Review Dashboard")
 
+# Mobile responsiveness: Streamlit stacks columns on narrow viewports, but
+# its default paddings/font sizes and fixed-width table cells make the app
+# awkward on phones. This CSS tightens chrome, lets wide tables scroll
+# horizontally instead of overflowing, and scales headings down.
+st.markdown(
+    """
+    <style>
+    /* Tighter page chrome on small screens */
+    @media (max-width: 768px) {
+        .block-container { padding: 1rem 0.75rem 3rem !important; }
+        h1 { font-size: 1.4rem !important; }
+        h2 { font-size: 1.15rem !important; }
+        h3 { font-size: 1rem !important; }
+        /* Tab labels are long; shrink and let them wrap */
+        .stTabs [data-baseweb="tab-list"] { gap: 0.4rem; }
+        .stTabs [data-baseweb="tab"] {
+            padding: 0.35rem 0.5rem;
+            font-size: 0.85rem;
+        }
+        /* Metrics: 3-across is unreadable on phones; let them shrink */
+        [data-testid="stMetricValue"] { font-size: 1.3rem !important; }
+        [data-testid="stMetricLabel"] { font-size: 0.75rem !important; }
+    }
+    /* Wide tables scroll horizontally within their container rather than
+       pushing the whole page wider */
+    [data-testid="stDataFrame"] { overflow-x: auto; }
+    /* Code/JSON blocks wrap instead of overflowing */
+    [data-testid="stJson"], pre, code {
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+    }
+    /* Full-width buttons in single-column layouts */
+    .stButton > button { width: 100%; }
+    @media (min-width: 769px) {
+        .stButton > button { width: auto; }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 try:
     init_db()
 except Exception as e:
@@ -118,10 +159,11 @@ def render_dashboard():
         st.info("No requests logged yet. Run main.py or the evaluation script to generate data.")
         return
 
-    col1, col2, col3 = st.columns(3)
+    # 2+1 on narrow screens via nested columns (Streamlit stacks each row)
+    col1, col2 = st.columns(2)
     col1.metric("Total requests", len(df))
     col2.metric("Blocked", int((df["decision"] == "block").sum()))
-    col3.metric("Flagged for review", int((df["decision"] == "review").sum()))
+    st.metric("Flagged for review", int((df["decision"] == "review").sum()))
 
     decision_filter = st.multiselect(
         "Filter by decision", options=["allow", "review", "block"],
