@@ -39,16 +39,44 @@ CREATE TABLE IF NOT EXISTS logs (
 """
 
 
+def _resolve_database_url() -> str:
+    """DATABASE_URL from env/.env first, then Streamlit secrets (deployed).
+
+    Streamlit Cloud does not expose secrets.toml entries as environment
+    variables, so pydantic-settings alone can't see them when deployed.
+    """
+    url = get_settings().database_url
+    if url:
+        return url
+    try:
+        import streamlit as st
+
+        if "DATABASE_URL" in st.secrets:
+            return str(st.secrets["DATABASE_URL"])
+    except Exception:
+        pass  # not running under Streamlit, or no secrets file
+    return ""
+
+
+def _normalize_database_url(url: str) -> str:
+    url = url.strip().strip("'\"")
+    if url and "sslmode=" not in url:
+        # Supabase rejects unencrypted connections.
+        url += "&" if "?" in url else "?"
+        url += "sslmode=require"
+    return url
+
+
 @contextmanager
 def get_connection():
-    settings = get_settings()
-    if not settings.database_url:
+    url = _normalize_database_url(_resolve_database_url())
+    if not url:
         raise RuntimeError(
             "DATABASE_URL is not set. Add it to .env (local) or "
             "Streamlit secrets (deployed) - see Supabase project "
             "Settings -> Database -> Connection string (Session pooler)."
         )
-    conn = psycopg2.connect(settings.database_url)
+    conn = psycopg2.connect(url)
     try:
         yield conn
     finally:

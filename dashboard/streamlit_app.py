@@ -16,15 +16,25 @@ import streamlit as st
 # package isn't importable by default. Add the repo root explicitly.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.config import get_settings
-from app.storage.database import init_db
+from app.storage.database import _normalize_database_url, _resolve_database_url, init_db
 
 st.set_page_config(page_title="AURA Shield Dashboard", layout="wide")
 st.title("AURA Shield - Security Review Dashboard")
 
 # init_db() is idempotent (CREATE TABLE IF NOT EXISTS), so it's safe to call
 # on every app start and guarantees the table exists before we ever query it.
-init_db()
+try:
+    init_db()
+except Exception as e:
+    st.error(
+        "**Could not connect to the database.** Check that the "
+        "`DATABASE_URL` secret is set in Streamlit Cloud (App settings → "
+        "Secrets) and points at the Supabase **Session pooler** URI "
+        "(aws-…pooler.supabase.com:5432), with the password URL-encoded. "
+        "Raw error:"
+    )
+    st.exception(e)
+    st.stop()
 
 @st.cache_resource
 def get_engine():
@@ -32,8 +42,8 @@ def get_engine():
     # sqlite3 DBAPI2 connection) - a raw psycopg2 connection works but
     # triggers an "untested" warning, so we use an engine here instead.
     from sqlalchemy import create_engine
-    settings = get_settings()
-    return create_engine(settings.database_url)
+    url = _normalize_database_url(_resolve_database_url())
+    return create_engine(url)
 
 @st.cache_data(ttl=5)
 def load_logs() -> pd.DataFrame:
