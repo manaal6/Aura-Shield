@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     threshold_review: float = Field(default=0.40, description="Risk score at or above this value (but below block) is flagged for human review")
     # Anything below threshold_review is allowed automatically.
 
+    # Escalation rule: a near-certain LLM detection blocks even when the
+    # blended score falls short (e.g. rule signal 0 caps the blend at
+    # llm_signal_weight). Set to 1.01 to disable.
+    llm_block_signal: float = Field(default=0.90, description="LLM raw signal at or above this value blocks outright, regardless of blended score")
+
     # --- App behavior ---
     log_level: str = Field(default="INFO")
 

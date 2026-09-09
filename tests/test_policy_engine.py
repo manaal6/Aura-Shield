@@ -24,3 +24,25 @@ def test_explanation_never_empty():
         score = RiskScore(score=s, rule_contribution=s/2, llm_contribution=s/2)
         result = decide(score)
         assert len(result.explanation) > 0
+
+from app.models import LLMAnalysisResult
+
+def _llm(signal: float) -> LLMAnalysisResult:
+    return LLMAnalysisResult(
+        is_suspicious=True, reasoning="test", raw_signal=signal, used_fallback=False
+    )
+
+def test_high_llm_signal_escalates_to_block():
+    score = RiskScore(score=0.59, rule_contribution=0.0, llm_contribution=0.59)
+    result = decide(score, _llm(0.99))
+    assert result.decision == Decision.BLOCK
+    assert "escalation" in result.explanation
+
+def test_moderate_llm_signal_does_not_escalate():
+    score = RiskScore(score=0.3, rule_contribution=0.0, llm_contribution=0.3)
+    result = decide(score, _llm(0.5))
+    assert result.decision == Decision.ALLOW
+
+def test_escalation_only_when_llm_result_provided():
+    score = RiskScore(score=0.59, rule_contribution=0.0, llm_contribution=0.59)
+    assert decide(score).decision == Decision.REVIEW

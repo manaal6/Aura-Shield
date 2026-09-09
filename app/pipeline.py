@@ -28,7 +28,7 @@ def process_request(request: IncomingRequest) -> dict:
     rule_result = rule_detector.detect(request.user_prompt, request.source_content)
     llm_result = llm_analyzer.analyze(request.user_prompt, request.source_content)
     score = risk_engine.compute_risk(rule_result, llm_result)
-    decision = policy_engine.decide(score)
+    decision = policy_engine.decide(score, llm_result)
 
     entry = LogEntry(
         request_id=request_id,

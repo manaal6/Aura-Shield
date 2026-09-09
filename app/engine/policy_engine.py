@@ -8,11 +8,25 @@ it" are independently swappable - policy can change without touching
 detection logic, and vice versa.
 """
 from app.config import get_settings
-from app.models import RiskScore, Decision, SecurityDecision
+from app.models import RiskScore, LLMAnalysisResult, Decision, SecurityDecision
 
 
-def decide(risk_score: RiskScore) -> SecurityDecision:
+def decide(risk_score: RiskScore, llm_result: LLMAnalysisResult | None = None) -> SecurityDecision:
     settings = get_settings()
+
+    # Escalation: the blended score can undershoot a near-certain LLM
+    # detection when the rule signal is 0 (e.g. injection hidden in source
+    # content, which no rule pattern covers). Block on the LLM signal alone.
+    if llm_result is not None and llm_result.raw_signal >= settings.llm_block_signal:
+        return SecurityDecision(
+            decision=Decision.BLOCK,
+            risk_score=risk_score,
+            explanation=(
+                f"Blocked: LLM security analyzer signal {llm_result.raw_signal:.2f} met or "
+                f"exceeded the escalation threshold ({settings.llm_block_signal:.2f}), overriding "
+                f"the blended risk score ({risk_score.score:.2f}). Reasoning: {llm_result.reasoning}"
+            ),
+        )
 
     if risk_score.score >= settings.threshold_block:
         decision = Decision.BLOCK
