@@ -13,7 +13,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     # --- External services ---
     groq_api_key: str = Field(default="", description="Groq API key, loaded from .env")
-    groq_model: str = Field(default="llama-3.1-8b-instant", description="Model used for both the protected LLM call and the security analyzer")
+    groq_model: str = Field(default="openai/gpt-oss-120b", description="Model used for both the protected LLM call and the security analyzer")
 
     # --- Storage ---
     # database_path is kept only so the one-off sqlite->Postgres migration
