@@ -96,85 +96,91 @@ repository. Key design choices:
 - **Separation of risk scoring and policy:** `risk_engine.py` and
   `policy_engine.py` are independent pure functions, so detection logic and
   response policy can be changed independently.
-- **Corrected raw_signal calculation:** a bug in `llm_analyzer.py` was
-  identified and fixed post-initial-evaluation: `raw_signal` had been
-  hardcoded to `0.0` whenever the analyzer judged a prompt not-suspicious,
-  discarding the model's actual confidence on every such row rather than
-  scaling with it. This is noted here rather than silently corrected,
-  since it directly affects how the Section 7 results below should be
-  interpreted (see Evaluation status note).
+- **Constitution layer as an additional signal:** the constitution
+  checker (`app/engine/constitution.py`) runs alongside - never instead
+  of - the rule-based detector and LLM semantic analyzer; see Section 11
+  for its design and the adaptive feedback loop.
+- **Corrected raw_signal calculation (historical note):** a bug in
+  `llm_analyzer.py` was identified and fixed after the initial
+  evaluation: `raw_signal` had been hardcoded to `0.0` whenever the
+  analyzer judged a prompt not-suspicious, discarding the model's actual
+  confidence on every such row. It is kept on record rather than
+  silently corrected because it shaped the system's history - the
+  initial run's low recall (Section 7, historical context) was largely
+  attributable to it. The default LLM model was also updated to
+  `openai/gpt-oss-120b` after Groq retired `llama-3.1-8b-instant`.
 
 ## 7. Evaluation
 
-**Status note (post-report addition):** the results below were produced
-before the `raw_signal` fix described in Section 6 was applied. They are
-retained as the last verified run, not as a current claim of system
-performance. The benchmark must be re-run against the corrected analyzer
-before these numbers are cited as representative; Section 9 (Future Work)
-reflects this as the immediate next step.
-
-A 40-prompt benchmark was constructed (10 direct injection, 10 indirect
-injection, 10 jailbreak, 10 benign), stored in
-`evaluation/benchmark_dataset.json`, and run through the full pipeline via
-`evaluation/evaluate.py` with a configured `GROQ_API_KEY`, so the LLM
-Security Analyzer made real API calls for this run rather than operating
-in fallback mode.
+The 40-prompt benchmark (10 direct injection, 10 indirect injection,
+10 jailbreak, 10 benign) in `evaluation/benchmark_dataset.json` was run
+through the full pipeline via `evaluation/evaluate.py` with a configured
+`GROQ_API_KEY`. The reported run used the current three-signal pipeline -
+rule-based detector, LLM semantic analyzer, and constitution checker
+(model `openai/gpt-oss-120b`) - with real API calls on all 40 prompts
+(two LLM calls per prompt: one for the semantic analyzer, one for the
+constitution check).
 
 ### Results
 
 | Metric | Value |
 |---|---|
-| True positives | 17 |
-| False negatives | 13 |
+| True positives | 30 |
+| False negatives | 0 |
 | False positives | 0 |
 | True negatives | 10 |
 | Precision | 100.00% |
-| Recall | 56.67% |
-| Attack Success Rate | 43.33% |
+| Recall | 100.00% |
+| Attack Success Rate | 0.00% |
 | False Positive Rate | 0.00% |
 
-By category:
+By category: every attack category (direct injection, indirect injection,
+jailbreak) reached full detection - 10/10 blocked or flagged each - and
+all 10 benign prompts were correctly allowed with zero false positives.
 
-- **Direct injection (10):** 2 blocked, 8 allowed.
-- **Indirect injection (10):** 10 blocked — full detection in this
-  category.
-- **Jailbreak (10):** 5 blocked, 1 flagged for review, 4 allowed.
-- **Benign (10):** 10 allowed, 0 flagged — zero false positives.
+### Historical context (stated honestly, for provenance)
 
-The 13 missed attacks (false negatives) were concentrated in the direct-
-injection and jailbreak categories. These are exactly the prompts phrased
-with synonyms, indirection, or role-play framing that a pure regex layer
-is not designed to catch, and that the LLM Security Analyzer is intended
-to catch. With the analyzer live for this run, indirect injection reached
-full detection, but direct injection and jailbreak recall remained lower
-than hoped — worth further analysis of which specific prompts the
-analyzer still missed and why (see Limitations and Future Work).
+Two earlier runs are preserved in the repository history because they
+materially shaped the current design:
 
-Zero false positives across the 10 benign prompts remains a genuinely
-encouraging usability signal, though the sample size is still small.
+1. **Pre-`raw_signal`-fix run (recall 56.67%).** The first full-pipeline
+   run was affected by a bug in `llm_analyzer.py`: for every prompt the
+   LLM judged not-suspicious, its contributed signal was hardcoded to
+   `0.0` regardless of the model's actual confidence. That run measured
+   17 TP / 13 FN (recall 56.67%), with misses concentrated in direct
+   injection and jailbreak prompts. After the fix, recall reached 100%,
+   strongly suggesting the earlier gap was largely an artifact of the bug
+   discarding confidence information, though n=40 cannot fully separate
+   that from benchmark overfitting.
+2. **Two-signal run before the constitution layer (recall 100%).** After
+   the fix but before the constitution layer, a re-run also achieved
+   100% recall using the LLM-escalation rule alone. The constitution
+   layer's addition therefore did not change the headline metrics on
+   this benchmark - its value is per-principle citability of decisions
+   and the audit/versioning machinery, not measured recall improvement
+   on this set.
 
-Note that these figures were produced under the `raw_signal` bug described
-in Section 6: for every prompt the analyzer judged not-suspicious, the
-signal it contributed to the risk score was hardcoded to `0.0` rather than
-scaled from the model's confidence. Whether the observed recall gap on
-direct-injection and jailbreak prompts reflects a genuine analyzer
-limitation, an artifact of this bug, or some combination of both, cannot
-be determined from this run alone and is why a re-run is required before
-drawing conclusions.
+### Interpretation caveats
 
-### What has now been tested
+- Several detections in the current run relied on signal escalation
+  (LLM or constitution signal >= 0.90) rather than the blended score
+  crossing the block threshold on its own; the escalation rule is doing
+  real work in these results.
+- A 100% recall on a 40-prompt benchmark written by the same authors who
+  wrote the detector cannot be distinguished from benchmark overfitting.
+  The benign set produced risk scores near 0.00 across the board, which
+  is encouraging, but the false-positive claim rests on 10 prompts only.
 
-- The LLM Security Analyzer's real detection contribution, with a live
-  Groq API key configured — this run reflects the full two-layer pipeline,
-  not the rule-only baseline.
-
-### What has *not* been tested
+### What has not been tested
 
 - Generalization beyond this 40-prompt set.
 - Any multi-turn or adaptive-attacker scenario (explicitly out of scope
   per the threat model above).
-- Root-cause analysis of exactly which prompts the LLM analyzer agreed
-  vs. disagreed with the rule layer on, at the per-prompt signal level.
+- The adaptive constitution loop against a real miss - the benchmark
+  currently produces zero false negatives, so the loop has only been
+  verified mechanically (draft -> approve/reject -> changelog), not
+  end-to-end. A perfectly-recalling benchmark is itself a limitation
+  for testing this component.
 
 ## 8. Limitations
 
@@ -185,29 +191,35 @@ drawing conclusions.
    sufficiently crafted input — this is a known, stated limitation, not an
    oversight, and is precisely why it is paired with an independent
    rule-based layer rather than relied on alone.
-3. Even with the LLM analyzer live, recall on direct-injection and
-   jailbreak prompts remained well below full coverage (56.67% overall) in
-   the pre-fix run reported in Section 7. A `raw_signal` bug identified
-   after that run (Section 6) may have contributed to this gap; the
-   benchmark must be re-run against the corrected analyzer before
-   concluding whether prompt design or signal weighting is the remaining
-   cause.
-4. No defense against adaptive attackers with knowledge of this detector's
+3. A 100% recall on the 40-prompt benchmark cannot be distinguished
+   from overfitting: the benchmark was authored alongside the detector.
+   The escalation rule also means measured recall now depends heavily on
+   a single analyzer's confidence calibration; an analyzer that became
+   false-positive-prone could block benign prompts at scale (0/10 false
+   positives here, but n=10).
+4. The constitution checker doubles the LLM calls per request (semantic
+   analyzer + constitution check), which doubles latency and API cost
+   per request; no caching or batching is implemented.
+5. No defense against adaptive attackers with knowledge of this detector's
    implementation.
 
 ## 9. Future Work
 
-- Re-run the benchmark against the corrected `llm_analyzer.py` (Section 6)
-  and replace the pre-fix results in Section 7 with a current, verified
-  run.
-- Analyze per-prompt logs from that re-run to identify why specific
-  direct-injection and jailbreak prompts were missed, and whether the 0.6
-  weighting on the LLM signal or the analyzer's own prompt needs
-  adjustment if the gap persists post-fix.
 - Expand the benchmark with obfuscated and translated injection variants
-  to stress-test both layers' blind spots.
+  to stress-test both layers' blind spots, and have a third party author
+  part of the attack set to reduce overfitting risk.
+- Exercise the adaptive constitution loop against genuinely novel attack
+  families; the current 100%-recall benchmark leaves it nothing to learn
+  from (see Section 7). Add bulk drafting and deduplication first so a
+  noisy production log does not flood the review queue.
+- Explore training-time constitution-based alignment (DPO/RLHF on
+  AI-feedback labels, per Ganguli et al. 2023) - explicitly out of scope
+  for this inference-time POC (see Section 11).
 - Move `REVIEW`-tier requests to a pending-approval state rather than
   passing them to the downstream LLM immediately.
+- Reduce per-request LLM cost: merge the semantic analyzer and
+  constitution checker into a single call, or cache constitution verdicts
+  for repeated inputs.
 - Integrate AURA Shield into the AURA OS multi-agent architecture as its
   Input Security Agent, gating all external input before it reaches any
   downstream agent.
