@@ -1,0 +1,26 @@
+# Render deployment for the AURA Shield web console.
+# Free tier: web service spins down after 15 min of inactivity (first
+# request after that takes ~30-60 s to wake) - fine for a demo/POC.
+#
+# After connecting this repo to Render, add the two secret env vars in
+# the dashboard (Settings -> Environment); they are deliberately not in
+# this file so credentials never live in git:
+#   DATABASE_URL  - Supabase session pooler URI
+#   GROQ_API_KEY  - Groq API key
+services:
+  - type: web
+    name: aura-shield
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn webapp.server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/benchmark
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.6"
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: DATABASE_URL
+        sync: false  # set in Render dashboard (secret)
+      - key: GROQ_API_KEY
+        sync: false  # set in Render dashboard (secret)
