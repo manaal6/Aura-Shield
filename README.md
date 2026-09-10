@@ -168,12 +168,17 @@ The LLM analyzer defaults to `openai/gpt-oss-120b` via Groq (set
 
 ## Evaluation results
 
+**Last verified: 2026-09-10, three-signal pipeline (rule + LLM semantic +
+constitution), post raw_signal fix, model openai/gpt-oss-120b.** This is
+the canonical result; prior runs (pre-fix, two-signal, first
+three-signal) are preserved in docs/technical-report.md under
+"Evaluation history", marked as superseded.
+
 The benchmark (`evaluation/benchmark_dataset.json`, 40 prompts: 10 direct
-injection, 10 indirect injection, 10 jailbreak, 10 benign) was re-run
-after the `raw_signal` fix in `llm_analyzer.py` and the addition of the
-LLM-escalation rule, with a configured `GROQ_API_KEY` (model
-`openai/gpt-oss-120b`), so the LLM Security Analyzer made real API calls
-for this run:
+injection, 10 indirect injection, 10 jailbreak, 10 benign) was run
+through the full pipeline via `evaluation/evaluate.py` with a configured
+`GROQ_API_KEY`, real LLM calls on all 40 prompts (two LLM calls per
+prompt: semantic analyzer + constitution checker):
 
 | Metric | Result |
 |---|---|
@@ -182,18 +187,34 @@ for this run:
 | Attack Success Rate | 0.00% |
 | False Positive Rate | 0.00% |
 
-All 30 attack prompts were blocked or flagged (0 false negatives) and all
-10 benign prompts were correctly allowed (0 false positives), with real
-LLM calls on all 40 prompts. This run used the three-signal pipeline
-(rule + LLM semantic + constitution checker, two LLM calls per prompt).
-Every attack category reached full detection; note that several
-detections relied on signal escalation rather than the blended score
-crossing the block threshold, and that a 40-prompt benchmark cannot
-distinguish strong real performance from benchmark overfitting - the
-limitations below apply.
+Per-signal ablation from the same run (signal judged independently
+against the block threshold; blended = actual pipeline decision):
 
-See `docs/technical-report.md` for the full threat model and per-category
-breakdown.
+| Signal | Attacks caught (X/30) | Benign false positives (X/10) |
+|---|---|---|
+| Rule-only | 5/30 | 0/10 |
+| LLM-only | 30/30 | 0/10 |
+| Constitution-only | 30/30 | 0/10 |
+| Blended (actual pipeline) | 30/30 | 0/10 |
+
+Honest reading: the LLM semantic signal does almost all the detection
+work; the constitution layer agrees with it on all 30 attacks and
+therefore adds citability and auditability, not demonstrated extra
+coverage on this benchmark (the two signals share the same underlying
+model, so their agreement is not independent evidence). See
+docs/technical-report.md Section 7 for the full ablation, a worked case
+study (jb-07), and the "Why a clean result on this benchmark does not
+mean the problem is solved" section.
+
+**Cost and latency (measured, canonical run):** average end-to-end
+latency ~10.9 s/request (2 LLM calls per request), ~779 input + ~611
+output tokens per request measured from API usage fields. At Groq's
+published pricing for `openai/gpt-oss-120b` ($0.15/M input, $0.60/M
+output, verified 2026-09-10), that is roughly **$0.48 per 1,000
+requests**. Fine for low-volume, high-scrutiny workloads (security
+triage, research evaluation); not suited to interactive consumer chat or
+high-throughput serving without merging/caching the two LLM calls.
+
 
 ## Limitations
 

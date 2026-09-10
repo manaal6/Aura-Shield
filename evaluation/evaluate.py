@@ -52,13 +52,26 @@ def run_benchmark() -> list[dict]:
     results = []
     any_real_llm_call = False
 
+    # Uniform per-signal block criterion used ONLY for the ablation log
+    # below: a signal "would block" if its raw signal meets the same block
+    # threshold the policy engine uses on the blended score (0.75). The
+    # real pipeline additionally escalates at llm_block_signal (0.90) for
+    # the LLM and constitution signals; the blended decision recorded here
+    # is always the actual pipeline decision, never this approximation.
+    from app.config import get_settings
+    block_threshold = get_settings().threshold_block
+
+    total_latency_ms = 0.0
     for item in dataset:
         request = IncomingRequest(
             user_prompt=item["user_prompt"],
             source_content=item.get("source_content"),
             request_id=item["id"],
         )
+        start = time.perf_counter()
         outcome = process_request(request)
+        latency_ms = (time.perf_counter() - start) * 1000
+        total_latency_ms += latency_ms
 
         # process_request() now returns the rule/llm detection results
         # directly, so we don't need (and must not) call the detectors a
@@ -66,6 +79,7 @@ def run_benchmark() -> list[dict]:
         # burning through the free-tier rate limit during a benchmark run.
         rule_result = outcome["rule_result"]
         llm_result = outcome["llm_result"]
+        constitution_result = outcome.get("constitution_result")
         if not llm_result.used_fallback:
             any_real_llm_call = True
 
@@ -84,6 +98,19 @@ def run_benchmark() -> list[dict]:
             "llm_used_fallback": llm_result.used_fallback,
             "is_attack_ground_truth": is_attack,
             "flagged_by_shield": flagged,
+            # Per-signal ablation log (additive; does not affect the
+            # pipeline). "would_block" = raw signal >= block threshold.
+            "rule_signal": rule_result.raw_signal,
+            "rule_would_block": bool(rule_result.raw_signal >= block_threshold),
+            "llm_signal": llm_result.raw_signal,
+            "llm_would_block": bool(llm_result.raw_signal >= block_threshold),
+            "constitution_signal": constitution_result.raw_signal if constitution_result else None,
+            "constitution_would_block": bool(constitution_result and constitution_result.raw_signal >= block_threshold),
+            "constitution_fallback": bool(constitution_result.used_fallback) if constitution_result else None,
+            # Latency/cost instrumentation (Task 4)
+            "latency_ms": round(latency_ms, 1),
+            "llm_calls": (0 if llm_result.used_fallback else 1)
+                         + (0 if (constitution_result is None or constitution_result.used_fallback) else 1),
         })
 
         # Only worth pausing if we're actually hitting the network -
@@ -153,6 +180,31 @@ def print_report(results: list[dict], metrics: dict, real_llm: bool):
     print(f"Recall:                   {fmt(metrics['recall'])}")
     print(f"Attack Success Rate:      {fmt(metrics['attack_success_rate'])}  (lower is better)")
     print(f"False Positive Rate:      {fmt(metrics['false_positive_rate'])}")
+    print("-" * 70)
+    # Ablation summary: each signal judged independently against the block
+    # threshold; the blended column is the actual pipeline decision.
+    attacks = [r for r in results if r["is_attack_ground_truth"]]
+    benign = [r for r in results if not r["is_attack_ground_truth"]]
+    print("Per-signal ablation (signal >= block threshold):")
+    print(f"{'signal':<14}{'attacks caught':<22}{'benign false positives'}")
+    for name, sig_key, block_key in [
+        ("rule-only", "rule_signal", "rule_would_block"),
+        ("llm-only", "llm_signal", "llm_would_block"),
+        ("constitution-only", "constitution_signal", "constitution_would_block"),
+    ]:
+        caught = sum(1 for r in attacks if r[block_key])
+        fps = sum(1 for r in benign if r[block_key])
+        print(f"{name:<14}{f'{caught}/{len(attacks)}':<22}{f'{fps}/{len(benign)}'}")
+    blended_caught = sum(1 for r in attacks if r["flagged_by_shield"])
+    blended_fp = sum(1 for r in benign if r["flagged_by_shield"])
+    print(f"{'blended':<14}{f'{blended_caught}/{len(attacks)}':<22}{f'{blended_fp}/{len(benign)}'}")
+    latencies = [r["latency_ms"] for r in results if "latency_ms" in r]
+    if latencies:
+        calls = sum(r.get("llm_calls", 0) for r in results)
+        print("-" * 70)
+        print(f"Avg end-to-end latency:   {sum(latencies)/len(latencies):.0f} ms/request "
+              f"(min {min(latencies):.0f}, max {max(latencies):.0f})")
+        print(f"LLM API calls:            {calls} total ({calls/len(results):.1f} per request)")
     print("=" * 70)
 
 
@@ -161,5 +213,16 @@ if __name__ == "__main__":
     metrics = compute_metrics(results)
     print_report(results, metrics, real_llm)
 
-    summary = {"real_llm_calls_used": real_llm, "metrics": metrics}
+    latencies = [r["latency_ms"] for r in results if "latency_ms" in r]
+    summary = {
+        "real_llm_calls_used": real_llm,
+        "metrics": metrics,
+        "latency": {
+            "avg_ms": round(sum(latencies) / len(latencies), 1) if latencies else None,
+            "min_ms": round(min(latencies), 1) if latencies else None,
+            "max_ms": round(max(latencies), 1) if latencies else None,
+            "llm_calls_total": sum(r.get("llm_calls", 0) for r in results),
+            "llm_calls_per_request": round(sum(r.get("llm_calls", 0) for r in results) / len(results), 2) if results else None,
+        },
+    }
     (Path(__file__).parent / "metrics_summary.json").write_text(json.dumps(summary, indent=2))

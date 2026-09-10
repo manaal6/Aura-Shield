@@ -9,5 +9,12 @@
     "recall": 1.0,
     "attack_success_rate": 0.0,
     "false_positive_rate": 0.0
+  },
+  "latency": {
+    "avg_ms": 10856.9,
+    "min_ms": 6974.3,
+    "max_ms": 16194.6,
+    "llm_calls_total": 80,
+    "llm_calls_per_request": 2.0
   }
 }
