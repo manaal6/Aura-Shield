@@ -6,3 +6,5 @@ pandas>=2.2
 pytest>=8.0
 psycopg2-binary
 sqlalchemy
+fastapi
+uvicorn
