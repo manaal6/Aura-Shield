@@ -51,7 +51,7 @@ class AnalyzeRequest(BaseModel):
 
 @app.get("/")
 def index():
-    return FileResponse(ROOT / "webapp" / "static" / "index.html")
+    return FileResponse(ROOT / "webapp" / "static" / "dist" / "index.html")
 
 
 @app.get("/api/analyze")
