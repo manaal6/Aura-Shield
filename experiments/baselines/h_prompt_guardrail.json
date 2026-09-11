@@ -1,0 +1,36 @@
+{
+  "experiment_id": "baseline_h_prompt_guardrail",
+  "experiment_name": "Baseline H: Monolithic Prompt Guardrail",
+  "hypothesis": "A single prompt guardrail performs moderately well on overt attacks but fails on obfuscated and indirect attacks.",
+  "independent_variables": [
+    "active_detectors",
+    "scoring_pipeline"
+  ],
+  "dependent_variables": [
+    "precision",
+    "recall",
+    "f1",
+    "fpr",
+    "latency_ms"
+  ],
+  "control_baseline": "A_rule_only",
+  "dataset_split": "dev",
+  "dataset_files": [
+    "data/benchmark/dev/direct_injection.jsonl",
+    "data/benchmark/dev/indirect_injection.jsonl",
+    "data/benchmark/dev/jailbreak_persona.jsonl",
+    "data/benchmark/dev/benign_general.jsonl"
+  ],
+  "model_roles": {
+    "analyzer": "groq/openai/gpt-oss-120b",
+    "constitution": "groq/openai/gpt-oss-120b",
+    "downstream": "groq/openai/gpt-oss-120b",
+    "evaluator": "groq/openai/gpt-oss-120b"
+  },
+  "baseline_config": "H_prompt_guardrail",
+  "tags": [
+    "baseline",
+    "ablation",
+    "phase_4"
+  ]
+}

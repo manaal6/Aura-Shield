@@ -1,0 +1,39 @@
+{
+  "experiment_id": "heterogeneous_constitution_heavy",
+  "experiment_name": "Cross-Model Exp 3: High-Capacity Constitution Checker",
+  "hypothesis": "Assigning a high-capacity model (Llama-3.3-70B) to the constitution module improves structured verdict accuracy and reduces false positives.",
+  "independent_variables": [
+    "model_analyzer",
+    "model_constitution",
+    "model_downstream",
+    "model_evaluator"
+  ],
+  "dependent_variables": [
+    "precision",
+    "recall",
+    "f1",
+    "fpr",
+    "cross_model_transferability",
+    "latency_ms"
+  ],
+  "control_baseline": "G_full_blended",
+  "dataset_split": "dev",
+  "dataset_files": [
+    "data/benchmark/dev/direct_injection.jsonl",
+    "data/benchmark/dev/indirect_injection.jsonl",
+    "data/benchmark/dev/jailbreak_persona.jsonl",
+    "data/benchmark/dev/benign_general.jsonl"
+  ],
+  "model_roles": {
+    "analyzer": "groq/openai/gpt-oss-120b",
+    "constitution": "groq/llama-3.3-70b-versatile",
+    "downstream": "groq/openai/gpt-oss-120b",
+    "evaluator": "groq/openai/gpt-oss-120b"
+  },
+  "baseline_config": "G_full_blended",
+  "tags": [
+    "cross_model",
+    "heterogeneous",
+    "phase_5"
+  ]
+}

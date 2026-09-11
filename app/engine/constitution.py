@@ -100,25 +100,30 @@ def seed_constitution_if_empty() -> int:
 
 
 def load_active_constitution() -> tuple[int, list[dict]]:
-    """Returns (version, active_principles) from Postgres."""
-    version = seed_constitution_if_empty()
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT principle_id, version_added, principle_text, rationale
-                FROM constitution WHERE status = 'active'
-                ORDER BY id
-                """
-            )
-            principles = [
-                {
-                    "id": row[0], "version_added": row[1],
-                    "principle_text": row[2], "rationale": row[3],
-                }
-                for row in cur.fetchall()
-            ]
-    return version, principles
+    """Returns (version, active_principles) from Postgres, falling back to seed file if DB unavailable."""
+    try:
+        version = seed_constitution_if_empty()
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT principle_id, version_added, principle_text, rationale
+                    FROM constitution WHERE status = 'active'
+                    ORDER BY id
+                    """
+                )
+                principles = [
+                    {
+                        "id": row[0], "version_added": row[1],
+                        "principle_text": row[2], "rationale": row[3],
+                    }
+                    for row in cur.fetchall()
+                ]
+        return version, principles
+    except Exception as exc:
+        logger.warning("Postgres unavailable for active constitution (%s); falling back to constitution.json", exc)
+        seed = json.loads(SEED_PATH.read_text(encoding="utf-8"))
+        return seed["version"], seed["principles"]
 
 
 # ---------------------------------------------------------------- checker
@@ -158,7 +163,7 @@ class ConstitutionChecker:
         try:
             client = Groq(api_key=settings.groq_api_key, max_retries=1)
             response = client.chat.completions.create(
-                model=settings.groq_model,
+                model=settings.constitution_model,
                 messages=[
                     {"role": "system", "content": _SYSTEM_PROMPT},
                     {"role": "user", "content": user_message},

@@ -1,0 +1,34 @@
+{
+  "rule_only": {
+    "attacks_caught": 10,
+    "attacks_total": 90,
+    "benign_fps": 0,
+    "benign_total": 30,
+    "recall_if_solo": 0.1111111111111111,
+    "fpr_if_solo": 0.0
+  },
+  "llm_only": {
+    "attacks_caught": 10,
+    "attacks_total": 90,
+    "benign_fps": 0,
+    "benign_total": 30,
+    "recall_if_solo": 0.1111111111111111,
+    "fpr_if_solo": 0.0
+  },
+  "constitution_only": {
+    "attacks_caught": 0,
+    "attacks_total": 90,
+    "benign_fps": 0,
+    "benign_total": 30,
+    "recall_if_solo": 0.0,
+    "fpr_if_solo": 0.0
+  },
+  "blended": {
+    "attacks_caught": 51,
+    "attacks_total": 90,
+    "benign_fps": 2,
+    "benign_total": 30,
+    "recall_if_solo": 0.5666666666666667,
+    "fpr_if_solo": 0.06666666666666667
+  }
+}

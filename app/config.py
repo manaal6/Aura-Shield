@@ -42,12 +42,41 @@ class Settings(BaseSettings):
     # llm_signal_weight). Set to 1.01 to disable.
     llm_block_signal: float = Field(default=0.90, description="LLM raw signal at or above this value blocks outright, regardless of blended score")
 
+    # --- Model roles for research / cross-model independence ---
+    # When empty, all roles fall back to groq_model for 100% backward compatibility.
+    model_analyzer: str = Field(default="", description="Model used for LLM security analyzer (falls back to groq_model if empty)")
+    model_constitution: str = Field(default="", description="Model used for constitution checker (falls back to groq_model if empty)")
+    model_downstream: str = Field(default="", description="Model used for downstream protected LLM (falls back to groq_model if empty)")
+    model_evaluator: str = Field(default="", description="Model used for downstream safety evaluation (falls back to groq_model if empty)")
+
+    # --- Enforcement options ---
+    review_hold_pending_approval: bool = Field(default=False, description="If True, REVIEW requests are held and not forwarded to downstream LLM")
+    experiment_results_dir: str = Field(default="results", description="Directory for storing research experiment results")
+
     # --- App behavior ---
     log_level: str = Field(default="INFO")
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
+
+    @property
+    def analyzer_model(self) -> str:
+        return self.model_analyzer if self.model_analyzer else self.groq_model
+
+    @property
+    def constitution_model(self) -> str:
+        return self.model_constitution if self.model_constitution else self.groq_model
+
+    @property
+    def downstream_model(self) -> str:
+        return self.model_downstream if self.model_downstream else self.groq_model
+
+    @property
+    def evaluator_model(self) -> str:
+        return self.model_evaluator if self.model_evaluator else self.groq_model
 
 
 @lru_cache

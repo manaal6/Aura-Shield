@@ -60,7 +60,7 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
         # which can make a rate-limited benchmark run appear to hang.
         client = Groq(api_key=settings.groq_api_key, max_retries=1)
         response = client.chat.completions.create(
-            model=settings.groq_model,
+            model=settings.analyzer_model,
             messages=[
                 {"role": "system", "content": _SYSTEM_PROMPT},
                 {"role": "user", "content": combined},

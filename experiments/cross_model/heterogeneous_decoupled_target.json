@@ -1,0 +1,39 @@
+{
+  "experiment_id": "heterogeneous_decoupled_target",
+  "experiment_name": "Cross-Model Exp 4: Decoupled Downstream Target Agent",
+  "hypothesis": "Running the gateway against a distinct downstream architecture (Mixtral-8x7B) tests whether gateway detection generalizes regardless of target model vulnerability.",
+  "independent_variables": [
+    "model_analyzer",
+    "model_constitution",
+    "model_downstream",
+    "model_evaluator"
+  ],
+  "dependent_variables": [
+    "precision",
+    "recall",
+    "f1",
+    "fpr",
+    "cross_model_transferability",
+    "latency_ms"
+  ],
+  "control_baseline": "G_full_blended",
+  "dataset_split": "dev",
+  "dataset_files": [
+    "data/benchmark/dev/direct_injection.jsonl",
+    "data/benchmark/dev/indirect_injection.jsonl",
+    "data/benchmark/dev/jailbreak_persona.jsonl",
+    "data/benchmark/dev/benign_general.jsonl"
+  ],
+  "model_roles": {
+    "analyzer": "groq/openai/gpt-oss-120b",
+    "constitution": "groq/openai/gpt-oss-120b",
+    "downstream": "groq/mixtral-8x7b-32768",
+    "evaluator": "groq/openai/gpt-oss-120b"
+  },
+  "baseline_config": "G_full_blended",
+  "tags": [
+    "cross_model",
+    "heterogeneous",
+    "phase_5"
+  ]
+}

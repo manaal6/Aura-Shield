@@ -1,0 +1,68 @@
+{
+    "version":  "1.0",
+    "contamination_rules":  [
+                                "The adaptive loop MUST only read from the adaptation split, never from test/",
+                                "Threshold calibration MUST only use the dev split",
+                                "Final metrics MUST be reported on the test split",
+                                "No prompt from test/ may appear in the system prompt, constitution seed, or adaptive loop input",
+                                "If contamination is discovered: document it, isolate results, re-run, preserve old results as invalidated"
+                            ],
+    "_note":  "This file documents the benchmark split design. NEVER use held-out data in adaptive loop or threshold tuning.",
+    "created":  "2026-09-11",
+    "split_rationale":  "Attack-family separation preferred over random split to test generalization. Held-out families differ in generation method from development families.",
+    "splits":  {
+                   "adaptation":  {
+                                      "files":  [
+                                                    "adaptation/jailbreak_encoding.jsonl",
+                                                    "adaptation/jailbreak_multilingual.jsonl",
+                                                    "adaptation/obfuscation.jsonl",
+                                                    "adaptation/context_flooding.jsonl",
+                                                    "adaptation/benign_cybersecurity.jsonl"
+                                                ],
+                                      "description":  "Adaptation set. Used as input to the adaptive constitution loop. Attack families not explicitly addressed by constitution v1 principles. MUST NOT overlap with test split.",
+                                      "attack_families":  [
+                                                              "jailbreak_encoding",
+                                                              "jailbreak_multilingual",
+                                                              "obfuscation",
+                                                              "context_flooding",
+                                                              "benign_cybersecurity"
+                                                          ],
+                                      "max_size":  100
+                                  },
+                   "dev":  {
+                               "files":  [
+                                             "dev/direct_injection.jsonl",
+                                             "dev/indirect_injection.jsonl",
+                                             "dev/jailbreak_persona.jsonl",
+                                             "dev/benign_general.jsonl"
+                                         ],
+                               "description":  "Development set. Used for: pipeline tuning, threshold calibration, adaptive loop input, ablation studies. Attack families explicitly known and encoded in constitution v1.",
+                               "attack_families":  [
+                                                       "direct_injection",
+                                                       "indirect_injection",
+                                                       "jailbreak_persona",
+                                                       "benign_general"
+                                                   ],
+                               "max_size":  160
+                           },
+                   "test":  {
+                                "files":  [
+                                              "test/multi_turn_manipulation.jsonl",
+                                              "test/tool_injection.jsonl",
+                                              "test/authorization_attack.jsonl",
+                                              "test/policy_targeting.jsonl",
+                                              "test/benign_cybersecurity_holdout.jsonl"
+                                          ],
+                                "description":  "Held-out test set. NEVER seen by adaptive loop. Used only for final evaluation. Attack families use substantially different generation methods from dev set.",
+                                "contamination_guard":  "Enforced in research/runner.py: test split path is rejected when adaptive_loop_mode=true",
+                                "attack_families":  [
+                                                        "multi_turn_manipulation",
+                                                        "tool_injection",
+                                                        "authorization_attack",
+                                                        "policy_targeting",
+                                                        "benign_cybersecurity"
+                                                    ],
+                                "max_size":  120
+                            }
+               }
+}

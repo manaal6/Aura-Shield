@@ -136,7 +136,7 @@ def get_connection():
             "Streamlit secrets (deployed) - see Supabase project "
             "Settings -> Database -> Connection string (Session pooler)."
         )
-    conn = psycopg2.connect(url)
+    conn = psycopg2.connect(url, connect_timeout=3)
     try:
         yield conn
     finally:

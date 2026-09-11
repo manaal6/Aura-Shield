@@ -5,7 +5,7 @@ Pydantic schemas defining the data contracts between AURA Shield modules.
 Typed schemas at every module boundary mean malformed data is rejected
 immediately at the boundary, not silently propagated downstream.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -75,7 +75,7 @@ class SecurityDecision(BaseModel):
 
 class LogEntry(BaseModel):
     request_id: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     user_prompt: str
     source_content: Optional[str] = None
     rule_result: RuleDetectionResult

@@ -1,0 +1,62 @@
+[
+  {
+    "Experiment_ID": "full_heterogeneous_pipeline",
+    "Analyzer_Model": "llama-3.1-8b-instant",
+    "Constitution_Model": "llama-3.3-70b-versatile",
+    "Downstream_Model": "mixtral-8x7b-32768",
+    "Total_Prompts": 0,
+    "Recall": null,
+    "Precision": null,
+    "F1": null,
+    "FPR": null,
+    "Avg_Latency_ms": null
+  },
+  {
+    "Experiment_ID": "heterogeneous_analyzer_fast",
+    "Analyzer_Model": "llama-3.1-8b-instant",
+    "Constitution_Model": "gpt-oss-120b",
+    "Downstream_Model": "gpt-oss-120b",
+    "Total_Prompts": 0,
+    "Recall": null,
+    "Precision": null,
+    "F1": null,
+    "FPR": null,
+    "Avg_Latency_ms": null
+  },
+  {
+    "Experiment_ID": "heterogeneous_constitution_heavy",
+    "Analyzer_Model": "gpt-oss-120b",
+    "Constitution_Model": "llama-3.3-70b-versatile",
+    "Downstream_Model": "gpt-oss-120b",
+    "Total_Prompts": 0,
+    "Recall": null,
+    "Precision": null,
+    "F1": null,
+    "FPR": null,
+    "Avg_Latency_ms": null
+  },
+  {
+    "Experiment_ID": "heterogeneous_decoupled_target",
+    "Analyzer_Model": "gpt-oss-120b",
+    "Constitution_Model": "gpt-oss-120b",
+    "Downstream_Model": "mixtral-8x7b-32768",
+    "Total_Prompts": 0,
+    "Recall": null,
+    "Precision": null,
+    "F1": null,
+    "FPR": null,
+    "Avg_Latency_ms": null
+  },
+  {
+    "Experiment_ID": "same_model_homogeneous",
+    "Analyzer_Model": "gpt-oss-120b",
+    "Constitution_Model": "gpt-oss-120b",
+    "Downstream_Model": "gpt-oss-120b",
+    "Total_Prompts": 0,
+    "Recall": null,
+    "Precision": null,
+    "F1": null,
+    "FPR": null,
+    "Avg_Latency_ms": null
+  }
+]

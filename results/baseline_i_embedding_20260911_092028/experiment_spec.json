@@ -1,0 +1,44 @@
+{
+  "experiment_id": "baseline_i_embedding",
+  "experiment_name": "Baseline I: Independent TF-IDF Vector Classifier",
+  "hypothesis": "Vector similarity classification provides fast, local detection of lexical clusters but fails on semantic paraphrasing.",
+  "independent_variables": [
+    "active_detectors",
+    "scoring_pipeline"
+  ],
+  "dependent_variables": [
+    "precision",
+    "recall",
+    "f1",
+    "fpr",
+    "latency_ms"
+  ],
+  "control_baseline": "A_rule_only",
+  "dataset_split": "dev",
+  "dataset_files": [
+    "data/benchmark/dev/direct_injection.jsonl",
+    "data/benchmark/dev/indirect_injection.jsonl",
+    "data/benchmark/dev/jailbreak_persona.jsonl",
+    "data/benchmark/dev/benign_general.jsonl"
+  ],
+  "model_roles": {
+    "analyzer": "groq/openai/gpt-oss-120b",
+    "constitution": "groq/openai/gpt-oss-120b",
+    "downstream": "groq/openai/gpt-oss-120b",
+    "evaluator": "groq/openai/gpt-oss-120b",
+    "attacker": null
+  },
+  "baseline_config": "I_embedding",
+  "random_seed": null,
+  "max_prompts": 5,
+  "expected_risks": [],
+  "reproducibility_notes": "",
+  "created_at": "2026-09-11T09:20:28.087038Z",
+  "run_at": null,
+  "output_dir": null,
+  "tags": [
+    "baseline",
+    "ablation",
+    "phase_4"
+  ]
+}

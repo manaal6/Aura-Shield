@@ -1,0 +1,39 @@
+{
+  "experiment_id": "full_heterogeneous_pipeline",
+  "experiment_name": "Cross-Model Exp 5: Fully Heterogeneous Gateway Pipeline",
+  "hypothesis": "Heterogeneous model assignment across all 4 roles verifies that AURA Shield's risk engine and policy surface remain transfer-invariant.",
+  "independent_variables": [
+    "model_analyzer",
+    "model_constitution",
+    "model_downstream",
+    "model_evaluator"
+  ],
+  "dependent_variables": [
+    "precision",
+    "recall",
+    "f1",
+    "fpr",
+    "cross_model_transferability",
+    "latency_ms"
+  ],
+  "control_baseline": "G_full_blended",
+  "dataset_split": "dev",
+  "dataset_files": [
+    "data/benchmark/dev/direct_injection.jsonl",
+    "data/benchmark/dev/indirect_injection.jsonl",
+    "data/benchmark/dev/jailbreak_persona.jsonl",
+    "data/benchmark/dev/benign_general.jsonl"
+  ],
+  "model_roles": {
+    "analyzer": "groq/llama-3.1-8b-instant",
+    "constitution": "groq/llama-3.3-70b-versatile",
+    "downstream": "groq/mixtral-8x7b-32768",
+    "evaluator": "groq/openai/gpt-oss-120b"
+  },
+  "baseline_config": "G_full_blended",
+  "tags": [
+    "cross_model",
+    "heterogeneous",
+    "phase_5"
+  ]
+}

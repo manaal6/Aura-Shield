@@ -23,7 +23,7 @@ def call_protected_llm(user_prompt: str, source_content: str | None = None) -> s
     try:
         client = Groq(api_key=settings.groq_api_key)
         response = client.chat.completions.create(
-            model=settings.groq_model,
+            model=settings.downstream_model,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt},

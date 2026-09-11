@@ -1,0 +1,36 @@
+{
+  "experiment_id": "baseline_e_rule_constitution",
+  "experiment_name": "Baseline E: Rule + Constitution Checker",
+  "hypothesis": "Evaluating constitutional violations alongside signature rules prevents blatant bypasses without generic semantic analysis.",
+  "independent_variables": [
+    "active_detectors",
+    "scoring_pipeline"
+  ],
+  "dependent_variables": [
+    "precision",
+    "recall",
+    "f1",
+    "fpr",
+    "latency_ms"
+  ],
+  "control_baseline": "A_rule_only",
+  "dataset_split": "dev",
+  "dataset_files": [
+    "data/benchmark/dev/direct_injection.jsonl",
+    "data/benchmark/dev/indirect_injection.jsonl",
+    "data/benchmark/dev/jailbreak_persona.jsonl",
+    "data/benchmark/dev/benign_general.jsonl"
+  ],
+  "model_roles": {
+    "analyzer": "groq/openai/gpt-oss-120b",
+    "constitution": "groq/openai/gpt-oss-120b",
+    "downstream": "groq/openai/gpt-oss-120b",
+    "evaluator": "groq/openai/gpt-oss-120b"
+  },
+  "baseline_config": "E_rule_constitution",
+  "tags": [
+    "baseline",
+    "ablation",
+    "phase_4"
+  ]
+}
