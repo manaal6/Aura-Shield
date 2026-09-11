@@ -1,21 +1,36 @@
-
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import AnalyzePage from './pages/AnalyzePage';
+import LogsPage from './pages/LogsPage';
+import ConstitutionPage from './pages/ConstitutionPage';
+import BenchmarkPage from './pages/BenchmarkPage';
 
 function App() {
   return (
     <Router>
-      <nav style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
-        <Link to="/" style={{ marginRight: '1rem' }}>Analyze</Link>
-        <Link to="/logs" style={{ marginRight: '1rem' }}>Logs</Link>
-        <Link to="/constitution" style={{ marginRight: '1rem' }}>Constitution</Link>
-        <Link to="/benchmark">Benchmark</Link>
-      </nav>
-      <Routes>
-        <Route path="/" element={<div>Analyze Page (to be implemented)</div>} />
-        <Route path="/logs" element={<div>Logs Page (to be implemented)</div>} />
-        <Route path="/constitution" element={<div>Constitution Page (to be implemented)</div>} />
-        <Route path="/benchmark" element={<div>Benchmark Page (to be implemented)</div>} />
-      </Routes>
+      <header className="topbar">
+        <div className="brand">
+          <span className="brand-name">AURA Shield</span>
+          <span className="brand-sub">adaptive prompt-injection shield</span>
+        </div>
+        <nav>
+          <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Analyze</NavLink>
+          <NavLink to="/logs" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Logs</NavLink>
+          <NavLink to="/constitution" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Constitution</NavLink>
+          <NavLink to="/benchmark" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Benchmark</NavLink>
+        </nav>
+      </header>
+      <main className="page">
+        <Routes>
+          <Route path="/" element={<AnalyzePage />} />
+          <Route path="/logs" element={<LogsPage />} />
+          <Route path="/constitution" element={<ConstitutionPage />} />
+          <Route path="/benchmark" element={<BenchmarkPage />} />
+        </Routes>
+      </main>
+      <footer className="footer">
+        <span>AURA Shield web console</span>
+        <span>API: <a href="/docs">/docs</a></span>
+      </footer>
     </Router>
   );
 }

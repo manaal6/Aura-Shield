@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -236,6 +236,16 @@ def benchmark():
         "attribution": attribution,
         "n": len(results),
     }
+
+
+@app.get("/{full_path:path}")
+def spa_fallback(full_path: str):
+    """Serve the SPA shell for client-side routes (/logs, /constitution, ...)
+    so deep links and refreshes don't 404. Registered after every /api route,
+    which therefore keeps precedence."""
+    if full_path.startswith("api/") or full_path.startswith("static/"):
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(ROOT / "webapp" / "static" / "dist" / "index.html")
 
 
 app.mount("/static", StaticFiles(directory=ROOT / "webapp" / "static"), name="static")
