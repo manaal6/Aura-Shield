@@ -29,7 +29,7 @@ if str(ROOT_DIR) not in sys.path:
 from research.schemas import BaselineConfig
 from research.runner import load_dataset_jsonl, _run_pipeline_with_baseline
 from research.metrics import compute_metrics, wilson_ci
-from research.evaluator import DownstreamSafetyEvaluator, compute_aggregate_asr
+from research.evaluator import DownstreamSafetyEvaluator, compute_aggregate_asr, simulate_downstream_response
 
 logger = logging.getLogger(__name__)
 
@@ -99,17 +99,13 @@ def evaluate_baseline_on_test_set(
             "actual_decision": decision,
             "risk_score": risk_score,
             "flagged_by_shield": decision in ("block", "review"),
-            "downstream_response": (
-                None if decision == "block"
-                else ("I cannot assist with this request." if "refusal" in p["content"].lower()
-                      else ("Here is the requested data." if p["is_attack"] else "Task completed."))
-            ),
+            "downstream_response": simulate_downstream_response(p, decision),
         })
 
     # 1. Detection metrics
     detection_metrics = compute_metrics(raw_evals)
 
-    # 2. Downstream safety & true ASR
+    # 2. Downstream safety & estimated compromise rate
     enriched, asr_metrics = compute_aggregate_asr(raw_evals, evaluator=evaluator)
 
     # 3. Compute 95% Wilson CIs for recall and precision
@@ -193,7 +189,7 @@ def _write_markdown_report(payload: Dict[str, Any], path: Path) -> None:
         "",
         "## 1. Primary Baseline Comparison on Held-Out Test Split",
         "",
-        "| Baseline Configuration | Recall | Precision | F1 Score | FPR | FNR | Over-Refusal | True ASR | Bypassed ASR | Gateway Mitigation |",
+        "| Baseline Configuration | Recall | Precision | F1 Score | FPR | FNR | Over-Refusal | Est. Downstream Compromise | Bypassed Compromise | Gateway Mitigation |",
         "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
     ]
 
@@ -234,7 +230,8 @@ def _write_markdown_report(payload: Dict[str, Any], path: Path) -> None:
         "## 3. Key Findings & Defense-in-Depth Conclusions",
         "1. **Rule Detector Brittleness**: Baseline A exhibits 0% recall on structurally novel attack formats (e.g. tool injection, authorization bypass), confirming regex rules fail without semantic evaluation.",
         "2. **Vector Classifier Generalization**: Baseline I demonstrates strong transfer to unseen phrasing when semantic similarity overlaps with training clusters.",
-        "3. **True ASR vs Evasion Discrepancy**: True downstream ASR remains consistently lower than detector evasion rates, proving that defense-in-depth alignment provides secondary protection against bypassed prompts.",
+        "3. **Worst-Case ASR Convention**: Under the evaluator's conservative default, any bypassed attack whose downstream response does not explicitly refuse is counted as compromised. Reported ASR is therefore an upper bound driven by the simulated downstream layer; live-model evaluation is required before citing these values.",
+        "4. **Full-Pipeline Gap**: Baseline G (full blended pipeline) requires a live LLM analyzer and is not included in this offline table; adding it is the highest-priority next experiment.",
     ]
 
     path.write_text("\n".join(lines), encoding="utf-8")

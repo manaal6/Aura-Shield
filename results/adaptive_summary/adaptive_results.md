@@ -106,3 +106,9 @@ Total false negatives identified on `data/benchmark/adaptation/`: **80**
 | **Adaptation** | Attack Recall | `0.00%` | `100.00%` | `+100.00%` |
 | **Adaptation** | Total Precision | `100.00%` | `100.00%` | `0.00%` |
 | **Dev** | Attack Recall | `0.00%` | `0.00%` | `0.00%` |
+
+> [!IMPORTANT]
+> **Generalization caveat:** the adaptation-split recall improvement is measured on
+> the adaptation data the new principles were derived from — it is a within-sample
+> result, not evidence of generalization. A valid generalization claim requires
+> re-evaluating the adapted constitution (v2) on the untouched held-out test split.

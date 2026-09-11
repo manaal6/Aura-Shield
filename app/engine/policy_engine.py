@@ -18,6 +18,39 @@ def decide(
 ) -> SecurityDecision:
     settings = get_settings()
 
+    # ------------------------------------------------------------------ #
+    # Analyzer-failure interception (checked FIRST, before any escalation #
+    # or threshold logic, so a fallback can never silently produce ALLOW) #
+    # ------------------------------------------------------------------ #
+    # When the LLM analyzer could not produce a verdict (unavailable,
+    # malformed output, or timeout) and llm_failure_policy == "review",
+    # route immediately to REVIEW.  This is the principal fail-safe
+    # mechanism: a 0.3 fallback signal should NEVER be what keeps an
+    # unknown-status request in the ALLOW band.
+    if (
+        llm_result is not None
+        and llm_result.used_fallback
+        and llm_result.failure_reason is not None
+        and settings.llm_failure_policy == "review"
+    ):
+        reason_label = {
+            "unavailable": "LLM analyzer was unavailable (no API key or connection failure)",
+            "malformed": "LLM analyzer returned malformed output that could not be parsed",
+            "timeout": "LLM analyzer request timed out before a verdict was reached",
+        }.get(llm_result.failure_reason, f"LLM analyzer failure ({llm_result.failure_reason})")
+
+        return SecurityDecision(
+            decision=Decision.REVIEW,
+            risk_score=risk_score,
+            explanation=(
+                f"Held for human review: {reason_label}. "
+                f"Policy is llm_failure_policy='review' — requests cannot be auto-allowed "
+                f"when the LLM analysis layer did not return a valid verdict. "
+                f"Blended risk score was {risk_score.score:.2f} (not used for this decision). "
+                f"Analyzer note: {llm_result.reasoning}"
+            ),
+        )
+
     # Escalation: the blended score can undershoot a near-certain LLM
     # detection when the rule signal is 0 (e.g. injection hidden in source
     # content, which no rule pattern covers). Block on the LLM signal alone.

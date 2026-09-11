@@ -19,6 +19,7 @@ point of failure.
 """
 import json
 import logging
+import socket
 from groq import Groq
 from app.config import get_settings
 from app.models import LLMAnalysisResult
@@ -40,10 +41,17 @@ Respond with ONLY a JSON object, no other text, in this exact shape:
 def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisResult:
     """
     Calls Groq with a constrained prompt asking only for a security
-    judgment. On any failure (no API key, network error, malformed
-    response), fails CLOSED to a cautious fallback rather than silently
-    treating the request as safe - and marks used_fallback=True so callers
-    and evaluation scripts can distinguish a real judgment from a fallback.
+    judgment.
+
+    Failure taxonomy (used_fallback=True):
+    - "unavailable" : No API key configured, or network-level connection failure.
+    - "timeout"     : Request exceeded the time budget (socket/read timeout).
+    - "malformed"   : API responded but the output failed JSON / schema parsing.
+
+    On any of these, the function returns with used_fallback=True and
+    failure_reason set.  The policy engine intercepts these states and
+    routes them to REVIEW rather than silently treating the request as safe
+    via the moderate 0.3 signal.
     """
     settings = get_settings()
 
@@ -51,7 +59,10 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
 
     if not settings.groq_api_key:
         logger.warning("No Groq API key configured - llm_analyzer running in fallback mode")
-        return _fallback_result("No API key configured; LLM analysis was not performed")
+        return _fallback_result(
+            "No API key configured; LLM analysis was not performed",
+            failure_reason="unavailable",
+        )
 
     try:
         # max_retries=1 means at most one retry on a transient error
@@ -69,9 +80,26 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
             response_format={"type": "json_object"},
         )
         raw = response.choices[0].message.content
-        parsed = json.loads(raw)
 
-        is_suspicious = bool(parsed.get("is_suspicious", False))
+        # --- malformed-output path ---
+        try:
+            parsed = json.loads(raw)
+        except (json.JSONDecodeError, ValueError) as parse_exc:
+            logger.error("LLM analyzer returned non-JSON output: %s", parse_exc)
+            return _fallback_result(
+                f"LLM analyzer returned malformed JSON ({type(parse_exc).__name__}); treated as inconclusive",
+                failure_reason="malformed",
+            )
+
+        # Validate that required keys are present and well-typed
+        if not isinstance(parsed.get("is_suspicious"), bool) or "confidence" not in parsed:
+            logger.error("LLM analyzer JSON missing required fields: %r", parsed)
+            return _fallback_result(
+                "LLM analyzer JSON output missing required fields; treated as inconclusive",
+                failure_reason="malformed",
+            )
+
+        is_suspicious = bool(parsed["is_suspicious"])
         confidence = float(parsed.get("confidence", 0.5))
         confidence = max(0.0, min(1.0, confidence))
         reasoning = str(parsed.get("reasoning", "")).strip() or "No reasoning provided by model."
@@ -81,10 +109,6 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
         # - if not suspicious, the signal shrinks as confidence rises
         #   (is_suspicious=False, confidence=0.95 -> signal 0.05;
         #   is_suspicious=False, confidence=0.5 -> signal 0.5, i.e. "unsure")
-        # Previously this branch was hardcoded to 0.0 regardless of
-        # confidence, which silently discarded Groq's output on every
-        # non-suspicious row and made risk scores insensitive to run-to-run
-        # variance in the model's actual judgment.
         raw_signal = confidence if is_suspicious else (1.0 - confidence)
 
         return LLMAnalysisResult(
@@ -94,22 +118,40 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
             used_fallback=False,
         )
 
+    except (TimeoutError, socket.timeout) as timeout_exc:
+        logger.error("LLM analyzer timed out: %s", timeout_exc)
+        return _fallback_result(
+            f"LLM analyzer request timed out ({type(timeout_exc).__name__}); treated as inconclusive",
+            failure_reason="timeout",
+        )
     except Exception as exc:
+        # Catch-all: connection errors, auth errors, rate limits after retries, etc.
+        # All are classified as "unavailable" — the service could not be reached.
         logger.error("LLM analyzer call failed: %s", exc)
-        return _fallback_result(f"LLM analyzer call failed ({type(exc).__name__}); treated as inconclusive")
+        return _fallback_result(
+            f"LLM analyzer call failed ({type(exc).__name__}); treated as inconclusive",
+            failure_reason="unavailable",
+        )
 
 
-def _fallback_result(reason: str) -> LLMAnalysisResult:
+def _fallback_result(reason: str, failure_reason: str = "unavailable") -> LLMAnalysisResult:
     """
-    Fail-closed-ish fallback: does not claim suspicion (we have no evidence
-    either way), but reports a moderate signal rather than 0.0, so the
-    overall risk score does not silently collapse to "definitely safe"
-    just because this layer was unavailable. This is a deliberate,
-    documented design choice, not an oversight.
+    Fail-safe fallback.
+
+    Returns a moderate raw_signal (0.3) so the blended risk score does not
+    silently collapse to "definitely safe" when this layer is unavailable.
+    The policy engine checks used_fallback + failure_reason BEFORE the
+    threshold bands, so in practice this signal is NOT used to ALLOW requests;
+    the policy engine routes fallback requests to REVIEW instead.
+
+    This dual mechanism provides:
+    1. A meaningful blended-score contribution if ever read by external tools.
+    2. Explicit REVIEW routing regardless of the blended score.
     """
     return LLMAnalysisResult(
         is_suspicious=False,
         reasoning=reason,
         raw_signal=0.3,
         used_fallback=True,
+        failure_reason=failure_reason,  # type: ignore[arg-type]
     )

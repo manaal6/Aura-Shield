@@ -53,6 +53,21 @@ class Settings(BaseSettings):
     review_hold_pending_approval: bool = Field(default=False, description="If True, REVIEW requests are held and not forwarded to downstream LLM")
     experiment_results_dir: str = Field(default="results", description="Directory for storing research experiment results")
 
+    # --- Analyzer failure policy ---
+    # Controls what happens when the LLM analyzer cannot produce a verdict
+    # (no API key, network failure, malformed output, or timeout).
+    # "review"  → route to REVIEW regardless of blended score (default, fail-safe).
+    # "pass"    → fall through to threshold bands using the 0.3 fallback signal
+    #             (offline benchmarking mode — acknowledge this in experiment labels).
+    llm_failure_policy: str = Field(
+        default="review",
+        description=(
+            "What to do when the LLM analyzer returns used_fallback=True: "
+            "'review' routes to REVIEW (default, fail-safe); "
+            "'pass' falls through to threshold bands (offline/benchmark mode only)."
+        ),
+    )
+
     # --- App behavior ---
     log_level: str = Field(default="INFO")
 

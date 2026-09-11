@@ -7,7 +7,7 @@ immediately at the boundary, not silently propagated downstream.
 """
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -42,6 +42,16 @@ class LLMAnalysisResult(BaseModel):
     reasoning: str = Field(..., description="Model's stated justification - required for explainability")
     raw_signal: float = Field(ge=0.0, le=1.0)
     used_fallback: bool = Field(default=False, description="True if the LLM call could not be made and a safe fallback was used")
+    failure_reason: Optional[Literal["unavailable", "malformed", "timeout"]] = Field(
+        default=None,
+        description=(
+            "Set only when used_fallback=True. Distinguishes three failure states: "
+            "'unavailable' (no API key or service unreachable), "
+            "'malformed' (API responded but output failed schema parsing), "
+            "'timeout' (request exceeded time budget). "
+            "Policy engine uses this to route failures to REVIEW rather than relying on the 0.3 signal."
+        ),
+    )
 
 
 class ConstitutionVerdict(BaseModel):

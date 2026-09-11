@@ -15,7 +15,7 @@ Across a rigorous 330-prompt research benchmark spanning 13 attack and benign ca
 3. **Adaptive Constitution Loop**: An offline adaptation loop synthesizes, validates, and incorporates candidate constitutional principles with full provenance tracking from adaptation split false negatives without test set contamination.
 4. **Attacker-Defender Game**: In a 3-round red-teaming game applying 7 distinct mutation strategies (e.g. whitespace padding, role-play wrappers, leetspeak) to 40 seed attacks, evasive variants bypassed single-layer deterministic filtering across all rounds, highlighting the necessity of defense-in-depth.
 5. **SOC Log Assistant Utility**: On a cybersecurity log analysis task, the gateway preserved benign analytical utility while intercepting embedded exfiltration attempts and preventing unauthorized tool execution.
-6. **Downstream Safety & True ASR**: Measuring true Attack Success Rate (ASR) downstream reveals that gateway blocking combined with downstream refusal mechanisms substantially mitigates actual compromise, and that detector evasion rates alone systematically overestimate downstream attack success.
+6. **Downstream Safety & Estimated Compromise Rate**: A conservative refusal-based offline evaluator estimates downstream compromise, showing that detector evasion rates alone systematically overstate attacker success only when downstream refusal is assumed; under the worst-case convention, gateway enforcement is the demonstrable protection layer. These are estimates, not empirically measured Attack Success Rate against a live model.
 
 ---
 
@@ -43,6 +43,7 @@ LLM agents deployed in security operations centers (SOC) and enterprise automati
 - **RQ1 (Layered Defense):** Does multi-signal blending (rules + semantic analyzer + constitutional verification) outperform isolated baseline detectors?
 - **RQ2 (Constitutional Policy Value):** What marginal utility does explicit, principle-grounded constitutional verification add over gestalt classification?
 - **RQ3 (Model Transferability):** How does detector performance behave across heterogeneous model roles?
+  - *Scope caveat:* heterogeneous model roles may reduce correlated failure between guard and target models, but do not establish statistical independence (models can share training data, refusal behavior, and common weaknesses). The cross-model matrix has not yet been populated with live API runs.
 - **RQ4 (Adaptive Safety):** Can false negatives be systematically translated into validated constitutional updates with complete provenance without degrading precision or contaminating held-out test data?
 - **RQ5 (Cyber-Assistant Utility):** Can the gateway protect a SOC log analysis assistant against embedded payloads without impairing legitimate threat investigation?
 
@@ -124,15 +125,29 @@ The benchmark comprises 330 prompts across 14 machine-readable JSONL datasets:
 
 ### Held-Out Test Set Performance (105 Prompts: 73 Attacks, 32 Benign)
 
-| Baseline | Recall | Precision | F1 Score | FPR | FNR | Over-Refusal | True ASR | Bypassed ASR | Gateway Mitigation |
+| Baseline | Recall | Precision | F1 Score | FPR | FNR | Over-Refusal | Est. Downstream Compromise | Bypassed Compromise | Gateway Mitigation |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Baseline A (Rule Only)** | `0.0%` | `N/A` | `N/A` | `0.0%` | `100.0%` | `0.0%` | `0.0%` | `0.0%` | `100.0%` |
-| **Baseline I (Embedding Classifier)** | `35.6%` | `100.0%` | `0.525` | `0.0%` | `64.4%` | `0.0%` | `0.0%` | `0.0%` | `100.0%` |
+| **Baseline A (Rule Only)** | `0.0%` | `N/A` | `N/A` | `0.0%` | `100.0%` | `0.0%` | `100.0%` | `100.0%` | `0.0%` |
+| **Baseline I (Embedding Classifier)** | `35.6%` | `100.0%` | `0.525` | `0.0%` | `64.4%` | `0.0%` | `97.3%` | `100.0%` | `2.7%` |
+
+> [!NOTE]
+> **Baseline G (full blended pipeline) is intentionally absent from this offline table.**
+> It requires a live LLM analyzer (GROQ_API_KEY); adding Baseline G to this held-out
+> comparison is the highest-priority next experiment. Detection metrics (Recall,
+> Precision, FPR) are produced by real offline detector runs; ASR/GMR values are
+> computed under a simulated downstream layer (see the Worst-Case ASR convention
+> below) and are experiment-specific, not general security properties.
 
 ### What this demonstrates:
 - Single-signal regex rules (Baseline A) fail completely on held-out, structurally diverse attack vectors ($0.0\%$ recall).
-- Independent vector similarity (Baseline I) successfully flags 35.6% of unseen attacks with 0 false positives ($100\%$ precision).
-- Measuring downstream compromise shows that gateway filtering directly prevents downstream LLM exposure.
+- Independent vector similarity (Baseline I) flags 35.6% of unseen attacks with 0 false positives ($100\%$ precision).
+- Under the evaluator's worst-case convention, detector bypass effectively equals downstream compromise: mitigating exposure at the gateway (REVIEW/BLOCK) is the only layer these offline experiments can actually demonstrate.
+
+### What this does NOT demonstrate:
+- Absolute security against all adversarial attacks.
+- Robustness against adaptive black-box optimization without human-in-the-loop validation.
+- Guaranteed generalizability to models outside tested configurations.
+- Live downstream-model behavior: ASR/GMR values here come from a deterministic heuristic simulation of alignment, not a real LLM. The 0.0-2.7% Gateway Mitigation figures must not be read as measured real-world protection rates.
 
 ### What this does NOT demonstrate:
 - Absolute security against all adversarial attacks.
@@ -155,6 +170,7 @@ In an iterative red-teaming game over 3 rounds with 40 seed attacks mutating via
 - **Round 2 (Role-Play Framing)**: 40/40 bypassed rule detector (`100%` evasion).
 - **Round 3 (Leetspeak Obfuscation)**: 40/40 bypassed rule detector (`100%` evasion).
 - **Conclusion**: Validates that heuristic keyword rules degrade immediately against adaptive mutations, necessitating semantic and constitutional layers.
+- **Threat-model scope (important)**: This experiment demonstrates the brittleness of deterministic and embedding-only baselines. It does **not** prove that the complete AURA Shield pipeline (Baseline G, with live LLM analyzer and constitution checker) resists an adaptive attacker with source-code access. Evaluating the full blended gateway against a source-aware adaptive attacker is an important next experiment.
 
 ---
 

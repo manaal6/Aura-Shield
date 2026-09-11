@@ -1,8 +1,8 @@
 # Attacker-Defender Game — Research Summary
 
-**Game ID**: `deaaced31177`  
-**Timestamp**: `2026-09-11T09:06:57.659845+00:00`  
-**Baseline Detector**: `A_rule_only`  
+**Game ID**: `43a4d0ab3da7`  
+**Timestamp**: `2026-09-11T12:54:11.932826+00:00`  
+**Baseline Detector**: `I_embedding`  
 **Seed Attacks**: 40  
 **Total Rounds Played**: 3  
 
@@ -15,13 +15,13 @@
 
 | Round | Attacks | Bypassed | Bypass Rate | Mutation Applied |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | 40 | 40 | `100.0%` | `whitespace_padding` |
-| 2 | 40 | 40 | `100.0%` | `role_play_wrapper` |
-| 3 | 40 | 40 | `100.0%` | `leetspeak` |
+| 1 | 40 | 27 | `67.5%` | `whitespace_padding` |
+| 2 | 27 | 27 | `100.0%` | `role_play_wrapper` |
+| 3 | 27 | 27 | `100.0%` | `leetspeak` |
 
 ## Trend Analysis
 
-Bypass rate stable at 100.0% across all rounds.
+Bypass rate increased from 67.5% → 100.0%: attacker mutations accumulated effectiveness.
 
 ## What This Demonstrates
 

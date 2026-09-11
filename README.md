@@ -11,8 +11,8 @@ A research-grade, auditable security gateway that sits between users and LLMs to
 - **330-Prompt Research Benchmark**: Machine-readable JSONL datasets spanning 13 attack and benign categories strictly partitioned across isolated `dev` (120), `adaptation` (105), and held-out `test` (105) splits.
 - **Adaptive Constitution Loop & Provenance System**: Automated feedback loop in [`research/adaptive_loop.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/adaptive_loop.py) that synthesizes, validates, and incorporates new safety principles with full JSON provenance tracking strictly from adaptation data without test set contamination.
 - **Attacker-Defender Red-Teaming Game**: Multi-round game in [`research/attacker_defender.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/attacker_defender.py) evaluating 7 mutation strategies (e.g. whitespace padding, role-play wrappers, leetspeak) over iterative rounds.
-- **Downstream Safety Evaluator & True ASR Calculation**: [`research/evaluator.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/evaluator.py) provides formal calculation of true downstream Attack Success Rate (ASR) vs detector bypass rate.
-- **100% Offline Test Suite**: 90 unit tests passing cleanly in ~8 seconds with zero external network or LLM API requirements.
+- **Downstream Safety Evaluator & Estimated Compromise Rate**: [`research/evaluator.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/evaluator.py) provides conservative offline estimation of downstream compromise vs detector bypass rate, with an optional live LLM-judge mode.
+- **100% Offline Test Suite**: 93 unit tests passing cleanly in ~8 seconds with zero external network or LLM API requirements.
 
 ---
 
@@ -81,7 +81,7 @@ aura-shield/
 │   ├── runner.py                 # Benchmark runner across baseline configs
 │   ├── adaptive_loop.py          # Provenance tracking & adaptation pipeline
 │   ├── attacker_defender.py      # Red-teaming game engine & 7 mutation strategies
-│   └── evaluator.py              # Downstream safety evaluator & true ASR calculator
+│   └── evaluator.py              # Downstream safety evaluator & compromise-rate estimator
 ├── data/benchmark/               # 330-Prompt Research Benchmark (JSONL)
 │   ├── dev/                      # 120 prompts: direct, indirect, jailbreak, benign general
 │   ├── adaptation/               # 105 prompts: encoding, multilingual, obfuscation, flooding
@@ -96,7 +96,7 @@ aura-shield/
 │   ├── safety_eval/              # run_safety_evaluation.py
 │   └── benchmark/                # run_final_test_benchmark.py
 ├── results/                      # Persisted Research Artifacts & Provenance Records
-├── tests/                        # 90 Unit Tests across 13 test suites (100% passing)
+├── tests/                        # 93 Unit Tests across 13 test suites (100% passing)
 ├── docs/                         # Formal Research Documentation
 │   ├── research_report.md        # Comprehensive 18-section research report
 │   ├── policy-surface-audit.md   # Auditable policy surface & gate documentation
@@ -119,7 +119,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-### 2. Run the Full Test Suite (90 Unit Tests)
+### 2. Run the Full Test Suite (93 Unit Tests)
 ```bash
 python -m pytest tests/ -v
 ```
@@ -159,11 +159,38 @@ streamlit run dashboard/streamlit_app.py
 ## 📈 Empirical Results Summary
 
 ### Held-Out Test Set Performance (105 Prompts: 73 Attacks, 32 Benign)
-Evaluated on completely unseen attack families (`authorization_attack`, `tool_injection`, `multi_turn_manipulation`, `policy_targeting`, and `benign_cybersecurity_holdout`):
+Evaluated on completely unseen attack families (`authorization_attack`, `tool_injection`, `multi_turn_manipulation`, `policy_targeting`, and `benign_cybersecurity_holdout`). Detection metrics come from **real offline detector runs**; compromise figures come from a conservative offline refusal-based evaluator (see caveat below).
 
-| Baseline | Recall | Precision | F1 Score | FPR | FNR | Over-Refusal | True ASR | Gateway Mitigation |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Baseline A (Rule Only)** | `0.0%` | `N/A` | `N/A` | `0.0%` | `100.0%` | `0.0%` | `0.0%` | `100.0%` |
-| **Baseline I (Embedding Classifier)** | `35.6%` | `100.0%` | `0.525` | `0.0%` | `64.4%` | `0.0%` | `0.0%` | `100.0%` |
+| Baseline | Gateway recall | Gateway precision | F1 | FPR | Downstream compromise estimate | Evaluator type |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **A — Rule only** | `0.0%` (0/73) | `N/A` (0 flagged) | `N/A` | `0.0%` (0/32) | `100.0%` (0/73 blocked) | Conservative offline heuristic |
+| **B — Semantic analyzer (LLM)** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
+| **C — Constitution only** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
+| **D–F — Pairwise blends** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
+| **G — Full AURA Shield pipeline** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
+| **H — Monolithic guardrail (LLM)** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
+| **I — TF-IDF embedding classifier** | `35.6%` (26/73) | `100.0%` (26/26 flagged) | `0.525` | `0.0%` (0/32) | `97.3%` (71/73; CI 90.5–99.2%) | Conservative offline heuristic |
+
+**Baseline I gateway decision counts (105 prompts):** `ALLOW 79` (32 benign + 47 attacks) · `REVIEW-forwarded 24` (all attacks; review-hold disabled in this experiment) · `REVIEW-held 0` · `BLOCK 2` (both attacks).
+
+**How to read these numbers (claim discipline):**
+
+- **The full pipeline (Baseline G) has no row in this table by design**: its LLM analyzer and constitution checker require a live model provider (`GROQ_API_KEY`). Their absence is a measurement gap, not a negative result — do not extrapolate the single-signal rows to the blended architecture.
+- **Gateway recall is not gateway mitigation.** Baseline I's 35.6% recall means 26/73 attacks were flagged, but 24 of those 26 received REVIEW decisions that were *forwarded* to the downstream model (review-hold disabled). Only the 2 BLOCK decisions kept prompts from downstream exposure, so offline exposure prevention was 2/73.
+- **"Downstream compromise estimate" is an estimate, not empirical ASR.** The figures are produced by a deterministic refusal-based evaluator under a deliberately conservative convention: any bypassed attack whose (simulated) downstream response does not explicitly refuse is counted as compromised. They are not claims about universal model behavior or production Attack Success Rate. A separate model-backed evaluation with manual or independently validated judging is required to report empirical ASR against a real downstream model.
+- These are benchmark-specific results; they do not establish robustness against adaptive attackers with source access, nor independence between guard and target models (heterogeneous model roles may reduce correlated failure but do not establish statistical independence).
+
+### Reproducibility: offline vs. live-API experiments
+
+| Experiment | Mode | Requires API? |
+| :--- | :--- | :--- |
+| Unit test suite (93 tests) | Real code, fully offline | No |
+| Held-out benchmark — Baselines A, I | Real detector runs, fully offline | No |
+| Held-out benchmark — Baselines B–H, G | Real pipeline, live models | Yes (`GROQ_API_KEY`) |
+| Attacker-defender game (Baselines A & I) | Real deterministic detectors, fully offline | No |
+| Adaptive constitution loop | Real code, deterministic evaluation | No |
+| SOC workflow demonstration | Real code, deterministic | No |
+| Cross-model transferability matrix | Real pipeline, live models | Yes (`GROQ_API_KEY`) |
+| Downstream compromise evaluation | Real gateway decisions + simulated downstream responses | No (offline mode); Yes for live-model judging |
 
 For complete methodology, ablation studies, and limitations, refer to [`docs/research_report.md`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/docs/research_report.md).

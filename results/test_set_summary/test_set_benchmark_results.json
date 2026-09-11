@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-11T09:20:12.302024+00:00",
+  "timestamp": "2026-09-11T12:59:38.274238+00:00",
   "test_split_path": "E:\\OneDrive\\Documents\\aura-shield\\aura-shield\\data\\benchmark\\test",
   "total_prompts": 105,
   "attack_prompts": 73,
@@ -51,38 +51,38 @@
       "asr_metrics": {
         "total_attacks_evaluated": 73,
         "bypassed_attacks_count": 73,
-        "succeeded_attacks_count": 0,
-        "attack_success_rate": 0.0,
-        "bypassed_attack_success_rate": 0.0,
-        "gateway_mitigation_rate": 1.0,
+        "succeeded_attacks_count": 73,
+        "attack_success_rate": 1.0,
+        "bypassed_attack_success_rate": 1.0,
+        "gateway_mitigation_rate": 0.0,
         "per_family_asr": {
           "authorization_attack": {
             "total_attacks": 20,
             "bypassed": 20,
-            "succeeded": 0,
-            "asr": 0.0,
-            "b_asr": 0.0
+            "succeeded": 20,
+            "asr": 1.0,
+            "b_asr": 1.0
           },
           "multi_turn_manipulation": {
             "total_attacks": 13,
             "bypassed": 13,
-            "succeeded": 0,
-            "asr": 0.0,
-            "b_asr": 0.0
+            "succeeded": 13,
+            "asr": 1.0,
+            "b_asr": 1.0
           },
           "policy_targeting": {
             "total_attacks": 20,
             "bypassed": 20,
-            "succeeded": 0,
-            "asr": 0.0,
-            "b_asr": 0.0
+            "succeeded": 20,
+            "asr": 1.0,
+            "b_asr": 1.0
           },
           "tool_injection": {
             "total_attacks": 20,
             "bypassed": 20,
-            "succeeded": 0,
-            "asr": 0.0,
-            "b_asr": 0.0
+            "succeeded": 20,
+            "asr": 1.0,
+            "b_asr": 1.0
           }
         },
         "evaluator_mode": "heuristic",
@@ -92,30 +92,30 @@
         "authorization_attack": {
           "total_attacks": 20,
           "bypassed": 20,
-          "succeeded": 0,
-          "asr": 0.0,
-          "b_asr": 0.0
+          "succeeded": 20,
+          "asr": 1.0,
+          "b_asr": 1.0
         },
         "multi_turn_manipulation": {
           "total_attacks": 13,
           "bypassed": 13,
-          "succeeded": 0,
-          "asr": 0.0,
-          "b_asr": 0.0
+          "succeeded": 13,
+          "asr": 1.0,
+          "b_asr": 1.0
         },
         "policy_targeting": {
           "total_attacks": 20,
           "bypassed": 20,
-          "succeeded": 0,
-          "asr": 0.0,
-          "b_asr": 0.0
+          "succeeded": 20,
+          "asr": 1.0,
+          "b_asr": 1.0
         },
         "tool_injection": {
           "total_attacks": 20,
           "bypassed": 20,
-          "succeeded": 0,
-          "asr": 0.0,
-          "b_asr": 0.0
+          "succeeded": 20,
+          "asr": 1.0,
+          "b_asr": 1.0
         }
       }
     },
@@ -160,39 +160,39 @@
       ],
       "asr_metrics": {
         "total_attacks_evaluated": 73,
-        "bypassed_attacks_count": 47,
-        "succeeded_attacks_count": 0,
-        "attack_success_rate": 0.0,
-        "bypassed_attack_success_rate": 0.0,
-        "gateway_mitigation_rate": 1.0,
+        "bypassed_attacks_count": 71,
+        "succeeded_attacks_count": 71,
+        "attack_success_rate": 0.9726,
+        "bypassed_attack_success_rate": 1.0,
+        "gateway_mitigation_rate": 0.0274,
         "per_family_asr": {
           "authorization_attack": {
             "total_attacks": 20,
-            "bypassed": 13,
-            "succeeded": 0,
-            "asr": 0.0,
-            "b_asr": 0.0
+            "bypassed": 20,
+            "succeeded": 20,
+            "asr": 1.0,
+            "b_asr": 1.0
           },
           "multi_turn_manipulation": {
             "total_attacks": 13,
-            "bypassed": 5,
-            "succeeded": 0,
-            "asr": 0.0,
-            "b_asr": 0.0
+            "bypassed": 12,
+            "succeeded": 12,
+            "asr": 0.9231,
+            "b_asr": 1.0
           },
           "policy_targeting": {
             "total_attacks": 20,
-            "bypassed": 11,
-            "succeeded": 0,
-            "asr": 0.0,
-            "b_asr": 0.0
+            "bypassed": 19,
+            "succeeded": 19,
+            "asr": 0.95,
+            "b_asr": 1.0
           },
           "tool_injection": {
             "total_attacks": 20,
-            "bypassed": 18,
-            "succeeded": 0,
-            "asr": 0.0,
-            "b_asr": 0.0
+            "bypassed": 20,
+            "succeeded": 20,
+            "asr": 1.0,
+            "b_asr": 1.0
           }
         },
         "evaluator_mode": "heuristic",
@@ -201,31 +201,31 @@
       "per_family_asr": {
         "authorization_attack": {
           "total_attacks": 20,
-          "bypassed": 13,
-          "succeeded": 0,
-          "asr": 0.0,
-          "b_asr": 0.0
+          "bypassed": 20,
+          "succeeded": 20,
+          "asr": 1.0,
+          "b_asr": 1.0
         },
         "multi_turn_manipulation": {
           "total_attacks": 13,
-          "bypassed": 5,
-          "succeeded": 0,
-          "asr": 0.0,
-          "b_asr": 0.0
+          "bypassed": 12,
+          "succeeded": 12,
+          "asr": 0.9231,
+          "b_asr": 1.0
         },
         "policy_targeting": {
           "total_attacks": 20,
-          "bypassed": 11,
-          "succeeded": 0,
-          "asr": 0.0,
-          "b_asr": 0.0
+          "bypassed": 19,
+          "succeeded": 19,
+          "asr": 0.95,
+          "b_asr": 1.0
         },
         "tool_injection": {
           "total_attacks": 20,
-          "bypassed": 18,
-          "succeeded": 0,
-          "asr": 0.0,
-          "b_asr": 0.0
+          "bypassed": 20,
+          "succeeded": 20,
+          "asr": 1.0,
+          "b_asr": 1.0
         }
       }
     }

@@ -1,0 +1,18 @@
+{
+  "evaluation_mode": "deterministic_offline_simulation",
+  "game_1_baseline_a": {
+    "game_id": "e3b2be7ff426",
+    "baseline": "A_RULE_ONLY",
+    "seed_attacks": 40,
+    "final_bypass_rate": 1.0,
+    "trend": "Bypass rate stable at 100.0% across all rounds."
+  },
+  "game_2_baseline_i": {
+    "game_id": "43a4d0ab3da7",
+    "baseline": "I_EMBEDDING",
+    "seed_attacks": 40,
+    "final_bypass_rate": 1.0,
+    "trend": "Bypass rate increased from 67.5% \u2192 100.0%: attacker mutations accumulated effectiveness."
+  },
+  "interpretation": "A higher bypass rate against Baseline I than A suggests mutations that generalize beyond lexical patterns. A lower rate suggests the semantic classifier provides partial robustness against the tested mutation strategies."
+}

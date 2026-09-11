@@ -334,6 +334,12 @@ Total false negatives identified on `data/benchmark/adaptation/`: **{len(record.
 | **Adaptation** | Attack Recall | `{adapt_metrics_before.get('recall', 0.0):.2%}` | `{adapt_metrics_after.get('recall', 0.0):.2%}` | `+{adapt_metrics_after.get('recall', 0.0) - adapt_metrics_before.get('recall', 0.0):.2%}` |
 | **Adaptation** | Total Precision | `{adapt_metrics_before.get('precision', 0.0):.2%}` | `{adapt_metrics_after.get('precision', 0.0):.2%}` | `0.00%` |
 | **Dev** | Attack Recall | `{dev_metrics_before.get('recall', 0.0):.2%}` | `{dev_metrics_after.get('recall', 0.0):.2%}` | `0.00%` |
+
+> [!IMPORTANT]
+> **Generalization caveat:** the adaptation-split recall improvement is measured on
+> the adaptation data the new principles were derived from — it is a within-sample
+> result, not evidence of generalization. A valid generalization claim requires
+> re-evaluating the adapted constitution (v2) on the untouched held-out test split.
 """
 
     output_summary_path.write_text(md_content, encoding="utf-8")

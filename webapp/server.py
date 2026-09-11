@@ -38,7 +38,11 @@ from app.adaptive_loop import (
 from app.engine.constitution import load_active_constitution
 
 app = FastAPI(title="AURA Shield frontend API", version="0.4.0")
-init_db()
+try:
+    init_db()
+except Exception as _exc:
+    import logging
+    logging.getLogger(__name__).warning("Initial database connection deferred: %s", _exc)
 
 RESULTS_PATH = ROOT / "evaluation" / "results.json"
 METRICS_PATH = ROOT / "evaluation" / "metrics_summary.json"
