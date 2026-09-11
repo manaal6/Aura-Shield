@@ -7,9 +7,10 @@ export default defineConfig({
   plugins: [react()],
   base: '/static/', // Serve assets relative to the FastAPI static mount
   build: {
-    // Output built files to the FastAPI static directory
-    outDir: path.resolve(__dirname, '../static/dist'),
-    emptyOutDir: true,
+    // Output built files directly into the FastAPI static directory, so the
+    // /static mount serves the hashed assets without a copy step
+    outDir: path.resolve(__dirname, '../static'),
+    emptyOutDir: false,
   },
   resolve: {
     alias: {

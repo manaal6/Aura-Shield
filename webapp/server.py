@@ -55,7 +55,7 @@ class AnalyzeRequest(BaseModel):
 
 @app.get("/")
 def index():
-    return FileResponse(ROOT / "webapp" / "static" / "dist" / "index.html")
+    return FileResponse(ROOT / "webapp" / "static" / "index.html")
 
 
 @app.get("/api/analyze")
@@ -238,6 +238,8 @@ def benchmark():
     }
 
 
+app.mount("/static", StaticFiles(directory=ROOT / "webapp" / "static"), name="static")
+
 @app.get("/{full_path:path}")
 def spa_fallback(full_path: str):
     """Serve the SPA shell for client-side routes (/logs, /constitution, ...)
@@ -245,7 +247,5 @@ def spa_fallback(full_path: str):
     which therefore keeps precedence."""
     if full_path.startswith("api/") or full_path.startswith("static/"):
         raise HTTPException(status_code=404, detail="Not found")
-    return FileResponse(ROOT / "webapp" / "static" / "dist" / "index.html")
+    return FileResponse(ROOT / "webapp" / "static" / "index.html")
 
-
-app.mount("/static", StaticFiles(directory=ROOT / "webapp" / "static"), name="static")
