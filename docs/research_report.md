@@ -9,13 +9,13 @@
 ## 1. Abstract
 Large Language Model (LLM) agents deployed in cybersecurity and enterprise applications ingest untrusted external context, exposing them to direct and indirect prompt-injection attacks. We present **AURA Shield**, an auditable, inference-time gateway that couples deterministic rule filtering, semantic analysis, and explicit constitutional policy verification with a centralized, transparent policy surface. 
 
-Across a rigorous 330-prompt research benchmark spanning 13 attack and benign categories partitioned into strictly isolated development (120), adaptation (105), and held-out test (105) splits:
+Across a structured 330-prompt research benchmark spanning 13 attack and benign categories partitioned into strictly isolated development (120), adaptation (105), and held-out test (105) splits:
 1. **Deterministic Rule Limits**: Regex rules alone (Baseline A) achieve 0.0% recall on structurally novel attacks in the held-out test split, demonstrating that keyword matching fails against modern prompt-injection tactics without multi-signal blending.
 2. **Vector Classifier Transfer**: An independent TF-IDF n-gram embedding classifier (Baseline I) achieves 35.6% recall with 100.0% precision on unseen held-out attacks without exhibiting false positives on complex cybersecurity queries (0.0% over-refusal).
-3. **Adaptive Constitution Loop**: An offline adaptation loop synthesizes, validates, and incorporates candidate constitutional principles with full provenance tracking from adaptation split false negatives without test set contamination.
-4. **Attacker-Defender Game**: In a 3-round red-teaming game applying 7 distinct mutation strategies (e.g. whitespace padding, role-play wrappers, leetspeak) to 40 seed attacks, evasive variants bypassed single-layer deterministic filtering across all rounds, highlighting the necessity of defense-in-depth.
+3. **Adaptive Constitution Prototype**: A provenance-controlled adaptive constitution loop was implemented and evaluated for update validity and contamination control — candidate principles are synthesized from adaptation-split false negatives, validated, and version-gated behind human approval. Its effectiveness as an adaptive defense (held-out before/after recall and FPR comparison) remains to be established.
+4. **Deterministic Baseline Red-Team Evaluation**: In a 3-round mutation game applying 7 distinct mutation strategies (e.g. whitespace padding, role-play wrappers, leetspeak) to 40 seed attacks, evasive variants bypassed single-layer deterministic filtering across all rounds, highlighting the necessity of defense-in-depth. This establishes rule-layer brittleness only; the full blended gateway has not yet been attacked adaptively.
 5. **SOC Log Assistant Utility**: On a cybersecurity log analysis task, the gateway preserved benign analytical utility while intercepting embedded exfiltration attempts and preventing unauthorized tool execution.
-6. **Downstream Safety & Estimated Compromise Rate**: A conservative refusal-based offline evaluator estimates downstream compromise, showing that detector evasion rates alone systematically overstate attacker success only when downstream refusal is assumed; under the worst-case convention, gateway enforcement is the demonstrable protection layer. These are estimates, not empirically measured Attack Success Rate against a live model.
+6. **Downstream Safety & Estimated Compromise Rate**: A conservative refusal-based offline evaluator estimates downstream compromise, showing that detector evasion rates alone systematically overstate attacker success only when downstream refusal is assumed. What is demonstrable is narrower: the gateway's BLOCK/REVIEW enforcement can prevent downstream exposure in the simulated execution model. These are estimates, not empirically measured Attack Success Rate against a live model.
 
 ---
 
@@ -149,23 +149,18 @@ The benchmark comprises 330 prompts across 14 machine-readable JSONL datasets:
 - Guaranteed generalizability to models outside tested configurations.
 - Live downstream-model behavior: ASR/GMR values here come from a deterministic heuristic simulation of alignment, not a real LLM. The 0.0-2.7% Gateway Mitigation figures must not be read as measured real-world protection rates.
 
-### What this does NOT demonstrate:
-- Absolute security against all adversarial attacks.
-- Robustness against adaptive black-box optimization without human-in-the-loop validation.
-- Guaranteed generalizability to models outside tested configurations.
-
 ---
 
 ## 13. Ablation Study
-Empirical comparison of isolated detectors on the benchmark demonstrates that multi-signal blending is necessary to overcome the individual blindspots of each detector:
-- **Rule Detector Blindspot**: Completely misses indirect injections embedded in source content or novel delimiters.
-- **LLM Analyzer Blindspot**: Prone to soft jailbreak reframings where prompts mimic benign creative writing.
-- **Constitution Checker Role**: Provides grounded, citable rationales anchored to explicit principles, preventing single-score dilution via hard escalation rules.
+Observed evidence from the benchmark (see Section 12) versus architecture-level security reasoning is distinguished below:
+- **Rule Detector Blindspot (observed)**: Regex rules achieve 0.0% recall on the held-out split, completely missing indirect injections embedded in source content and structurally novel attack families.
+- **LLM Analyzer Blindspot (hypothesized)**: The current architecture reasons that LLM semantic analysis may remain vulnerable to soft jailbreak reframings where prompts mimic benign creative writing. This has not yet been experimentally isolated on the held-out split; the Baseline B held-out result (Section 12) is the direct test of this hypothesis.
+- **Constitution Checker Role (design property, not yet evidence of added security)**: The constitution layer provides grounded, citable rationales anchored to explicit principles and hard-escalation rules that prevent single-score dilution. Whether it adds detection coverage beyond the LLM analyzer is exactly RQ2 and is answered empirically by the B vs C vs F comparison (Section 12).
 
 ---
 
-## 14. Attacker-Defender Game
-In an iterative red-teaming game over 3 rounds with 40 seed attacks mutating via 7 strategies:
+## 14. Deterministic Baseline Red-Team Evaluation
+In an iterative mutation game over 3 rounds with 40 seed attacks mutating via 7 strategies, evaluated against the deterministic rule layer only:
 - **Round 1 (Whitespace Padding)**: 40/40 bypassed rule detector (`100%` evasion).
 - **Round 2 (Role-Play Framing)**: 40/40 bypassed rule detector (`100%` evasion).
 - **Round 3 (Leetspeak Obfuscation)**: 40/40 bypassed rule detector (`100%` evasion).
@@ -175,10 +170,13 @@ In an iterative red-teaming game over 3 rounds with 40 seed attacks mutating via
 ---
 
 ## 15. SOC Assistant Demonstration
-Evaluating the gateway within a Security Operations Center workflow (`experiments/soc_workflow/`):
-- **Benign Utility Rate**: 100% on valid threat hunting and log aggregation queries.
-- **Payload Interception**: Suspicious instructions smuggled into raw syslog headers and auth logs were successfully flagged.
-- **Tool Authorization**: Unauthorized command execution attempts were strictly prevented before tool invocation.
+Evaluating the gateway within a Security Operations Center workflow (`experiments/soc_workflow/`). The report previously quoted undenominated percentages; the committed evaluation artifacts and their denominators are authoritative:
+- **Benign Utility Rate**: 100% (25/25) on valid threat hunting and log aggregation queries (adaptation + held-out benign cybersecurity prompts).
+- **Payload Interception**: Suspicious instructions smuggled into raw syslog headers and auth logs were flagged (detection counts per committed raw results in `results/soc_workflow_summary/`).
+- **Tool Authorization**: Unauthorized command execution attempts were prevented before tool invocation.
+
+> [!NOTE]
+> If a figure above lacks a committed artifact with its denominator, treat it as a design claim, not a measured result. Re-running `experiments/soc_workflow/run_soc_workflow_eval.py` regenerates the numbers.
 
 ---
 
@@ -191,7 +189,7 @@ Evaluating the gateway within a Security Operations Center workflow (`experiment
 ---
 
 ## 17. Reproducibility
-The entire experimental pipeline is 100% reproducible offline via Python and Pytest:
+The core infrastructure — deterministic baselines, benchmark processing, adaptive-loop logic, and the test suite — is reproducible offline via Python and Pytest; live LLM-dependent experiments (Baselines B–H, cross-model runs, the SOC workflow evaluation) require a configured model provider (`GROQ_API_KEY`):
 ```bash
 # Run complete test suite (90 unit tests)
 python -m pytest tests/ -v

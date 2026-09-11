@@ -19,12 +19,27 @@ sys.path.insert(0, str(ROOT))
 from research.experiment import load_spec
 from research.metrics import export_json, export_markdown_table
 from research.runner import BenchmarkRunner
+from research.schemas import DatasetSplit
 
 BASELINES_DIR = ROOT / "experiments" / "baselines"
 RESULTS_DIR = ROOT / "results" / "baselines_summary"
 
 
-def run_baseline_suite(baseline_keys=None, dry_run=False, skip_guard=False):
+def retarget_spec_to_test(spec):
+    """Return a copy of the spec pointed at the held-out test split, so the
+    same baseline definitions can be evaluated on unseen prompts without
+    editing the committed dev-split spec files."""
+    test_files = sorted(str(p.relative_to(ROOT)).replace("\\", "/")
+                        for p in (ROOT / "data" / "benchmark" / "test").glob("*.jsonl"))
+    return spec.model_copy(update={
+        "experiment_id": f"{spec.experiment_id}_test",
+        "experiment_name": f"{spec.experiment_name} [Held-out test split]",
+        "dataset_split": DatasetSplit.TEST,
+        "dataset_files": test_files,
+    })
+
+
+def run_baseline_suite(baseline_keys=None, dry_run=False, skip_guard=False, split="dev"):
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     all_spec_files = sorted(BASELINES_DIR.glob("*.json"))
 
@@ -35,11 +50,13 @@ def run_baseline_suite(baseline_keys=None, dry_run=False, skip_guard=False):
             if any(k in f.stem for k in selected_keys)
         ]
 
-    print(f"Running baseline suite ({len(all_spec_files)} configurations)...")
+    print(f"Running baseline suite ({len(all_spec_files)} configurations, split={split})...")
     summary_rows = []
 
     for spec_file in all_spec_files:
         spec = load_spec(spec_file)
+        if split == "test":
+            spec = retarget_spec_to_test(spec)
         print(f"\n=======================================================")
         print(f"Executing: {spec.experiment_name} ({spec.baseline_config.value})")
         print(f"=======================================================")
@@ -61,9 +78,10 @@ def run_baseline_suite(baseline_keys=None, dry_run=False, skip_guard=False):
         })
 
     # Export comparison table
-    table_path = RESULTS_DIR / "baseline_comparison.md"
+    suffix = "_test" if split == "test" else ""
+    table_path = RESULTS_DIR / f"baseline_comparison{suffix}.md"
     export_markdown_table(summary_rows, table_path)
-    json_path = RESULTS_DIR / "baseline_comparison.json"
+    json_path = RESULTS_DIR / f"baseline_comparison{suffix}.json"
     export_json(summary_rows, json_path)
 
     print("\n\n=======================================================")
@@ -83,6 +101,9 @@ if __name__ == "__main__":
     parser.add_argument("--baselines", type=str, default=None, help="Comma-separated keys to run, e.g. 'a,i'")
     parser.add_argument("--dry-run", action="store_true", help="Perform dry run without calling inference")
     parser.add_argument("--skip-guard", action="store_true", help="Skip expensive run guard")
+    parser.add_argument("--split", type=str, default="dev", choices=["dev", "test"],
+                        help="Dataset split to evaluate on. 'test' = the 105-prompt held-out split.")
     args = parser.parse_args()
 
-    run_baseline_suite(baseline_keys=args.baselines, dry_run=args.dry_run, skip_guard=args.skip_guard)
+    run_baseline_suite(baseline_keys=args.baselines, dry_run=args.dry_run,
+                       skip_guard=args.skip_guard, split=args.split)
