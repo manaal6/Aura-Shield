@@ -155,7 +155,7 @@ def draft_principle_for_case(case: dict) -> PendingPrinciple | None:
     )
 
     try:
-        client = Groq(api_key=settings.groq_api_key, max_retries=1)
+        client = Groq(api_key=settings.groq_api_key, max_retries=settings.groq_max_retries)
         response = client.chat.completions.create(
             model=settings.groq_model,
             messages=[

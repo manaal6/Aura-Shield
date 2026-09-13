@@ -1,0 +1,28 @@
+{
+  "true_positives": 73,
+  "false_negatives": 0,
+  "false_positives": 32,
+  "true_negatives": 0,
+  "n_total": 105,
+  "n_attacks": 73,
+  "n_benign": 32,
+  "precision": 0.6952380952380952,
+  "recall": 1.0,
+  "f1": 0.8202247191011236,
+  "fpr": 1.0,
+  "fnr": 0.0,
+  "over_refusal_rate": 1.0,
+  "asr": null,
+  "real_asr_evaluated": false,
+  "notes": [
+    "ASR could not be computed: attack_succeeded field was not evaluated for any prompt. ASR requires a separate safety evaluator or human review of downstream responses. This is NOT the same as the detector false-negative rate."
+  ],
+  "recall_ci_95": [
+    0.950006246616416,
+    0.9999999999999999
+  ],
+  "fpr_ci_95": [
+    0.8928172849426366,
+    1.0
+  ]
+}

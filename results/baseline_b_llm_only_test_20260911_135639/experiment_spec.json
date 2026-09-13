@@ -1,0 +1,45 @@
+{
+  "experiment_id": "baseline_b_llm_only_test",
+  "experiment_name": "Baseline B: LLM Semantic Detector Only [Held-out test split]",
+  "hypothesis": "LLM semantic analyzer catches paraphrased and novel variants but is vulnerable to adversarial jailbreak framing.",
+  "independent_variables": [
+    "active_detectors",
+    "scoring_pipeline"
+  ],
+  "dependent_variables": [
+    "precision",
+    "recall",
+    "f1",
+    "fpr",
+    "latency_ms"
+  ],
+  "control_baseline": "A_rule_only",
+  "dataset_split": "test",
+  "dataset_files": [
+    "data/benchmark/test/authorization_attack.jsonl",
+    "data/benchmark/test/benign_cybersecurity_holdout.jsonl",
+    "data/benchmark/test/multi_turn_manipulation.jsonl",
+    "data/benchmark/test/policy_targeting.jsonl",
+    "data/benchmark/test/tool_injection.jsonl"
+  ],
+  "model_roles": {
+    "analyzer": "groq/openai/gpt-oss-120b",
+    "constitution": "groq/openai/gpt-oss-120b",
+    "downstream": "groq/openai/gpt-oss-120b",
+    "evaluator": "groq/openai/gpt-oss-120b",
+    "attacker": null
+  },
+  "baseline_config": "B_llm_only",
+  "random_seed": null,
+  "max_prompts": null,
+  "expected_risks": [],
+  "reproducibility_notes": "",
+  "created_at": "2026-09-11T13:56:39.525110Z",
+  "run_at": null,
+  "output_dir": null,
+  "tags": [
+    "baseline",
+    "ablation",
+    "phase_4"
+  ]
+}

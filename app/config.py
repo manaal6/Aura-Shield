@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     # --- External services ---
     groq_api_key: str = Field(default="", description="Groq API key, loaded from .env")
     groq_model: str = Field(default="openai/gpt-oss-120b", description="Model used for both the protected LLM call and the security analyzer")
+    # SDK retry count on transient errors (429s, 5xx). Default 1 keeps serving
+    # latency bounded; research runs set GROQ_MAX_RETRIES higher so a
+    # rate-limited benchmark waits out the window instead of silently
+    # degrading into offline fallback results.
+    groq_max_retries: int = Field(default=1, description="Groq SDK max_retries for transient errors")
 
     # --- Storage ---
     # database_path is kept only so the one-off sqlite->Postgres migration

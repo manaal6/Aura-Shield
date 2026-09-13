@@ -37,7 +37,7 @@ def detect(user_prompt: str, source_content: str | None = None) -> LLMAnalysisRe
         )
 
     try:
-        client = Groq(api_key=settings.groq_api_key, max_retries=1)
+        client = Groq(api_key=settings.groq_api_key, max_retries=settings.groq_max_retries)
         response = client.chat.completions.create(
             model=settings.analyzer_model,
             messages=[

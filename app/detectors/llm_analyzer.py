@@ -65,11 +65,11 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
         )
 
     try:
-        # max_retries=1 means at most one retry on a transient error
-        # (e.g. a single 429) before failing fast into the fallback below,
-        # instead of the SDK's default multi-retry exponential backoff
-        # which can make a rate-limited benchmark run appear to hang.
-        client = Groq(api_key=settings.groq_api_key, max_retries=1)
+        # max_retries comes from settings: 1 by default so a rate-limited
+        # serving request fails fast into the documented fallback, higher
+        # (e.g. via GROQ_MAX_RETRIES) for research runs that must not
+        # silently degrade into offline fallback results.
+        client = Groq(api_key=settings.groq_api_key, max_retries=settings.groq_max_retries)
         response = client.chat.completions.create(
             model=settings.analyzer_model,
             messages=[

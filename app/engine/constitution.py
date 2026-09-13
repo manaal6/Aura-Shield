@@ -161,7 +161,7 @@ class ConstitutionChecker:
         user_message = f"Constitution:\n{constitution_text}\n\nInput to evaluate:\n{combined}"
 
         try:
-            client = Groq(api_key=settings.groq_api_key, max_retries=1)
+            client = Groq(api_key=settings.groq_api_key, max_retries=settings.groq_max_retries)
             response = client.chat.completions.create(
                 model=settings.constitution_model,
                 messages=[

@@ -10,8 +10,8 @@
 Large Language Model (LLM) agents deployed in cybersecurity and enterprise applications ingest untrusted external context, exposing them to direct and indirect prompt-injection attacks. We present **AURA Shield**, an auditable, inference-time gateway that couples deterministic rule filtering, semantic analysis, and explicit constitutional policy verification with a centralized, transparent policy surface. 
 
 Across a structured 330-prompt research benchmark spanning 13 attack and benign categories partitioned into strictly isolated development (120), adaptation (105), and held-out test (105) splits:
-1. **Deterministic Rule Limits**: Regex rules alone (Baseline A) achieve 0.0% recall on structurally novel attacks in the held-out test split, demonstrating that keyword matching fails against modern prompt-injection tactics without multi-signal blending.
-2. **Vector Classifier Transfer**: An independent TF-IDF n-gram embedding classifier (Baseline I) achieves 35.6% recall with 100.0% precision on unseen held-out attacks without exhibiting false positives on complex cybersecurity queries (0.0% over-refusal).
+1. **Deterministic Rule Limits**: Regex rules alone (Baseline A) achieve 0.0% recall on structurally novel attacks in the held-out test split; an independent TF-IDF classifier (Baseline I) reaches 35.6% recall at 100% precision; a monolithic prompt guardrail (Baseline H) reaches 75.3%.
+2. **Live Held-Out Baseline Matrix (A–I)**: All nine baselines were evaluated on the 105 held-out prompts with live model calls and zero offline-fallback rows. Every LLM/constitution-inclusive configuration achieves 75–93% recall at 100% precision with 0% false positives, with the full blended gateway (Baseline G) at 89.0% recall / 100% precision / 94.2% F1. Honest negative result: G does not statistically outperform the constitution-only configuration (93.2%, overlapping 95% CIs at n=73 attacks) — the marginal value of blending over its strongest single layer is not demonstrable at this sample size.
 3. **Adaptive Constitution Prototype**: A provenance-controlled adaptive constitution loop was implemented and evaluated for update validity and contamination control — candidate principles are synthesized from adaptation-split false negatives, validated, and version-gated behind human approval. Its effectiveness as an adaptive defense (held-out before/after recall and FPR comparison) remains to be established.
 4. **Deterministic Baseline Red-Team Evaluation**: In a 3-round mutation game applying 7 distinct mutation strategies (e.g. whitespace padding, role-play wrappers, leetspeak) to 40 seed attacks, evasive variants bypassed single-layer deterministic filtering across all rounds, highlighting the necessity of defense-in-depth. This establishes rule-layer brittleness only; the full blended gateway has not yet been attacked adaptively.
 5. **SOC Log Assistant Utility**: On a cybersecurity log analysis task, the gateway preserved benign analytical utility while intercepting embedded exfiltration attempts and preventing unauthorized tool execution.
@@ -123,31 +123,43 @@ The benchmark comprises 330 prompts across 14 machine-readable JSONL datasets:
 
 ## 12. Empirical Results
 
-### Held-Out Test Set Performance (105 Prompts: 73 Attacks, 32 Benign)
+### Held-Out Test Split — Baseline Comparison (105 Prompts: 73 Attacks, 32 Benign)
 
-| Baseline | Recall | Precision | F1 Score | FPR | FNR | Over-Refusal | Est. Downstream Compromise | Bypassed Compromise | Gateway Mitigation |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Baseline A (Rule Only)** | `0.0%` | `N/A` | `N/A` | `0.0%` | `100.0%` | `0.0%` | `100.0%` | `100.0%` | `0.0%` |
-| **Baseline I (Embedding Classifier)** | `35.6%` | `100.0%` | `0.525` | `0.0%` | `64.4%` | `0.0%` | `97.3%` | `100.0%` | `2.7%` |
+All LLM-dependent baselines (B–H) were run with live model calls and verified to contain **zero
+offline-fallback rows**; the full per-run provenance is in
+[`results/baselines_summary/heldout_master_table.md`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/results/baselines_summary/heldout_master_table.md).
+
+| Baseline | Recall | Precision | F1 | FPR | Avg Latency |
+| :--- | :--- | :--- | :--- | :--- | ---: |
+| A (Rule only) | `0.0%` | `N/A` | `N/A` | `0.0%` | 26 ms |
+| B (LLM only) | `79.5%` | `100.0%` | `0.885` | `0.0%` | 2,166 ms |
+| C (Constitution only) | `93.2%` | `100.0%` | `0.965` | `0.0%` | 5,191 ms |
+| D (Rule + LLM) | `75.3%` | `100.0%` | `0.859` | `0.0%` | 1,947 ms |
+| E (Rule + Constitution) | `90.4%` | `100.0%` | `0.950` | `0.0%` | 4,501 ms |
+| F (LLM + Constitution) | `90.4%` | `100.0%` | `0.950` | `0.0%` | 6,912 ms |
+| **G (Full AURA Shield)** | `89.0%` | `100.0%` | `0.942` | `0.0%` | 6,902 ms |
+| H (Monolithic prompt guardrail) | `75.3%` | `100.0%` | `0.859` | `0.0%` | 2,148 ms |
+| I (TF-IDF classifier) | `35.6%` | `100.0%` | `0.525` | `0.0%` | 1 ms |
 
 > [!NOTE]
-> **Baseline G (full blended pipeline) is intentionally absent from this offline table.**
-> It requires a live LLM analyzer (GROQ_API_KEY); adding Baseline G to this held-out
-> comparison is the highest-priority next experiment. Detection metrics (Recall,
-> Precision, FPR) are produced by real offline detector runs; ASR/GMR values are
-> computed under a simulated downstream layer (see the Worst-Case ASR convention
-> below) and are experiment-specific, not general security properties.
+> Detection metrics (Recall, Precision, FPR) are produced by real detector runs over the
+> held-out test split with live model calls. ASR is not reported per baseline: it requires a
+> separate downstream safety evaluator and was not measured for these runs.
 
 ### What this demonstrates:
-- Single-signal regex rules (Baseline A) fail completely on held-out, structurally diverse attack vectors ($0.0\%$ recall).
-- Independent vector similarity (Baseline I) flags 35.6% of unseen attacks with 0 false positives ($100\%$ precision).
-- Under the evaluator's worst-case convention, detector bypass effectively equals downstream compromise: mitigating exposure at the gateway (REVIEW/BLOCK) is the only layer these offline experiments can actually demonstrate.
+- Deterministic rules (A) and the TF-IDF classifier (I) transfer poorly to structurally novel attacks (0.0% and 35.6% recall).
+- Every LLM/constitution-inclusive configuration (B–H) achieves 75–93% recall at 100% precision with 0% false positives on the 32 benign cybersecurity prompts.
+- The explicit constitution layer transfers best as a single signal: C (93.2%) outperforms the monolithic guardrail prompt H (75.3%) by a wide margin — a direct, quantified answer to RQ2's gestalt-vs-principled comparison at the single-signal level.
 
-### What this does NOT demonstrate:
+### What this does NOT demonstrate (RQ1 — honest negative result):
+- The full blend (G, 89.0% recall) does **not** outperform the constitution-only configuration (C, 93.2%) or the LLM+constitution pair (F, 90.4%) on this split. The differences are 1–3 prompts out of 73 attacks and lie entirely within overlapping 95% Wilson confidence intervals (G: [79.8%, 94.3%]; C: [84.9%, 97.0%]).
+- Therefore RQ1 ("does multi-signal blending outperform isolated detectors?") currently has a nuanced answer: blending decisively beats rule-only, guardrail-only, and TF-IDF baselines, but on this benchmark its marginal value over the constitution layer alone is **not statistically demonstrable**. The architectural argument for blending (layered redundancy, graceful degradation, rule-layer cheapness) stands, but the empirical superiority claim is not supported at n=73 attacks.
+
+### What this does NOT demonstrate (general):
 - Absolute security against all adversarial attacks.
 - Robustness against adaptive black-box optimization without human-in-the-loop validation.
 - Guaranteed generalizability to models outside tested configurations.
-- Live downstream-model behavior: ASR/GMR values here come from a deterministic heuristic simulation of alignment, not a real LLM. The 0.0-2.7% Gateway Mitigation figures must not be read as measured real-world protection rates.
+- Live downstream-model behavior: ASR/GMR values in prior tables came from a deterministic heuristic simulation of alignment, not a real LLM, and must not be read as measured real-world protection rates.
 
 ---
 

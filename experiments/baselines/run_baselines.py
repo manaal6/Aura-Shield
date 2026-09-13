@@ -39,7 +39,8 @@ def retarget_spec_to_test(spec):
     })
 
 
-def run_baseline_suite(baseline_keys=None, dry_run=False, skip_guard=False, split="dev"):
+def run_baseline_suite(baseline_keys=None, dry_run=False, skip_guard=False, split="dev",
+                       delay_seconds=2.0, reject_fallback=False):
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     all_spec_files = sorted(BASELINES_DIR.glob("*.json"))
 
@@ -50,7 +51,8 @@ def run_baseline_suite(baseline_keys=None, dry_run=False, skip_guard=False, spli
             if any(k in f.stem for k in selected_keys)
         ]
 
-    print(f"Running baseline suite ({len(all_spec_files)} configurations, split={split})...")
+    print(f"Running baseline suite ({len(all_spec_files)} configurations, split={split}, "
+          f"delay={delay_seconds}s)...")
     summary_rows = []
 
     for spec_file in all_spec_files:
@@ -61,8 +63,21 @@ def run_baseline_suite(baseline_keys=None, dry_run=False, skip_guard=False, spli
         print(f"Executing: {spec.experiment_name} ({spec.baseline_config.value})")
         print(f"=======================================================")
 
-        runner = BenchmarkRunner(spec, verbose=False)
+        runner = BenchmarkRunner(spec, verbose=False, delay_seconds=delay_seconds)
         per_prompt, result = runner.run(dry_run=dry_run, skip_expense_guard=skip_guard)
+
+        # A silent fallback to offline heuristics would distort the comparison;
+        # refuse to record such a run as a live-model result.
+        if reject_fallback:
+            fb = [r for r in per_prompt
+                  if r.get("llm_used_fallback") or r.get("constitution_fallback")]
+            required_llm = spec.baseline_config.value not in ("A_rule_only", "I_embedding")
+            if required_llm and fb:
+                raise RuntimeError(
+                    f"{spec.baseline_config.value}: {len(fb)}/{len(per_prompt)} prompts "
+                    "fell back to offline heuristics — result rejected as a live-model "
+                    "measurement. Increase --delay and re-run."
+                )
 
         m = result.metrics
         summary_rows.append({
@@ -103,7 +118,13 @@ if __name__ == "__main__":
     parser.add_argument("--skip-guard", action="store_true", help="Skip expensive run guard")
     parser.add_argument("--split", type=str, default="dev", choices=["dev", "test"],
                         help="Dataset split to evaluate on. 'test' = the 105-prompt held-out split.")
+    parser.add_argument("--delay", type=float, default=2.0,
+                        help="Seconds between LLM calls (rate limiting).")
+    parser.add_argument("--reject-fallback", action="store_true",
+                        help="Abort a baseline run if any prompt used the offline fallback, "
+                             "so results always reflect live-model behaviour.")
     args = parser.parse_args()
 
     run_baseline_suite(baseline_keys=args.baselines, dry_run=args.dry_run,
-                       skip_guard=args.skip_guard, split=args.split)
+                       skip_guard=args.skip_guard, split=args.split,
+                       delay_seconds=args.delay, reject_fallback=args.reject_fallback)
