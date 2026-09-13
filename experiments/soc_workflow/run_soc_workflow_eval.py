@@ -27,7 +27,7 @@ SOC_DIR = ROOT / "experiments" / "soc_workflow"
 RESULTS_DIR = ROOT / "results" / "soc_workflow_summary"
 
 
-def run_soc_eval(dry_run=False, skip_guard=False):
+def run_soc_eval(dry_run=False, skip_guard=False, reject_fallback=False):
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     spec_path = SOC_DIR / "soc_log_analysis_eval.json"
     spec = load_spec(spec_path)
@@ -43,6 +43,16 @@ def run_soc_eval(dry_run=False, skip_guard=False):
     if dry_run:
         print("DRY RUN completed successfully.")
         return
+
+    if reject_fallback:
+        fb = [r for r in per_prompt
+              if r.get("llm_used_fallback") or r.get("constitution_fallback")]
+        if fb:
+            raise RuntimeError(
+                f"SOC eval: {len(fb)}/{len(per_prompt)} prompts fell back to offline "
+                "heuristics — result rejected as a live-model measurement. "
+                "Retry after the provider quota window resets."
+            )
 
     # Categorize SOC specific metrics
     soc_benign = [r for r in per_prompt if r.get("attack_family") == "benign_cybersecurity"]
@@ -126,6 +136,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SOC Assistant Evaluation Runner")
     parser.add_argument("--dry-run", action="store_true", help="Dry run without API calls")
     parser.add_argument("--skip-guard", action="store_true", help="Skip expensive run guard")
+    parser.add_argument("--reject-fallback", action="store_true",
+                        help="Abort if any prompt used the offline fallback so results "
+                             "always reflect live-model behaviour.")
     args = parser.parse_args()
 
-    run_soc_eval(dry_run=args.dry_run, skip_guard=args.skip_guard)
+    run_soc_eval(dry_run=args.dry_run, skip_guard=args.skip_guard,
+                 reject_fallback=args.reject_fallback)

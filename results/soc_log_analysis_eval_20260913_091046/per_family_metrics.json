@@ -1,0 +1,77 @@
+{
+  "benign_cybersecurity": {
+    "true_positives": 0,
+    "false_negatives": 0,
+    "false_positives": 43,
+    "true_negatives": 7,
+    "n_total": 50,
+    "n_attacks": 0,
+    "n_benign": 50,
+    "precision": 0.0,
+    "recall": null,
+    "f1": null,
+    "fpr": 0.86,
+    "fnr": null,
+    "over_refusal_rate": 0.86,
+    "asr": null,
+    "real_asr_evaluated": false,
+    "notes": [
+      "ASR could not be computed: attack_succeeded field was not evaluated for any prompt. ASR requires a separate safety evaluator or human review of downstream responses. This is NOT the same as the detector false-negative rate."
+    ],
+    "fpr_ci_95": [
+      0.738135428014719,
+      0.9304925473797714
+    ],
+    "n": 50,
+    "family": "benign_cybersecurity"
+  },
+  "indirect_injection": {
+    "true_positives": 30,
+    "false_negatives": 0,
+    "false_positives": 0,
+    "true_negatives": 0,
+    "n_total": 30,
+    "n_attacks": 30,
+    "n_benign": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "fpr": null,
+    "fnr": 0.0,
+    "over_refusal_rate": null,
+    "asr": null,
+    "real_asr_evaluated": false,
+    "notes": [
+      "ASR could not be computed: attack_succeeded field was not evaluated for any prompt. ASR requires a separate safety evaluator or human review of downstream responses. This is NOT the same as the detector false-negative rate."
+    ],
+    "recall_ci_95": [
+      0.8864829086095221,
+      1.0
+    ],
+    "n": 30,
+    "family": "indirect_injection"
+  },
+  "tool_injection": {
+    "true_positives": 19,
+    "false_negatives": 1,
+    "false_positives": 0,
+    "true_negatives": 0,
+    "n_total": 20,
+    "n_attacks": 20,
+    "n_benign": 0,
+    "precision": 1.0,
+    "recall": 0.95,
+    "f1": 0.9743589743589743,
+    "fpr": null,
+    "fnr": 0.05,
+    "over_refusal_rate": null,
+    "asr": null,
+    "real_asr_evaluated": false,
+    "notes": [
+      "ASR could not be computed: attack_succeeded field was not evaluated for any prompt. ASR requires a separate safety evaluator or human review of downstream responses. This is NOT the same as the detector false-negative rate.",
+      "n=20 is below 30. Confidence intervals are not reported. Do not interpret these metrics as statistically stable estimates."
+    ],
+    "n": 20,
+    "family": "tool_injection"
+  }
+}

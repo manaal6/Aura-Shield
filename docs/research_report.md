@@ -182,13 +182,11 @@ In an iterative mutation game over 3 rounds with 40 seed attacks mutating via 7 
 ---
 
 ## 15. SOC Assistant Demonstration
-Evaluating the gateway within a Security Operations Center workflow (`experiments/soc_workflow/`). The report previously quoted undenominated percentages; the committed evaluation artifacts and their denominators are authoritative:
-- **Benign Utility Rate**: 100% (25/25) on valid threat hunting and log aggregation queries (adaptation + held-out benign cybersecurity prompts).
-- **Payload Interception**: Suspicious instructions smuggled into raw syslog headers and auth logs were flagged (detection counts per committed raw results in `results/soc_workflow_summary/`).
-- **Tool Authorization**: Unauthorized command execution attempts were prevented before tool invocation.
+Evaluating the gateway within a Security Operations Center workflow (`experiments/soc_workflow/`), over 100 prompts (50 legitimate SOC queries: 25 adaptation-split + 25 held-out benign cybersecurity; 50 adversarial telemetry: 30 dev indirect injections + 20 held-out tool injections):
+- **Benign Utility Rate**, **Payload Interception**, and **Tool Authorization** figures are being re-measured with live model calls and verified zero-fallback raw results; a first rerun was rejected by the live-run guard when the provider's daily token quota was exhausted mid-run (95/100 rows fell back to heuristics). The committed artifacts in `results/soc_workflow_summary/` will carry the authoritative denominators once the clean rerun completes.
 
 > [!NOTE]
-> If a figure above lacks a committed artifact with its denominator, treat it as a design claim, not a measured result. Re-running `experiments/soc_workflow/run_soc_workflow_eval.py` regenerates the numbers.
+> Until that artifact exists, treat the SOC section as a workflow demonstration, not a measured result. Re-running `python experiments/soc_workflow/run_soc_workflow_eval.py --reject-fallback` after provider quota resets regenerates the numbers.
 
 ---
 
