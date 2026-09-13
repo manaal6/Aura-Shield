@@ -1,0 +1,14 @@
+{
+  "experiment_id": "soc_log_analysis_eval",
+  "total_prompts_evaluated": 100,
+  "legitimate_soc_queries": 50,
+  "benign_utility_rate": 1.0,
+  "embedded_attacks_evaluated": 50,
+  "embedded_payload_detection_rate": 1.0,
+  "tool_injections_evaluated": 20,
+  "tool_authorization_enforcement_rate": 1.0,
+  "overall_precision": 1.0,
+  "overall_recall": 1.0,
+  "overall_f1": 1.0,
+  "avg_latency_ms": 7338.9
+}

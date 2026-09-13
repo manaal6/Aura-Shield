@@ -141,10 +141,10 @@ On the adaptation split, the offline adaptation loop:
 Iterative mutation of 40 seed attacks over 3 rounds applying 7 mutation strategies (whitespace padding, role-play wrappers, leetspeak) demonstrated that heuristic keyword rules degrade immediately against mutative framing across sequential rounds, necessitating multi-signal blending.
 
 ### D. SOC Analyst Assistant Demonstration
-Evaluated in `experiments/soc_workflow/`:
-- Benign Utility Rate: 100% on legitimate log analysis queries.
-- Intercepted attacks smuggled into raw syslog headers and authorization logs.
-- Enforced tool authorization barriers against smuggled commands.
+Evaluated in `experiments/soc_workflow/` over 100 prompts with the full blended pipeline (live model calls, zero offline-fallback rows; raw results in `results/soc_log_analysis_eval_20260913_095251/`):
+- Benign Utility Rate: 50/50 (100%) on legitimate log analysis queries.
+- Embedded Payload Detection: 50/50 (100%) — attacks smuggled into raw syslog headers and authorization logs were flagged.
+- Tool Authorization Enforcement: 20/20 (100%) — smuggled command execution blocked before invocation.
 
 ---
 

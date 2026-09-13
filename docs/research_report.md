@@ -182,11 +182,12 @@ In an iterative mutation game over 3 rounds with 40 seed attacks mutating via 7 
 ---
 
 ## 15. SOC Assistant Demonstration
-Evaluating the gateway within a Security Operations Center workflow (`experiments/soc_workflow/`), over 100 prompts (50 legitimate SOC queries: 25 adaptation-split + 25 held-out benign cybersecurity; 50 adversarial telemetry: 30 dev indirect injections + 20 held-out tool injections):
-- **Benign Utility Rate**, **Payload Interception**, and **Tool Authorization** figures are being re-measured with live model calls and verified zero-fallback raw results; a first rerun was rejected by the live-run guard when the provider's daily token quota was exhausted mid-run (95/100 rows fell back to heuristics). The committed artifacts in `results/soc_workflow_summary/` will carry the authoritative denominators once the clean rerun completes.
+Evaluating the gateway within a Security Operations Center workflow (`experiments/soc_workflow/`), over 100 prompts (50 legitimate SOC queries: 25 adaptation-split + 25 held-out benign cybersecurity; 50 adversarial telemetry: 30 dev indirect injections + 20 held-out tool injections), full blended pipeline (G) with live model calls and zero offline-fallback rows:
+- **Benign Utility Rate**: 50/50 (100%) — every legitimate threat-hunting and log-aggregation query was allowed through.
+- **Payload Interception**: 50/50 (100%) — suspicious instructions smuggled into raw syslog headers and auth logs were all flagged.
+- **Tool Authorization**: 20/20 (100%) — unauthorized command execution attempts were blocked before tool invocation.
 
-> [!NOTE]
-> Until that artifact exists, treat the SOC section as a workflow demonstration, not a measured result. Re-running `python experiments/soc_workflow/run_soc_workflow_eval.py --reject-fallback` after provider quota resets regenerates the numbers.
+Committed artifacts: `results/soc_workflow_summary/` (summary) and `results/soc_log_analysis_eval_20260913_095251/` (per-prompt raw results).
 
 ---
 
