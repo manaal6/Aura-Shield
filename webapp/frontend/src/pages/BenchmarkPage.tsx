@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fetchBenchmark } from '../api/client';
-import type { BenchmarkData } from '../api/client';
+import { fetchBenchmark, fetchMeasured } from '../api/client';
+import type { BenchmarkData, MeasuredData, HeldoutBaselineRow } from '../api/client';
 
 const CATEGORY_LABELS: Record<string, string> = {
   direct_injection: 'Direct injection',
@@ -26,20 +26,109 @@ function pct(k: string, v: number) {
     : String(v);
 }
 
+function fmtPct(v: number | null | undefined) {
+  return v === null || v === undefined ? '—' : `${(v * 100).toFixed(1)}%`;
+}
+
+function HeldoutMatrix({ rows }: { rows: HeldoutBaselineRow[] }) {
+  return (
+    <div className="table-wrap panel">
+      <table>
+        <thead>
+          <tr><th>Baseline</th><th>Recall</th><th>Precision</th><th>F1</th><th>FPR</th><th>Recall CI95</th><th>Latency</th></tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.key} style={r.key === 'G' ? { background: 'var(--bg-raised)' } : undefined}>
+              <td><strong>{r.key}</strong> — {r.name}</td>
+              <td className="mono">{fmtPct(r.recall)}{r.true_positives !== null ? ` (${r.true_positives}/${r.n_attacks})` : ''}</td>
+              <td className="mono">{fmtPct(r.precision)}</td>
+              <td className="mono">{r.f1 === null ? '—' : r.f1.toFixed(3)}</td>
+              <td className="mono">{fmtPct(r.fpr)}</td>
+              <td className="mono">{r.recall_ci_95 ? `[${(r.recall_ci_95[0]*100).toFixed(1)}%, ${(r.recall_ci_95[1]*100).toFixed(1)}%]` : '—'}</td>
+              <td className="mono">{r.avg_latency_ms === null ? '—' : `${Math.round(r.avg_latency_ms)} ms`}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function BenchmarkPage() {
   const [data, setData] = useState<BenchmarkData | null>(null);
+  const [measured, setMeasured] = useState<MeasuredData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchBenchmark()
-      .then(setData)
+    Promise.all([fetchBenchmark(), fetchMeasured().catch(() => null)])
+      .then(([b, m]) => { setData(b); setMeasured(m); })
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div><h2>Benchmark</h2><p className="loading">Loading…</p></div>;
   if (error) return <div><h2>Benchmark</h2><p className="error">{error}</p></div>;
+  const hb = measured?.heldout_baselines;
+  const ab = measured?.adaptive_before_after;
+  const soc = measured?.soc;
+
+  return (
+    <div>
+      <h2>Benchmark</h2>
+      {error && <p className="error">{error}</p>}
+
+      {hb?.rows?.length ? (
+        <section>
+          <h3>Held-out baseline matrix — live model runs (105 prompts: {hb.rows[0].n_attacks} attacks, {hb.rows[0].n_benign} benign)</h3>
+          <p className="muted">
+            All LLM-dependent baselines executed with live model calls and zero offline-fallback
+            rows (verified per run). Honest note: the full blend (G) is not statistically
+            distinguishable from constitution-only (C) at this sample size — overlapping 95% CIs.
+          </p>
+          <HeldoutMatrix rows={hb.rows} />
+        </section>
+      ) : null}
+
+      {ab ? (
+        <section>
+          <h3>Adaptive constitution — measured before/after (held-out, full gateway)</h3>
+          <p className="muted">{ab.description}</p>
+          <div className="table-wrap panel">
+            <table>
+              <thead><tr><th>Constitution</th><th>Recall</th><th>Precision</th><th>F1</th><th>FPR</th></tr></thead>
+              <tbody>
+                <tr><td>v{ab.before.constitution_version} (before)</td><td className="mono">{fmtPct(ab.before.recall)} ({ab.before.true_positives}/73)</td><td className="mono">{fmtPct(ab.before.precision)}</td><td className="mono">{ab.before.f1?.toFixed(3)}</td><td className="mono">{fmtPct(ab.before.fpr)}</td></tr>
+                <tr><td>v{ab.after.constitution_version} (after adaptive update)</td><td className="mono">{fmtPct(ab.after.recall)} ({ab.after.true_positives}/73)</td><td className="mono">{fmtPct(ab.after.precision)}</td><td className="mono">{ab.after.f1?.toFixed(3)}</td><td className="mono">{fmtPct(ab.after.fpr)}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
+      {soc ? (
+        <section>
+          <h3>SOC workflow ({soc.total_prompts_evaluated} prompts, full gateway, live)</h3>
+          <div className="cards">
+            <div className="card"><div className="k">Benign utility</div><div className="v">{fmtPct(soc.benign_utility_rate)}</div><div className="muted">{soc.legitimate_soc_queries} legitimate queries</div></div>
+            <div className="card"><div className="k">Payload detection</div><div className="v">{fmtPct(soc.embedded_payload_detection_rate)}</div><div className="muted">{soc.embedded_attacks_evaluated} adversarial prompts</div></div>
+            <div className="card"><div className="k">Tool authorization</div><div className="v">{fmtPct(soc.tool_authorization_enforcement_rate)}</div><div className="muted">{soc.tool_injections_evaluated} injection attempts</div></div>
+          </div>
+        </section>
+      ) : null}
+
+      {data && (
+        <section>
+          <h3>Offline safety evaluation (legacy artifacts)</h3>
+          <LegacyBenchmarkSection data={data} />
+        </section>
+      )}
+    </div>
+  );
+}
+
+function LegacyBenchmarkSection({ data }: { data: BenchmarkData }) {
   if (!data?.has_data) {
     return (
       <div>
@@ -61,11 +150,10 @@ function BenchmarkPage() {
 
   return (
     <div>
-      <h2>Benchmark</h2>
       <p className="muted">
-        Evaluation of the full shield over {data.n} test cases
+        Offline safety evaluation of the shield over {data.n} test cases
         {data.real_llm_calls_used ? ' with live LLM calls' : ' using offline fallback classifiers'}.
-        Artifacts are produced by <span className="mono">evaluation/evaluate.py</span> — the console does not compute these numbers.
+        Artifacts produced by <span className="mono">evaluation/evaluate.py</span>.
       </p>
 
       <section>

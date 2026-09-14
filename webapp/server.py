@@ -46,6 +46,9 @@ except Exception as _exc:
 
 RESULTS_PATH = ROOT / "evaluation" / "results.json"
 METRICS_PATH = ROOT / "evaluation" / "metrics_summary.json"
+HELDOUT_MASTER_PATH = ROOT / "results" / "baselines_summary" / "heldout_master_table.json"
+ADAPTIVE_MEASURED_PATH = ROOT / "results" / "adaptive_summary" / "measured_heldout_before_after.json"
+SOC_SUMMARY_PATH = ROOT / "results" / "soc_workflow_summary" / "soc_workflow_results.json"
 
 
 class AnalyzeRequest(BaseModel):
@@ -235,6 +238,25 @@ def benchmark():
         "by_category": by_category,
         "attribution": attribution,
         "n": len(results),
+    }
+
+
+def _load_optional(path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+@app.get("/api/measured")
+def measured():
+    """Serves the committed artifacts of the live research experiments:
+    the held-out baseline matrix, the measured adaptive before/after, and
+    the SOC workflow summary. Read-only over version-controlled JSON."""
+    return {
+        "heldout_baselines": _load_optional(HELDOUT_MASTER_PATH),
+        "adaptive_before_after": _load_optional(ADAPTIVE_MEASURED_PATH),
+        "soc": _load_optional(SOC_SUMMARY_PATH),
     }
 
 

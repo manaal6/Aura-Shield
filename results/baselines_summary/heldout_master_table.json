@@ -1,0 +1,203 @@
+{
+  "description": "Full baseline matrix on the 105-prompt held-out test split (73 attacks, 32 benign). All LLM-dependent runs live-model, zero offline-fallback rows (verified per run).",
+  "rows": [
+    {
+      "key": "A",
+      "config": "A_rule_only",
+      "name": "Rule only",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.0,
+      "precision": null,
+      "f1": null,
+      "fpr": 0.0,
+      "true_positives": 0,
+      "false_negatives": 73,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.0,
+        0.04999375338358389
+      ],
+      "avg_latency_ms": 25.5,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_a_rule_only_test_20260912_112621"
+    },
+    {
+      "key": "B",
+      "config": "B_llm_only",
+      "name": "LLM semantic only",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.7945205479452054,
+      "precision": 1.0,
+      "f1": 0.8854961832061068,
+      "fpr": 0.0,
+      "true_positives": 58,
+      "false_negatives": 15,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.6882613165474036,
+        0.871331404062266
+      ],
+      "avg_latency_ms": 2166.2,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_b_llm_only_test_20260911_135639"
+    },
+    {
+      "key": "C",
+      "config": "C_constitution_only",
+      "name": "Constitution checker only",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.9315068493150684,
+      "precision": 1.0,
+      "f1": 0.9645390070921985,
+      "fpr": 0.0,
+      "true_positives": 68,
+      "false_negatives": 5,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.8494770066805462,
+        0.970391397933621
+      ],
+      "avg_latency_ms": 5190.6,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_c_constitution_only_test_20260911_140357"
+    },
+    {
+      "key": "D",
+      "config": "D_rule_llm",
+      "name": "Rule + LLM",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.7534246575342466,
+      "precision": 1.0,
+      "f1": 0.8593750000000001,
+      "fpr": 0.0,
+      "true_positives": 55,
+      "false_negatives": 18,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.6435533785848676,
+        0.8379566368234529
+      ],
+      "avg_latency_ms": 1946.9,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_d_rule_llm_test_20260912_112624"
+    },
+    {
+      "key": "E",
+      "config": "E_rule_constitution",
+      "name": "Rule + Constitution",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.9041095890410958,
+      "precision": 1.0,
+      "f1": 0.949640287769784,
+      "fpr": 0.0,
+      "true_positives": 66,
+      "false_negatives": 7,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.8150416221426188,
+        0.9527716456706489
+      ],
+      "avg_latency_ms": 4501.0,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_e_rule_constitution_test_20260912_114019"
+    },
+    {
+      "key": "F",
+      "config": "F_llm_constitution",
+      "name": "LLM + Constitution",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.9041095890410958,
+      "precision": 1.0,
+      "f1": 0.949640287769784,
+      "fpr": 0.0,
+      "true_positives": 66,
+      "false_negatives": 7,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.8150416221426188,
+        0.9527716456706489
+      ],
+      "avg_latency_ms": 6912.2,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_f_llm_constitution_test_20260913_075138"
+    },
+    {
+      "key": "G",
+      "config": "G_full_blended",
+      "name": "Full blended AURA Shield (v1 constitution)",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.8904109589041096,
+      "precision": 1.0,
+      "f1": 0.9420289855072463,
+      "fpr": 0.0,
+      "true_positives": 65,
+      "false_negatives": 8,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.7983717410229372,
+        0.9434139583898808
+      ],
+      "avg_latency_ms": 6901.6,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_g_full_blended_test_20260913_074542"
+    },
+    {
+      "key": "H",
+      "config": "H_prompt_guardrail",
+      "name": "Monolithic prompt guardrail",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.7534246575342466,
+      "precision": 1.0,
+      "f1": 0.8593750000000001,
+      "fpr": 0.0,
+      "true_positives": 55,
+      "false_negatives": 18,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.6435533785848676,
+        0.8379566368234529
+      ],
+      "avg_latency_ms": 2147.8,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_h_prompt_guardrail_test_20260911_134904"
+    },
+    {
+      "key": "I",
+      "config": "I_embedding",
+      "name": "TF-IDF vector classifier",
+      "n_total": 105,
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": 0.3561643835616438,
+      "precision": 1.0,
+      "f1": 0.5252525252525252,
+      "fpr": 0.0,
+      "true_positives": 26,
+      "false_negatives": 47,
+      "false_positives": 0,
+      "recall_ci_95": [
+        0.25604337400707256,
+        0.470667157788205
+      ],
+      "avg_latency_ms": 1.1,
+      "fallback_rows": 0,
+      "run_dir": "results/baseline_i_embedding_test_20260911_151141"
+    }
+  ]
+}

@@ -127,3 +127,45 @@ export function reviewPrinciple(pendingId: number, action: 'approve' | 'reject',
 export function fetchBenchmark() {
   return handle<BenchmarkData>(fetch('/api/benchmark'));
 }
+
+export interface HeldoutBaselineRow {
+  key: string;
+  config: string;
+  name: string;
+  n_total: number;
+  n_attacks: number;
+  n_benign: number;
+  recall: number | null;
+  precision: number | null;
+  f1: number | null;
+  fpr: number | null;
+  true_positives: number | null;
+  false_negatives: number | null;
+  false_positives: number | null;
+  recall_ci_95: [number, number] | null;
+  avg_latency_ms: number | null;
+  fallback_rows: number;
+  run_dir: string;
+}
+
+export interface MeasuredData {
+  heldout_baselines: { description: string; rows: HeldoutBaselineRow[] } | null;
+  adaptive_before_after: {
+    description: string;
+    before: { constitution_version: number; recall: number; precision: number; f1: number; fpr: number; true_positives: number; false_positives: number; run_dir: string };
+    after: { constitution_version: number; recall: number; precision: number; f1: number; fpr: number; true_positives: number; false_positives: number; run_dir: string };
+  } | null;
+  soc: {
+    total_prompts_evaluated: number;
+    legitimate_soc_queries: number;
+    benign_utility_rate: number;
+    embedded_attacks_evaluated: number;
+    embedded_payload_detection_rate: number;
+    tool_injections_evaluated: number;
+    tool_authorization_enforcement_rate: number;
+  } | null;
+}
+
+export function fetchMeasured() {
+  return handle<MeasuredData>(fetch('/api/measured'));
+}

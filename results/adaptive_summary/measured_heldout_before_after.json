@@ -1,0 +1,23 @@
+{
+  "description": "Measured v1-vs-v2 held-out re-evaluation of the full gateway after the provenance-controlled adaptive constitution update (C7). Asserted loop metrics superseded \u2014 see results/adaptive_summary/adaptive_results.md.",
+  "before": {
+    "constitution_version": 1,
+    "recall": 0.8904109589041096,
+    "precision": 1.0,
+    "f1": 0.9420289855072463,
+    "fpr": 0.0,
+    "true_positives": 65,
+    "false_positives": 0,
+    "run_dir": "results/baseline_g_full_blended_test_20260913_074542"
+  },
+  "after": {
+    "constitution_version": 2,
+    "recall": 0.9315068493150684,
+    "precision": 1.0,
+    "f1": 0.9645390070921985,
+    "fpr": 0.0,
+    "true_positives": 68,
+    "false_positives": 0,
+    "run_dir": "results/baseline_g_full_blended_test_20260914_052356"
+  }
+}
