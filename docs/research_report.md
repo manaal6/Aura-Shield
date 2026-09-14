@@ -190,6 +190,18 @@ In an iterative mutation game over 3 rounds with 40 seed attacks mutating via 7 
 - **Conclusion**: Validates that heuristic keyword rules degrade immediately against adaptive mutations, necessitating semantic and constitutional layers.
 - **Threat-model scope (important)**: This experiment demonstrates the brittleness of deterministic and embedding-only baselines. It does **not** prove that the complete AURA Shield pipeline (Baseline G, with live LLM analyzer and constitution checker) resists an adaptive attacker with source-code access. Evaluating the full blended gateway against a source-aware adaptive attacker is an important next experiment.
 
+### Full-Gateway Adaptive Red-Team Evaluation (measured)
+
+The same mutation game was re-run with the **full blended gateway (Baseline G, live model calls, zero rate-limit fallbacks)** as the defender (artifacts: `results/attacker_defender_summary/gateway_game/`):
+
+| Round | Mutation | Attacks evaluated | Bypassed | Blocked |
+| :--- | :--- | ---: | ---: | ---: |
+| 1 | Whitespace padding | 40 | 19 (47.5%) | 21 (52.5%) |
+| 2 | Role-play wrapper (of round-1 bypassers only) | 19 | 19 (100%) | 0 |
+| 3 | Leetspeak (of round-2 bypassers only) | 19 | 18 (94.7%) | 1 |
+
+**Interpretation (honest):** the full gateway blocks roughly half of whitespace-mutated attacks that trivially bypass the rule layer (100% evasion) — a measured robustness gain from the semantic and constitutional layers. However, rounds 2 and 3 mutate only the surviving (already-evading) subset, and nearly all of those re-evade under role-play framing and leetspeak. What this demonstrates: layered detection materially raises the cost of each evasion step but does not withstand an unrestricted adaptive attacker that iterates on its own successes. What this does not demonstrate: robustness against source-aware attacks, and the downstream consequences of the bypasses (ASR requires the separate Phase 10 evaluator).
+
 ---
 
 ## 15. SOC Assistant Demonstration
