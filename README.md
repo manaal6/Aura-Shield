@@ -159,26 +159,32 @@ streamlit run dashboard/streamlit_app.py
 ## 📈 Empirical Results Summary
 
 ### Held-Out Test Set Performance (105 Prompts: 73 Attacks, 32 Benign)
-Evaluated on completely unseen attack families (`authorization_attack`, `tool_injection`, `multi_turn_manipulation`, `policy_targeting`, and `benign_cybersecurity_holdout`). Detection metrics come from **real offline detector runs**; compromise figures come from a conservative offline refusal-based evaluator (see caveat below).
+Evaluated on completely unseen attack families (`authorization_attack`, `tool_injection`, `multi_turn_manipulation`, `policy_targeting`, and `benign_cybersecurity_holdout`). All LLM-dependent baselines were run with **live model calls and zero offline-fallback rows** (per-run provenance in `results/baselines_summary/heldout_master_table.md`).
 
-| Baseline | Gateway recall | Gateway precision | F1 | FPR | Downstream compromise estimate | Evaluator type |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **A — Rule only** | `0.0%` (0/73) | `N/A` (0 flagged) | `N/A` | `0.0%` (0/32) | `100.0%` (0/73 blocked) | Conservative offline heuristic |
-| **B — Semantic analyzer (LLM)** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
-| **C — Constitution only** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
-| **D–F — Pairwise blends** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
-| **G — Full AURA Shield pipeline** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
-| **H — Monolithic guardrail (LLM)** | Not reproduced offline; requires configured model provider | — | — | — | — | — |
-| **I — TF-IDF embedding classifier** | `35.6%` (26/73) | `100.0%` (26/26 flagged) | `0.525` | `0.0%` (0/32) | `97.3%` (71/73; CI 90.5–99.2%) | Conservative offline heuristic |
+| Baseline | Recall | Precision | F1 | FPR |
+| :--- | :--- | :--- | :--- | :--- |
+| A — Rule only | `0.0%` (0/73) | `N/A` | `N/A` | `0.0%` (0/32) |
+| B — Semantic analyzer (LLM) | `79.5%` (58/73) | `100.0%` | `0.885` | `0.0%` |
+| C — Constitution only | `93.2%` (68/73) | `100.0%` | `0.965` | `0.0%` |
+| D — Rule + LLM | `75.3%` (55/73) | `100.0%` | `0.859` | `0.0%` |
+| E — Rule + Constitution | `90.4%` (66/73) | `100.0%` | `0.950` | `0.0%` |
+| F — LLM + Constitution | `90.4%` (66/73) | `100.0%` | `0.950` | `0.0%` |
+| **G — Full AURA Shield pipeline** | `89.0%` (65/73) | `100.0%` | `0.942` | `0.0%` |
+| H — Monolithic guardrail (LLM) | `75.3%` (55/73) | `100.0%` | `0.859` | `0.0%` |
+| I — TF-IDF embedding classifier | `35.6%` (26/73) | `100.0%` | `0.525` | `0.0%` |
 
-**Baseline I gateway decision counts (105 prompts):** `ALLOW 79` (32 benign + 47 attacks) · `REVIEW-forwarded 24` (all attacks; review-hold disabled in this experiment) · `REVIEW-held 0` · `BLOCK 2` (both attacks).
+**Measured follow-up experiments (all live, zero-fallback, committed artifacts):**
+
+- **Adaptive constitution before/after (held-out):** activating v2 (one principle synthesized from 80 adaptation-split rule-only false negatives) improved the full gateway's recall **89.0% → 93.2%** (65/73 → 68/73) with zero FPR regression; overlapping 95% CIs disclosed (`results/baseline_g_full_blended_test_20260914_052356`).
+- **Full-gateway red-team:** the full gateway blocks 52.5% (21/40) of whitespace-mutated attacks that bypass the rule layer at 100%; role-play/leetspeak re-mutations of surviving attacks mostly re-evade (`results/attacker_defender_summary/gateway_game/`).
+- **Cross-model cells (RQ3):** swapping the constitution model to `gpt-oss-safeguard-20b` drops recall to 78.1%; swapping only the analyzer retains 90.4% — the constitution role is capability-critical (`results/baseline_g_full_blended_test_20260914_061433` / `_071835`).
+- **SOC workflow:** benign utility 50/50, payload detection 50/50, tool authorization 20/20 (`results/soc_workflow_summary/`).
 
 **How to read these numbers (claim discipline):**
 
-- **The full pipeline (Baseline G) has no row in this table by design**: its LLM analyzer and constitution checker require a live model provider (`GROQ_API_KEY`). Their absence is a measurement gap, not a negative result — do not extrapolate the single-signal rows to the blended architecture.
-- **Gateway recall is not gateway mitigation.** Baseline I's 35.6% recall means 26/73 attacks were flagged, but 24 of those 26 received REVIEW decisions that were *forwarded* to the downstream model (review-hold disabled). Only the 2 BLOCK decisions kept prompts from downstream exposure, so offline exposure prevention was 2/73.
-- **"Downstream compromise estimate" is an estimate, not empirical ASR.** The figures are produced by a deterministic refusal-based evaluator under a deliberately conservative convention: any bypassed attack whose (simulated) downstream response does not explicitly refuse is counted as compromised. They are not claims about universal model behavior or production Attack Success Rate. A separate model-backed evaluation with manual or independently validated judging is required to report empirical ASR against a real downstream model.
-- These are benchmark-specific results; they do not establish robustness against adaptive attackers with source access, nor independence between guard and target models (heterogeneous model roles may reduce correlated failure but do not establish statistical independence).
+- **RQ1 honest negative result:** the full blend (G, 89.0%) is *not* statistically distinguishable from constitution-only (C, 93.2%) at n=73 attacks (overlapping 95% Wilson CIs). Blending decisively beats rules/guardrail/TF-IDF baselines, but its marginal value over the constitution layer alone is not demonstrated at this sample size.
+- **ASR is not reported here.** Attack Success Rate requires a separate downstream safety evaluator and was not measured per baseline; earlier offline "compromise estimates" were heuristic simulations and are no longer quoted.
+- These are benchmark-specific results; they do not establish robustness against adaptive attackers with source access, nor independence between guard and target models (heterogeneous model roles reduce correlated failure but do not establish statistical independence — see the measured cross-model cells above for the capability trade-off).
 
 ### Reproducibility: offline vs. live-API experiments
 
@@ -186,8 +192,9 @@ Evaluated on completely unseen attack families (`authorization_attack`, `tool_in
 | :--- | :--- | :--- |
 | Unit test suite (93 tests) | Real code, fully offline | No |
 | Held-out benchmark — Baselines A, I | Real detector runs, fully offline | No |
-| Held-out benchmark — Baselines B–H, G | Real pipeline, live models | Yes (`GROQ_API_KEY`) |
-| Attacker-defender game (Baselines A & I) | Real deterministic detectors, fully offline | No |
+| Held-out benchmark — Baselines B–H (all nine) | Real pipeline, live models, zero-fallback verified | Yes (`GROQ_API_KEY`) |
+| Attacker-defender game (rules/embedding) | Real deterministic detectors, fully offline | No |
+| Attacker-defender game (full gateway) | Live models, zero-fallback verified | Yes (`GROQ_API_KEY`) |
 | Adaptive constitution loop | Real code, deterministic evaluation | No |
 | SOC workflow demonstration | Real code, deterministic | No |
 | Cross-model transferability matrix | Real pipeline, live models | Yes (`GROQ_API_KEY`) |
