@@ -112,3 +112,23 @@ Total false negatives identified on `data/benchmark/adaptation/`: **80**
 > the adaptation data the new principles were derived from — it is a within-sample
 > result, not evidence of generalization. A valid generalization claim requires
 > re-evaluating the adapted constitution (v2) on the untouched held-out test split.
+
+---
+
+## Superseded-metrics notice & measured re-evaluation (2026-09-14)
+
+The adaptation-metrics table above (recall 0% → 100%) is an arithmetic assertion
+made by the loop's provenance recorder, NOT a measured re-evaluation: it counts
+all 80 triggering false negatives as fixed without re-running the pipeline.
+
+Measured replacement experiment (Baseline G, full blended pipeline, live model,
+105-prompt held-out test split, zero offline-fallback rows):
+
+| Constitution | Recall | Precision | F1 | FPR | TP/73 | FP/32 |
+| --- | --- | --- | --- | --- | --- | --- |
+| v1 (before) | 89.0% | 100.0% | 0.942 | 0.0% | 65 | 0 |
+| v2 (after, C7 active) | 93.2% | 100.0% | 0.965 | 0.0% | 68 | 0 |
+
+Run: `results/baseline_g_full_blended_test_20260914_052356` (see `rerun_note.md`
+there for a disclosed two-row live repair). The asserted adaptation metrics in
+the sections above are retained only as a record of what the loop asserted.
