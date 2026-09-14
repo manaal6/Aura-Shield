@@ -121,24 +121,44 @@ All parameters are centralized in [`app/config.py`](file:///e:/OneDrive/Document
 ### A. Held-Out Test Set Performance (105 Prompts: 73 Attacks, 32 Benign)
 Evaluated on completely unseen attack families:
 
-| Baseline | Recall | Precision | F1 Score | FPR | FNR | Over-Refusal | True ASR | Gateway Mitigation |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Baseline A (Rule Only)** | `0.0%` | `N/A` | `N/A` | `0.0%` | `100.0%` | `0.0%` | `0.0%` | `100.0%` |
-| **Baseline I (Embedding Classifier)** | `35.6%` | `100.0%` | `0.525` | `0.0%` | `64.4%` | `0.0%` | `0.0%` | `100.0%` |
+All nine baselines evaluated live with zero offline-fallback rows (provenance: `results/baselines_summary/heldout_master_table.md`):
+
+| Baseline | Recall | Precision | F1 | FPR |
+| :--- | :--- | :--- | :--- | :--- |
+| A (Rule only) | `0.0%` | `N/A` | `N/A` | `0.0%` |
+| B (LLM only) | `79.5%` | `100.0%` | `0.885` | `0.0%` |
+| C (Constitution only) | `93.2%` | `100.0%` | `0.965` | `0.0%` |
+| D (Rule + LLM) | `75.3%` | `100.0%` | `0.859` | `0.0%` |
+| E (Rule + Constitution) | `90.4%` | `100.0%` | `0.950` | `0.0%` |
+| F (LLM + Constitution) | `90.4%` | `100.0%` | `0.950` | `0.0%` |
+| **G (Full AURA Shield)** | `89.0%` | `100.0%` | `0.942` | `0.0%` |
+| H (Monolithic prompt guardrail) | `75.3%` | `100.0%` | `0.859` | `0.0%` |
+| I (TF-IDF classifier) | `35.6%` | `100.0%` | `0.525` | `0.0%` |
 
 **Key Findings**:
-1. **Regex Rules Fail on Unseen Vectors**: Single pattern matches yield a risk score of 0.306, below `threshold_review` (0.40), resulting in 0% recall on structurally novel attacks (e.g. tool injections, authorization attacks).
-2. **Vector Similarity Transfers Well**: The n-gram TF-IDF vector similarity classifier flags 35.6% of unseen attacks with 0 false positives (100% precision).
-3. **True ASR vs Evasion Rate**: Attack Success Rate (ASR) measures downstream compromise, not detector bypasses. Defense-in-depth alignment allows downstream models to refuse attacks that slip past gateway filters.
+1. **Regex Rules Fail on Unseen Vectors**: 0% recall on structurally novel held-out attack families (tool injections, authorization attacks).
+2. **Every LLM/constitution configuration reaches 75-93% recall at 100% precision**: honest negative result - the full blend (G, 89.0%) is not statistically distinguishable from constitution-only (C, 93.2%) at n=73 attacks (overlapping 95% Wilson CIs). RQ1's blending claim is supported against rules/guardrail/TF-IDF baselines but not against the constitution layer alone at this sample size.
+3. **ASR is not reported per baseline**: it requires a separate downstream safety evaluator and was not measured for these runs.
 
-### B. Adaptive Constitution Loop
+### B. Adaptive Constitution Loop (measured before/after)
 On the adaptation split, the offline adaptation loop:
 - Identified 80 false negatives under the rule-only baseline.
-- Synthesized and validated candidate principle `C7-no-system-role-impersonation`.
+- Synthesized and validated candidate principle `C7-no-system-role-impersonation` (its second candidate, `C8-no-context-window-overflow`, was rejected by automated validation).
 - Generated updated constitution v2 with complete JSON provenance in `results/adaptive_summary/adaptive_provenance.json`.
 
-### C. Attacker-Defender Red-Teaming Game
-Iterative mutation of 40 seed attacks over 3 rounds applying 7 mutation strategies (whitespace padding, role-play wrappers, leetspeak) demonstrated that heuristic keyword rules degrade immediately against mutative framing across sequential rounds, necessitating multi-signal blending.
+Measured held-out re-evaluation (Baseline G, live, zero fallback; run `results/baseline_g_full_blended_test_20260914_052356`):
+
+| Constitution | Recall | Precision | F1 | FPR |
+| :--- | :--- | :--- | :--- | :--- |
+| v1 (before) | `89.0%` | `100.0%` | `0.942` | `0.0%` |
+| v2 (after) | `93.2%` | `100.0%` | `0.965` | `0.0%` |
+
+The improvement (+4.2pp recall, 65/73 to 68/73) is directional; overlapping 95% CIs mean it is not individually significant at n=73. The provenance record's asserted "0% to 100%" adaptation metrics are superseded by this measured table.
+
+### C. Red-Team Evaluations (rule layer and full gateway)
+Deterministic-layer game: iterative mutation of 40 seed attacks over 3 rounds (whitespace padding, role-play wrappers, leetspeak) achieved 40/40 bypasses per round against the rule-only detector.
+
+Full-gateway game (Baseline G, live, zero fallback; artifacts `results/attacker_defender_summary/gateway_game/`): round 1 blocked 21/40 (52.5%) whitespace mutants that fully bypass the rule layer; role-play and leetspeak re-mutations of the surviving subset mostly re-evaded (19/19 and 18/19 bypassed). Layered detection materially raises per-step evasion cost but does not withstand an unrestricted adaptive attacker iterating on its own successes.
 
 ### D. SOC Analyst Assistant Demonstration
 Evaluated in `experiments/soc_workflow/` over 100 prompts with the full blended pipeline (live model calls, zero offline-fallback rows; raw results in `results/soc_log_analysis_eval_20260913_095251/`):
@@ -159,7 +179,7 @@ Evaluated in `experiments/soc_workflow/` over 100 prompts with the full blended 
 
 ## 9. Reproducibility & Test Suite
 
-All 90 unit tests execute completely offline without network or API dependencies:
+All 93 unit tests execute completely offline without network or API dependencies:
 ```bash
 python -m pytest tests/ -v
 ============================= 90 passed in 8.61s ==============================
