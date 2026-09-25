@@ -1,6 +1,6 @@
 /* AURA Shield console — dark SOC/threat-monitoring theme.
    Base: near-black surfaces, cyan accent, glowing risk-state colors.
-   All class names preserved from the previous theme — this is a visual pass only. */
+   All class names preserved from the original theme. */
 
 :root {
   --bg: #0b0e14;
@@ -162,17 +162,21 @@ label { display: block; margin: 0.7rem 0 0.3rem; color: var(--text-dim); font-si
 .badge.review { color: var(--review); border-color: rgba(242, 184, 75, 0.35); background: var(--review-bg); }
 .badge.block { color: var(--block); border-color: rgba(255, 92, 108, 0.35); background: var(--block-bg); }
 
-/* metric cards */
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.85rem; margin: 0.6rem 0; }
+/* metric cards — flex column so the value ("68/73") always sits at the
+   bottom of the card regardless of how many lines the label wraps to,
+   keeping every value in a row visually aligned. */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.85rem; margin: 0.6rem 0; align-items: stretch; }
 .card {
+  display: flex; flex-direction: column; justify-content: space-between;
   background: linear-gradient(180deg, var(--bg-raised), var(--bg-panel));
   border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   transition: border-color 0.15s ease, transform 0.15s ease;
+  min-height: 5.5rem;
 }
 .card:hover { border-color: var(--accent-glow); transform: translateY(-1px); }
-.card .k { color: var(--text-dim); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
-.card .v { color: var(--text); font-family: var(--mono); font-size: 1.4rem; font-weight: 700; margin-top: 0.2rem; }
+.card .k { color: var(--text-dim); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; line-height: 1.35; }
+.card .v { color: var(--text); font-family: var(--mono); font-size: 1.4rem; font-weight: 700; margin-top: 0.4rem; }
 
 /* tables */
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -241,26 +245,7 @@ pre.json { color: #a8c7f0; }
 .subnav-link:hover { color: var(--text); background: var(--bg-raised); }
 .subnav-link.active { color: var(--accent); background: var(--accent-dim); font-weight: 700; }
 
-/* mobile: nav scrolls horizontally, type scales down, tables scroll */
-@media (max-width: 768px) {
-  body { font-size: 13px; }
-  main.page { padding: 0.75rem; }
-  .topbar { padding: 0.5rem 0.75rem; }
-  .topbar nav { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding-bottom: 0.25rem; }
-  .nav-link { padding: 0.3rem 0.55rem; font-size: 0.8rem; white-space: nowrap; }
-  .subnav { flex-wrap: nowrap; overflow-x: auto; }
-  .subnav-link { white-space: nowrap; font-size: 0.8rem; }
-  h2 { font-size: 1rem; }
-  .card .v { font-size: 1.15rem; }
-  .cards { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; }
-  .panel { padding: 0.75rem; }
-  table { font-size: 0.78rem; }
-  th, td { padding: 0.4rem 0.5rem; }
-  pre.json, pre.mono { white-space: pre-wrap; word-break: break-word; font-size: 0.72rem; }
-  input, textarea, select, button { font-size: 16px; }
-}
-/* --- Additions for reduced-density Overview & Evidence pages --- */
-
+/* collapsible sections (Overview, Benchmark legacy) */
 .collapsible { padding: 0; overflow: hidden; }
 .collapsible-head {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -273,9 +258,62 @@ pre.json { color: #a8c7f0; }
 .collapsible-chevron { color: var(--text-dim); font-size: 1rem; font-weight: 400; }
 .collapsible-body { padding: 0 1.1rem 1.1rem; }
 
+/* evidence page rows */
 .evidence-row { margin-top: 0.75rem; }
 .evidence-row-head {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 0.5rem 1rem;
 }
 .evidence-row-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+/* mobile: nav scrolls horizontally, type scales down, tables scroll */
+@media (max-width: 768px) {
+  body { font-size: 13px; }
+  main.page { padding: 0.75rem; }
+  .topbar { padding: 0.5rem 0.75rem; }
+  .topbar nav { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding-bottom: 0.25rem; }
+  .nav-link { padding: 0.3rem 0.55rem; font-size: 0.8rem; white-space: nowrap; }
+  .subnav { flex-wrap: nowrap; overflow-x: auto; }
+  .subnav-link { white-space: nowrap; font-size: 0.8rem; }
+  h2 { font-size: 1rem; }
+  .card .v { font-size: 1.15rem; }
+  .card { min-height: 4.5rem; }
+  .cards { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem; }
+  .panel { padding: 0.75rem; }
+  table { font-size: 0.78rem; }
+  th, td { padding: 0.4rem 0.5rem; }
+  pre.json, pre.mono { white-space: pre-wrap; word-break: break-word; font-size: 0.72rem; }
+  input, textarea, select, button { font-size: 16px; }
+
+  /* Responsive stacking for text-heavy tables (e.g. Constitution).
+     Apply class="stack-table" + data-label="<column>" on each <td>.
+     Below 768px this turns each row into its own card with labeled
+     fields instead of a horizontally-scrolling table that cuts off
+     the first column and stretches rows sideways. */
+  table.stack-table thead { display: none; }
+  table.stack-table, table.stack-table tbody, table.stack-table tr, table.stack-table td {
+    display: block; width: 100%;
+  }
+  table.stack-table tr {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    margin-bottom: 0.65rem;
+    background: var(--bg-raised);
+  }
+  table.stack-table tr:last-child { margin-bottom: 0; }
+  table.stack-table td {
+    border-bottom: none;
+    padding: 0.3rem 0;
+    max-width: 100% !important;
+    white-space: normal !important;
+  }
+  table.stack-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 0.15rem;
+  }
+  .table-wrap.panel:has(table.stack-table) { padding: 0.75rem; overflow-x: visible; }
+}

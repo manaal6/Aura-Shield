@@ -89,16 +89,18 @@ function ConstitutionPage() {
 
       <section>
         <h3>Active principles</h3>
+        {/* stack-table: on narrow screens this renders as stacked cards
+            instead of a horizontally-scrolling table — see index.css */}
         <div className="table-wrap panel">
-          <table>
+          <table className="stack-table">
             <thead><tr><th>ID</th><th>Principle</th><th>Rationale</th><th>Since</th></tr></thead>
             <tbody>
               {data.principles.map((p) => (
                 <tr key={p.id}>
-                  <td className="mono" style={{ whiteSpace: 'nowrap' }}>{p.id}</td>
-                  <td style={{ maxWidth: 420 }}>{p.principle_text}</td>
-                  <td className="muted" style={{ maxWidth: 380 }}>{p.rationale}</td>
-                  <td className="mono">v{p.version_added}</td>
+                  <td className="mono" data-label="ID" style={{ whiteSpace: 'nowrap' }}>{p.id}</td>
+                  <td data-label="Principle" style={{ maxWidth: 420 }}>{p.principle_text}</td>
+                  <td className="muted" data-label="Rationale" style={{ maxWidth: 380 }}>{p.rationale}</td>
+                  <td className="mono" data-label="Since">v{p.version_added}</td>
                 </tr>
               ))}
             </tbody>
@@ -121,16 +123,16 @@ function ConstitutionPage() {
           <p className="muted">No changes recorded yet.</p>
         ) : (
           <div className="table-wrap panel">
-            <table>
+            <table className="stack-table">
               <thead><tr><th>Time</th><th>Action</th><th>Principle</th><th>Actor</th><th>Reason</th></tr></thead>
               <tbody>
                 {data.changelog.map((c, i) => (
                   <tr key={i}>
-                    <td className="mono" style={{ whiteSpace: 'nowrap' }}>{String(c.timestamp).replace('T', ' ').slice(0, 19)}</td>
-                    <td>{c.action}</td>
-                    <td className="mono">{c.principle_id ?? '—'}</td>
-                    <td>{c.actor ?? '—'}</td>
-                    <td className="muted">{c.reason ?? ''}</td>
+                    <td className="mono" data-label="Time" style={{ whiteSpace: 'nowrap' }}>{String(c.timestamp).replace('T', ' ').slice(0, 19)}</td>
+                    <td data-label="Action">{c.action}</td>
+                    <td className="mono" data-label="Principle">{c.principle_id ?? '—'}</td>
+                    <td data-label="Actor">{c.actor ?? '—'}</td>
+                    <td className="muted" data-label="Reason">{c.reason ?? ''}</td>
                   </tr>
                 ))}
               </tbody>
