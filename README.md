@@ -12,7 +12,7 @@ A research-grade, auditable security gateway that sits between users and LLMs to
 - **Adaptive Constitution Loop & Provenance System**: Automated feedback loop in [`research/adaptive_loop.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/adaptive_loop.py) that synthesizes, validates, and incorporates new safety principles with full JSON provenance tracking strictly from adaptation data without test set contamination.
 - **Attacker-Defender Red-Teaming Game**: Multi-round game in [`research/attacker_defender.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/attacker_defender.py) evaluating 7 mutation strategies (e.g. whitespace padding, role-play wrappers, leetspeak) over iterative rounds.
 - **Downstream Safety Evaluator & Estimated Compromise Rate**: [`research/evaluator.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/evaluator.py) provides conservative offline estimation of downstream compromise vs detector bypass rate, with an optional live LLM-judge mode.
-- **100% Offline Test Suite**: 93 unit tests passing cleanly in ~8 seconds with zero external network or LLM API requirements.
+- **100% Offline Test Suite**: 178 unit tests passing cleanly with zero external network or LLM API requirements.
 
 ---
 
@@ -52,6 +52,18 @@ Untrusted Input (User Prompt + Untrusted Context)
                                    ▼
                        Audit Trail & Log Store
 ```
+
+---
+
+## Threat Model
+
+| Dimension | In scope | Out of scope |
+| :--- | :--- | :--- |
+| Attacker control | `user_prompt` + `source_content` (docs, tool output, logs, RAG, email, web) | Model-weight theft, infrastructure compromise |
+| Attacker knowledge | Architecture-aware (source-aware red-team) | — |
+| Attacker goals | Override policy, exfiltrate config/secrets, execute commands via untrusted content, tamper audit, hijack role, smuggle encoded/flooded payloads | Human social engineering beyond the terminal |
+| Trust | `source_content` is ALWAYS untrusted data, never instructions; downstream output untrusted until validated; DB constitution deltas need human approval | — |
+| Measured as | Detector recall/precision/FPR (benchmark) AND downstream ASR (canary eval) separately — never conflated | — |
 
 ---
 
@@ -96,7 +108,7 @@ aura-shield/
 │   ├── safety_eval/              # run_safety_evaluation.py
 │   └── benchmark/                # run_final_test_benchmark.py
 ├── results/                      # Persisted Research Artifacts & Provenance Records
-├── tests/                        # 93 Unit Tests across 13 test suites (100% passing)
+├── tests/                        # 178 Unit Tests (100% passing)
 ├── docs/                         # Formal Research Documentation
 │   ├── research_report.md        # Comprehensive 18-section research report
 │   ├── policy-surface-audit.md   # Auditable policy surface & gate documentation
@@ -119,7 +131,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-### 2. Run the Full Test Suite (93 Unit Tests)
+### 2. Run the Full Test Suite (178 Unit Tests)
 ```bash
 python -m pytest tests/ -v
 ```
@@ -185,6 +197,38 @@ Evaluated on completely unseen attack families (`authorization_attack`, `tool_in
 - **RQ1 honest negative result:** the full blend (G, 89.0%) is *not* statistically distinguishable from constitution-only (C, 93.2%) at n=73 attacks (overlapping 95% Wilson CIs). Blending decisively beats rules/guardrail/TF-IDF baselines, but its marginal value over the constitution layer alone is not demonstrated at this sample size.
 - **ASR is not reported here.** Attack Success Rate requires a separate downstream safety evaluator and was not measured per baseline; earlier offline "compromise estimates" were heuristic simulations and are no longer quoted.
 - These are benchmark-specific results; they do not establish robustness against adaptive attackers with source access, nor independence between guard and target models (heterogeneous model roles reduce correlated failure but do not establish statistical independence — see the measured cross-model cells above for the capability trade-off).
+
+### Research transformation (master-prompt sprint)
+
+Beyond the benchmark above, the repo now contains a full research pipeline
+(audit: `research/AUDIT.md`; protocol: `research/RESEARCH_PROTOCOL.md`):
+
+- **Genuine model-level DPO** on sshleifer/tiny-gpt2 (102,714 params, CPU — toy scale;
+  nothing here transfers to LLM scale without new evidence):
+  policy hash changed, reference frozen, loss 0.6959→0.0556 — but dev ranking
+  unchanged (1/13 before and after). A negative result, kept and reported
+  (`research/DPO_REPORT.md`). Dashboard badge: FULL MODEL-LEVEL DPO / NEGATIVE.
+- **LM unlearning sweep** (forget/retain/general + λ∈{0.1,0.5,1.0}):
+  PARTIAL at λ=0.1/1.0 (20/24 suppressed, retain/general improved), NOT
+  VALIDATED at λ=0.5; prior logistic baseline kept as COLLATERAL DAMAGE
+  (`research/UNLEARNING_REPORT.md`).
+- **Live canary ASR**: 6 attempts, 5 bypassed the offline subset to a live
+  downstream model, 0/13 achieved the objective → 0/14 successful attacks in this controlled evaluation
+  (`research/ASR_REPORT.md`). Bypass and success are measured separately.
+- **Fusion**: DEV-only 7-strategy comparison, policy FROZEN (negative result),
+  single held-out eval = committed numbers (`research/FUSION_REPORT.md`).
+- **Statistics**: Wilson + bootstrap CIs with denominators; McNemar NOT RUN
+  (no paired data) (`research/STATISTICAL_REPORT.md`).
+- **Red-team matrix, multi-turn latch eval, provenance/indirect eval, benign
+  challenge (0/62 over-trigger), tool-authorization chain, analyzer contract,
+  fail-safe battery, audit-attack tests, P50/P95/P99 latency, drift v1→v2.**
+- **Dashboard → security research lab**: 4th tab "Research Lab" with 14
+  artifact-backed views (Overview … Reproducibility); numbers load only from
+  `results/` artifacts, never computed from UI state.
+- Data governance: `research/data_manifest.json` + programmatic train/test
+  guards (tests enforce). Reproduce: `research/REPRODUCIBILITY.md`.
+- Final status + RQ answers: `research/FINAL_STATUS.md`. Binding limits:
+  `research/LIMITATIONS.md`.
 
 ### Reproducibility: offline vs. live-API experiments
 

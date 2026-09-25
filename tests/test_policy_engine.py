@@ -46,3 +46,41 @@ def test_moderate_llm_signal_does_not_escalate():
 def test_escalation_only_when_llm_result_provided():
     score = RiskScore(score=0.59, rule_contribution=0.0, llm_contribution=0.59)
     assert decide(score).decision == Decision.REVIEW
+
+
+def test_graduated_failsafe_known_safe_allows():
+    # LLM fallback with 0 rule signal and 0 risk score -> known-safe -> ALLOW with audit flag
+    score = RiskScore(score=0.0, rule_contribution=0.0, llm_contribution=0.0)
+    fallback_llm = LLMAnalysisResult(
+        is_suspicious=False, reasoning="timeout", raw_signal=0.3, used_fallback=True, failure_reason="timeout"
+    )
+    res = decide(score, fallback_llm)
+    assert res.decision == Decision.ALLOW
+    assert "fail_safe_passthrough" in res.explanation
+
+
+def test_graduated_failsafe_security_sensitive_reviews():
+    from app.models import ConstitutionCheckResult, ConstitutionVerdict
+    # LLM fallback but rule signal triggered -> security-sensitive -> REVIEW
+    score = RiskScore(score=0.3, rule_contribution=0.3, llm_contribution=0.0)
+    fallback_llm = LLMAnalysisResult(
+        is_suspicious=False, reasoning="unavailable", raw_signal=0.3, used_fallback=True, failure_reason="unavailable"
+    )
+    res = decide(score, fallback_llm)
+    assert res.decision == Decision.REVIEW
+
+
+def test_constitution_escalation_at_070_blocks():
+    from app.models import ConstitutionCheckResult, ConstitutionVerdict
+    score = RiskScore(score=0.35, rule_contribution=0.0, llm_contribution=0.35)
+    c_res = ConstitutionCheckResult(
+        constitution_version=2,
+        principles_evaluated=["C1-no-override"],
+        verdicts=[ConstitutionVerdict(principle_id="C1-no-override", violated=True, confidence=0.72, explanation="override attempt")],
+        raw_signal=0.72,
+        reasoning="violation",
+    )
+    res = decide(score, constitution_result=c_res)
+    assert res.decision == Decision.BLOCK
+    assert "C1-no-override" in res.explanation
+

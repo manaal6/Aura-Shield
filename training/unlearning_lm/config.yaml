@@ -1,0 +1,12 @@
+model: sshleifer/tiny-gpt2
+implant_lr: 0.003
+implant_epochs: 30
+unlearn_lr: 0.001
+unlearn_epochs: 20
+forget_scale: 5.0
+lambdas: [0.1, 0.5, 1.0]
+general_weight: 0.5
+batch_size: 4
+max_seq_len: 128
+optimizer: AdamW
+seed: 11

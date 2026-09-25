@@ -1,0 +1,86 @@
+{
+  "offline_cpu_ms": {
+    "rule": {
+      "n": 40,
+      "p50": 0.169,
+      "p95": 0.375,
+      "p99": 0.553,
+      "mean": 0.192
+    },
+    "constitution_heuristic": {
+      "n": 40,
+      "p50": 0.804,
+      "p95": 16.387,
+      "p99": 33.188,
+      "mean": 2.07
+    },
+    "fusion": {
+      "n": 40,
+      "p50": 1.004,
+      "p95": 2.096,
+      "p99": 3.273,
+      "mean": 1.127
+    },
+    "tool_auth": {
+      "n": 40,
+      "p50": 0.044,
+      "p95": 0.063,
+      "p99": 0.458,
+      "mean": 0.056
+    }
+  },
+  "committed_live_avg_ms": {
+    "A": {
+      "avg_latency_ms": 25.5,
+      "fallback_rows": 0
+    },
+    "B": {
+      "avg_latency_ms": 2166.2,
+      "fallback_rows": 0
+    },
+    "C": {
+      "avg_latency_ms": 5190.6,
+      "fallback_rows": 0
+    },
+    "D": {
+      "avg_latency_ms": 1946.9,
+      "fallback_rows": 0
+    },
+    "E": {
+      "avg_latency_ms": 4501.0,
+      "fallback_rows": 0
+    },
+    "F": {
+      "avg_latency_ms": 6912.2,
+      "fallback_rows": 0
+    },
+    "G": {
+      "avg_latency_ms": 6901.6,
+      "fallback_rows": 0
+    },
+    "H": {
+      "avg_latency_ms": 2147.8,
+      "fallback_rows": 0
+    },
+    "I": {
+      "avg_latency_ms": 1.1,
+      "fallback_rows": 0
+    }
+  },
+  "failures_timeouts_retries_fallbacks": {
+    "offline_run_errors": 0,
+    "committed_fallback_rows": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0,
+      "E": 0,
+      "F": 0,
+      "G": 0,
+      "H": 0,
+      "I": 0
+    },
+    "analyzer_failure_policy": "REVIEW (fail-safe); retries GROQ_MAX_RETRIES=3 in forensics (blocked by 403 at runtime)"
+  },
+  "note": "offline rows measured here (n=40 dev prompts); live LLM/constitution rows cited, not re-measured"
+}

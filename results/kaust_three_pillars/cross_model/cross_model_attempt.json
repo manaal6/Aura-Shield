@@ -1,0 +1,25 @@
+{
+  "cells": {
+    "analyzer_default": {
+      "model": "openai/gpt-oss-120b",
+      "ok": 3,
+      "failed": 0,
+      "status": "RUN"
+    },
+    "downstream_default": {
+      "model": "openai/gpt-oss-120b",
+      "ok": 3,
+      "failed": 0,
+      "status": "RUN"
+    }
+  },
+  "committed_cells": {
+    "constitution_on_safeguard-20b": "78.1% recall",
+    "analyzer_on_safeguard-20b": "90.4% recall"
+  },
+  "verdict": "matrix NOT completed (provider blocked at runtime); no cells fabricated",
+  "config": {
+    "temperature": 0.0,
+    "max_tokens": 50
+  }
+}

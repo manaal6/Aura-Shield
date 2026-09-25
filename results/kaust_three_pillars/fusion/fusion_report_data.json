@@ -1,0 +1,40 @@
+{
+  "scope": "DEV ONLY (n=120). LLM/calibrated strategies NOT RUN offline.",
+  "dev_strategy_table": {
+    "weighted_voting": {
+      "recall": "5/90=5.6%",
+      "fpr": "0/30=0.0%"
+    },
+    "maximum_risk": {
+      "recall": "13/90=14.4%",
+      "fpr": "0/30=0.0%"
+    },
+    "constitutional_veto": {
+      "recall": "13/90=14.4%",
+      "fpr": "0/30=0.0%"
+    },
+    "llm_veto": "NOT RUN (no live LLM signal offline)",
+    "disagreement_review": {
+      "recall": "13/90=14.4%",
+      "fpr": "0/30=0.0%"
+    },
+    "confidence_aware": {
+      "recall": "5/90=5.6%",
+      "fpr": "0/30=0.0%"
+    },
+    "calibrated": "NOT RUN (no calibration data with live signals)"
+  },
+  "disagreement_categories": {
+    "all_agree": 108,
+    "rule_correct_others_wrong": 4,
+    "constitution_correct_others_wrong": 8,
+    "final_fusion_wrong": 85,
+    "false_positive": 0,
+    "false_negative": 85,
+    "disagreement_needs_review": 12
+  },
+  "selected_policy": "KEEP CURRENT (0.35/0.45/0.20, 0.40/0.75, escalation 0.90) \u2014 no DEV evidence for change",
+  "reason": "offline DEV recall 5\u201313% across strategies (no live LLM); switching on this signal would be tuning to a weak proxy",
+  "final_held_out_eval": "single evaluation = committed artifacts (C 68/73=93.2%, G 65/73=89.0%); policy unchanged so no re-run warranted",
+  "limitations": "no live LLM/dev held-out separation for fusion; live re-tuning = FUTURE WORK"
+}

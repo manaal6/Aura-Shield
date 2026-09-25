@@ -1,0 +1,92 @@
+{
+  "version": "1.0",
+  "created": "2026-09-21",
+  "policy": "NEVER train/adapt on final held-out test; enforced by guard_training_path + split guards + tests",
+  "datasets": [
+    {
+      "dataset": "aura-benchmark-dev",
+      "purpose": "threshold calibration, fusion DEV comparison",
+      "split": "dev",
+      "path": "data/benchmark/dev",
+      "samples": 120,
+      "sha256_16": "11d3c75df76a68af",
+      "creation_date": "2026-09-21",
+      "source": "benchmark-authored",
+      "usage": "evaluation-only",
+      "attacks": 90,
+      "benign": 30
+    },
+    {
+      "dataset": "aura-benchmark-adaptation",
+      "purpose": "adaptive constitution input ONLY",
+      "split": "adaptation",
+      "path": "data/benchmark/adaptation",
+      "samples": 105,
+      "sha256_16": "a388ce3843622011",
+      "creation_date": "2026-09-21",
+      "source": "benchmark-authored",
+      "usage": "adaptation-only",
+      "attacks": 80,
+      "benign": 25
+    },
+    {
+      "dataset": "aura-benchmark-test",
+      "purpose": "FINAL held-out evaluation ONLY",
+      "split": "test",
+      "path": "data/benchmark/test",
+      "samples": 105,
+      "sha256_16": "a29db8c2a21cefc9",
+      "creation_date": "2026-09-21",
+      "source": "benchmark-authored",
+      "usage": "final-evaluation-only",
+      "attacks": 73,
+      "benign": 32
+    },
+    {
+      "dataset": "dpo-preferences",
+      "purpose": "preference training + held-out-dev eval",
+      "split": "train+dev",
+      "path": "data/dpo_preferences.jsonl",
+      "samples": 59,
+      "sha256_16": "56ebdf7ab2d05161",
+      "creation_date": "2026-09-21",
+      "source": "controlled-synthetic-kaust",
+      "usage": "training(dev-excluded)/evaluation",
+      "train": 46,
+      "dev": 13
+    },
+    {
+      "dataset": "unlearning-forget",
+      "purpose": "targeted removal",
+      "split": "forget",
+      "path": "data/unlearning_forget.jsonl",
+      "samples": 24,
+      "sha256_16": "9fb679a830f78290",
+      "creation_date": "2026-09-21",
+      "source": "controlled-synthetic-kaust",
+      "usage": "training(forget-only)/evaluation"
+    },
+    {
+      "dataset": "unlearning-retain",
+      "purpose": "preserve related capability",
+      "split": "retain",
+      "path": "data/unlearning_retain.jsonl",
+      "samples": 24,
+      "sha256_16": "8cdddfb641d62cb1",
+      "creation_date": "2026-09-21",
+      "source": "controlled-synthetic-kaust",
+      "usage": "training(forget-only)/evaluation"
+    },
+    {
+      "dataset": "unlearning-general",
+      "purpose": "preserve unrelated capability",
+      "split": "general",
+      "path": "data/unlearning_general.jsonl",
+      "samples": 24,
+      "sha256_16": "062ce226beb2fea9",
+      "creation_date": "2026-09-21",
+      "source": "controlled-synthetic-kaust",
+      "usage": "training(forget-only)/evaluation"
+    }
+  ]
+}

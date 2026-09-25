@@ -226,7 +226,7 @@ Committed artifacts: `results/soc_workflow_summary/` (summary) and `results/soc_
 ## 17. Reproducibility
 The core infrastructure — deterministic baselines, benchmark processing, adaptive-loop logic, and the test suite — is reproducible offline via Python and Pytest; live LLM-dependent experiments (Baselines B–H, cross-model runs, the SOC workflow evaluation) require a configured model provider (`GROQ_API_KEY`):
 ```bash
-# Run complete test suite (93 unit tests)
+# Run complete test suite (148 unit tests)
 python -m pytest tests/ -v
 
 # Run held-out test benchmark

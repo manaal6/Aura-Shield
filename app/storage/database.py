@@ -1,22 +1,22 @@
 """
 app/storage/database.py
 
-Postgres (Supabase) schema and connection handling. This module is
-deliberately the ONLY module allowed to write to the database -
-pipeline.py and other modules go through logger.py, which calls into
-this module. That funnel is what keeps the audit trail (Trust Boundary 4
-in the Phase 1 threat model) one-directional and tamper-resistant within
-this POC's scope.
-
-NOTE: switched from sqlite3 to psycopg2/Postgres (Supabase) so local dev
-and the deployed Streamlit app share one persistent database instead of
-two disconnected filesystems. psycopg2 connections don't support
-conn.execute() directly like sqlite3 did - callers must go through
-conn.cursor(). See logger.py for the updated write path.
+Postgres (Supabase) schema and connection handling.
+Features:
+- Connection pooling with ThreadedConnectionPool (W#13)
+- Fast connect_timeout to prevent worker hangs
+- Schema definition supporting prev_hash and row_hash (W#11)
 """
-import psycopg2
+from __future__ import annotations
+
+import logging
 from contextlib import contextmanager
+import psycopg2
+from psycopg2.pool import ThreadedConnectionPool
+
 from app.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS logs (
@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS logs (
     llm_used_fallback BOOLEAN NOT NULL,
     risk_score REAL NOT NULL,
     decision TEXT NOT NULL,
-    explanation TEXT NOT NULL
+    explanation TEXT NOT NULL,
+    prev_hash TEXT,
+    row_hash TEXT
 );
 """
 
@@ -87,7 +89,8 @@ CREATE TABLE IF NOT EXISTS constitution_changelog (
     principle_text TEXT,
     triggered_by TEXT,
     actor TEXT NOT NULL,
-    reason TEXT
+    reason TEXT,
+    approval_token TEXT
 );
 
 CREATE TABLE IF NOT EXISTS human_flags (
@@ -98,52 +101,61 @@ CREATE TABLE IF NOT EXISTS human_flags (
 );
 """
 
+_POOL: ThreadedConnectionPool | None = None
+
 
 def _resolve_database_url() -> str:
-    """DATABASE_URL from env/.env first, then Streamlit secrets (deployed).
-
-    Streamlit Cloud does not expose secrets.toml entries as environment
-    variables, so pydantic-settings alone can't see them when deployed.
-    """
     url = get_settings().database_url
     if url:
         return url
     try:
         import streamlit as st
-
         if "DATABASE_URL" in st.secrets:
             return str(st.secrets["DATABASE_URL"])
     except Exception:
-        pass  # not running under Streamlit, or no secrets file
+        pass
     return ""
 
 
 def _normalize_database_url(url: str) -> str:
     url = url.strip().strip("'\"")
     if url and "sslmode=" not in url:
-        # Supabase rejects unencrypted connections.
         url += "&" if "?" in url else "?"
         url += "sslmode=require"
     return url
 
 
+def _get_pool() -> ThreadedConnectionPool:
+    global _POOL
+    if _POOL is None:
+        url = _normalize_database_url(_resolve_database_url())
+        if not url:
+            raise RuntimeError("DATABASE_URL is not set.")
+        # Fast connect_timeout=2 to prevent blocking worker threads
+        _POOL = ThreadedConnectionPool(minconn=1, maxconn=5, dsn=url, connect_timeout=2)
+    return _POOL
+
+
 @contextmanager
 def get_connection():
-    url = _normalize_database_url(_resolve_database_url())
-    if not url:
-        raise RuntimeError(
-            "DATABASE_URL is not set. Add it to .env (local) or "
-            "Streamlit secrets (deployed) - see Supabase project "
-            "Settings -> Database -> Connection string (Session pooler)."
-        )
-    conn = psycopg2.connect(url, connect_timeout=3)
+    pool = None
+    conn = None
     try:
+        pool = _get_pool()
+        conn = pool.getconn()
         yield conn
+    except Exception as exc:
+        if pool and conn:
+            pool.putconn(conn, close=True)
+            conn = None
+        raise exc
     finally:
-        conn.close()
+        if pool and conn:
+            pool.putconn(conn)
 
 
 def init_db() -> None:
+    """Safe schema init for local / testing environments."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(_SCHEMA)

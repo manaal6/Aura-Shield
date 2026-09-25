@@ -174,7 +174,7 @@ def render_dashboard():
     st.subheader("Requests")
     st.dataframe(
         filtered[["request_id", "timestamp", "user_prompt", "decision", "risk_score", "explanation"]],
-        use_container_width=True,
+        width="stretch",
     )
 
     st.subheader("Risk score distribution")
@@ -293,9 +293,15 @@ def render_constitution_review():
         )
 
 
-tab_tester, tab_dashboard, tab_constitution = st.tabs(
-    ["🧪 Test a prompt", "📊 Review dashboard", "⚖️ Constitution Review"]
+tab_lab, tab_tester, tab_dashboard, tab_constitution = st.tabs(
+    ["🔬 Research Lab", "🧪 Test a prompt", "📊 Review dashboard", "⚖️ Constitution Review"]
 )
+with tab_lab:
+    try:
+        from dashboard.research_lab import render_research_lab
+    except ImportError:
+        from research_lab import render_research_lab
+    render_research_lab()
 with tab_tester:
     render_prompt_tester()
 with tab_dashboard:

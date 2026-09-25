@@ -48,7 +48,7 @@ aura-shield/
 │   ├── safety_eval/              # run_safety_evaluation.py
 │   └── benchmark/                # run_final_test_benchmark.py
 ├── results/                      # Persisted Research Artifacts & Provenance Records
-├── tests/                        # 93 Unit Tests across 13 test suites (100% passing)
+├── tests/                        # 148 Unit Tests across 21 test files (100% passing)
 ├── docs/                         # Research Reports & Formal Specifications
 │   ├── research_report.md        # 18-section research report
 │   ├── policy-surface-audit.md   # Audited policy surface reference
@@ -142,7 +142,7 @@ Evaluates input against 6 active principles (seeded from `constitution.json`, pe
 
 ## 4. Test Suite
 
-The system includes 93 unit tests across 13 test files:
+The system includes 148 unit tests across 21 test files:
 - `tests/test_rule_detector.py` (5 tests)
 - `tests/test_risk_engine.py` (3 tests)
 - `tests/test_policy_engine.py` (7 tests)
@@ -160,4 +160,4 @@ The system includes 93 unit tests across 13 test files:
 - `tests/test_safety_evaluator.py` (9 tests)
 - `tests/test_final_test_benchmark.py` (3 tests)
 
-All 93 unit tests pass cleanly offline with zero external network calls.
+All 148 unit tests pass cleanly offline with zero external network calls.

@@ -1,0 +1,61 @@
+{
+  "levels": {
+    "1": {
+      "n": 8,
+      "p50": 3308.3,
+      "p90": 5166.9,
+      "p99": 5166.9,
+      "mean": 3105.9,
+      "errors": 0,
+      "throttled_fallback": 3,
+      "throughput_rps": 0.32,
+      "note": "DB DNS timeouts (~13 s when Supabase unreachable) inflate serial latency; concurrency amortizes them"
+    },
+    "5": {
+      "n": 8,
+      "p50": 2539.3,
+      "p90": 5646.2,
+      "p99": 5646.2,
+      "mean": 3021.6,
+      "errors": 0,
+      "throttled_fallback": 3,
+      "throughput_rps": 1.41,
+      "note": "DB DNS timeouts (~13 s when Supabase unreachable) inflate serial latency; concurrency amortizes them"
+    },
+    "10": {
+      "n": 8,
+      "p50": 25974.3,
+      "p90": 32133.9,
+      "p99": 32133.9,
+      "mean": 21736.8,
+      "errors": 0,
+      "throttled_fallback": 3,
+      "throughput_rps": 0.25,
+      "note": "DB DNS timeouts (~13 s when Supabase unreachable) inflate serial latency; concurrency amortizes them"
+    },
+    "25": {
+      "n": 8,
+      "p50": 11267.0,
+      "p90": 23306.7,
+      "p99": 23306.7,
+      "mean": 11229.9,
+      "errors": 0,
+      "throttled_fallback": 3,
+      "throughput_rps": 0.34,
+      "note": "DB DNS timeouts (~13 s when Supabase unreachable) inflate serial latency; concurrency amortizes them"
+    },
+    "50": {
+      "n": 8,
+      "p50": 25105.8,
+      "p90": 32560.7,
+      "p99": 32560.7,
+      "mean": 20839.6,
+      "errors": 0,
+      "throttled_fallback": 3,
+      "throughput_rps": 0.24,
+      "note": "DB DNS timeouts (~13 s when Supabase unreachable) inflate serial latency; concurrency amortizes them"
+    }
+  },
+  "scope": "live gateway, 8 mixed prompts/level",
+  "label": "concurrency/P99/throughput/failure-rate; single-host, shared 200K TPD quota"
+}

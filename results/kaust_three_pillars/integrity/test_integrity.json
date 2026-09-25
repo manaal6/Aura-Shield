@@ -1,0 +1,15 @@
+{
+  "test_hashes_match_baseline": true,
+  "hashes": {
+    "data/benchmark/test/authorization_attack.jsonl": "465ece4cd5c25e60",
+    "data/benchmark/test/benign_cybersecurity_holdout.jsonl": "2f867e5983201641",
+    "data/benchmark/test/multi_turn_manipulation.jsonl": "d42cd860ba08eca8",
+    "data/benchmark/test/policy_targeting.jsonl": "4ac4dd4f4c718043",
+    "data/benchmark/test/tool_injection.jsonl": "3293a47664458e74"
+  },
+  "guard_blocks_test_in_training": true,
+  "dpo_train_contains_no_test": true,
+  "frozen_policy": "0.35/0.45/0.20, 0.40/0.75, esc 0.90 (unchanged since commit e286041)",
+  "single_final_eval": "committed results/baselines_summary/heldout_master_table.json (C 68/73, G 65/73)",
+  "verdict": "PASS"
+}

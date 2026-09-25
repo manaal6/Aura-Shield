@@ -1,0 +1,16 @@
+{
+  "status": "SMOKE TEST (logistic policy, CPU)",
+  "full_llm_dpo": "NOT RUN (no GPU / no cached weights)",
+  "dataset_hash": "b7aecabe25325942",
+  "n_train": 21,
+  "n_dev": 8,
+  "beta": 0.5,
+  "lr": 0.05,
+  "epochs": 60,
+  "seed": 7,
+  "loss_first": 0.6931,
+  "loss_last": 0.6405,
+  "dev_pref_accuracy_before": 0.5,
+  "dev_pref_accuracy_after": 1.0,
+  "train_pref_accuracy_after": 1.0
+}

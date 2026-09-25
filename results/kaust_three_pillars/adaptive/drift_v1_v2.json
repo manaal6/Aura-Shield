@@ -1,0 +1,27 @@
+{
+  "v1": {
+    "recall": "34/170=20.0%",
+    "precision": "34/34=100.0%",
+    "f1": 0.3333,
+    "fpr": "0/55=0.0%",
+    "review_rate": "n/a offline (heuristic has no review band split)",
+    "rules": 6
+  },
+  "v2": {
+    "recall": "35/170=20.6%",
+    "precision": "35/35=100.0%",
+    "f1": 0.3415,
+    "fpr": "0/55=0.0%",
+    "review_rate": "n/a offline (heuristic has no review band split)",
+    "rules": 7
+  },
+  "rule_overlap_jaccard": 0.0609,
+  "newly_blocked_benign": 0,
+  "over_restriction": {
+    "verdict": "NO_OVER_RESTRICTION_OBSERVED",
+    "meaning": "v2 blocks 0/55 benign prompts that v1 allowed; the +1 recall comes from the new flooding pattern, not broadened blocking.",
+    "scope": "offline heuristic, adaptation+dev (n=225); live NOT RUN"
+  },
+  "reading": "v2 adds exactly one flooding pattern; benign impact measured, not assumed.",
+  "scope": "offline heuristic signals on adaptation+dev; live LLM drift NOT RUN"
+}

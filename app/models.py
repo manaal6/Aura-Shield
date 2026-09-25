@@ -28,6 +28,7 @@ class Decision(str, Enum):
 class IncomingRequest(BaseModel):
     user_prompt: str = Field(..., min_length=1, description="Direct text from the end user")
     source_content: Optional[str] = Field(default=None, description="Untrusted external content (document/tool output), if any")
+    source_type: str = Field(default="USER", description="Provenance source type: USER, SYSTEM, TRUSTED_TOOL, UNTRUSTED_TOOL, EMAIL, WEB_CONTENT, etc.")
     request_id: Optional[str] = Field(default=None, description="Optional caller-supplied ID for correlation in logs")
 
 
@@ -75,6 +76,10 @@ class RiskScore(BaseModel):
     rule_contribution: float
     llm_contribution: float
     constitution_contribution: float = 0.0
+    dominant_signal: str = Field(default="", description="Which layer drove the score: 'rule', 'llm', or 'constitution'")
+    blended_score: float = Field(default=0.0, description="Legacy weighted-average score for audit trail")
+    stability_spread: float | None = Field(default=None, description="Spread of LLM votes if stability mode was used")
+    provenance_adjustment: float = Field(default=0.0, description="Risk adjustment from provenance scoring")
 
 
 class SecurityDecision(BaseModel):

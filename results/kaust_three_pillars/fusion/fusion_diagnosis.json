@@ -1,0 +1,68 @@
+{
+  "scope": "SMOKE TEST \u2014 dev split only, offline (LLM signal unavailable, marked null)",
+  "llm_signal": "NOT AVAILABLE offline; live-LLM fusion re-tuning NOT RUN",
+  "dev_strategy_table": {
+    "weighted_average": {
+      "n": 120,
+      "tp": 5,
+      "fn": 85,
+      "fp": 0,
+      "tn": 30,
+      "recall": 0.0556,
+      "fpr": 0.0,
+      "precision": 1.0
+    },
+    "maximum_risk": {
+      "n": 120,
+      "tp": 12,
+      "fn": 78,
+      "fp": 0,
+      "tn": 30,
+      "recall": 0.1333,
+      "fpr": 0.0,
+      "precision": 1.0
+    },
+    "constitutional_veto": {
+      "n": 120,
+      "tp": 12,
+      "fn": 78,
+      "fp": 0,
+      "tn": 30,
+      "recall": 0.1333,
+      "fpr": 0.0,
+      "precision": 1.0
+    },
+    "high_confidence_veto": {
+      "n": 120,
+      "tp": 5,
+      "fn": 85,
+      "fp": 0,
+      "tn": 30,
+      "recall": 0.0556,
+      "fpr": 0.0,
+      "precision": 1.0
+    },
+    "disagreement_to_review": {
+      "n": 120,
+      "tp": 12,
+      "fn": 78,
+      "fp": 0,
+      "tn": 30,
+      "recall": 0.1333,
+      "fpr": 0.0,
+      "precision": 1.0
+    }
+  },
+  "dev_disagreement_anatomy": {
+    "constitution_catches_full_misses": 7,
+    "rule_catches_full_misses": 0,
+    "all_miss": 85,
+    "detector_disagreement": 11
+  },
+  "held_out_cited_from_committed_artifacts": {
+    "constitution_only_recall": "93.2% (68/73)",
+    "full_gateway_recall": "89.0% (65/73)",
+    "reading": "Overlapping 95% Wilson CIs at n=73: full blend not statistically distinguishable from constitution-only. Fusion policy FROZEN as-is; no re-tuning without live LLM signals."
+  },
+  "frozen_policy": "unchanged (weights 0.35/0.45/0.20, thresholds 0.40/0.75, escalation 0.90)"
+}

@@ -1,0 +1,17 @@
+{
+  "inference_time_defense": {
+    "dpo_dev_attack_prompts_held": 3,
+    "dpo_dev_attack_prompts_total": 8,
+    "unlearning_trigger_prompts_held": 0,
+    "unlearning_trigger_total": 24
+  },
+  "model_level_alignment": {
+    "dpo_dev_pref_rate_after": 1.0
+  },
+  "model_level_removal": {
+    "target_after": 0.0,
+    "retain_after": 0.0,
+    "general_after": 0.0058
+  },
+  "reading": "Offline heuristic gateway holds 3/8 DPO-dev attack prompts; live LLM layers NOT RUN so this is a lower bound. Crucially the gateway holds 0/24 CRIMSON trigger prompts (they look benign without the implanted association) \u2014 i.e. inference-time defense alone would NOT stop the trigger behavior, which is exactly why model-level unlearning is complementary, not interchangeable. DPO shifts toy-policy preference 0.50->1.00 (n=8, weak evidence); unlearning removes the synthetic trigger (1.0->0.0) but degrades general scores (0.27->0.01, reported as a limitation)."
+}

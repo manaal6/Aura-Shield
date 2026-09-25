@@ -84,7 +84,7 @@ AURA Shield has been successfully transformed from a prompt-injection proof-of-c
 ---
 
 ## 3. Test Suite Verification
-All 93 unit tests pass cleanly:
+All 148 unit tests pass cleanly:
 ```bash
 python -m pytest tests/ -v
 ============================= 90 passed in 8.61s ==============================

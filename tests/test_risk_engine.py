@@ -13,8 +13,18 @@ def test_strong_signals_give_high_risk():
     score = compute_risk(rule, llm)
     assert score.score == 1.0
 
-def test_contributions_sum_to_score():
+def test_contributions_sum_to_score_in_weighted_mode(monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "fusion_strategy", "weighted_avg")
     rule = RuleDetectionResult(matched=True, matched_patterns=["jailbreak"], raw_signal=0.7)
     llm = LLMAnalysisResult(is_suspicious=True, reasoning="likely jailbreak", raw_signal=0.5)
     score = compute_risk(rule, llm)
     assert abs((score.rule_contribution + score.llm_contribution) - score.score) < 1e-9
+
+
+def test_max_fusion_dominant_signal():
+    rule = RuleDetectionResult(matched=True, matched_patterns=["jailbreak"], raw_signal=0.7)
+    llm = LLMAnalysisResult(is_suspicious=True, reasoning="likely jailbreak", raw_signal=0.5)
+    score = compute_risk(rule, llm)
+    assert score.score == 0.7
+    assert score.dominant_signal == "rule"

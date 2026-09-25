@@ -1,0 +1,24 @@
+{"id": "general-00", "prompt": "Solve: 17 * 24.", "correct_completion": "17 * 24 = 408 (10*24=240, 7*24=168, sum 408).", "domain": "general", "split": "general"}
+{"id": "general-01", "prompt": "What does this Python print? print([x*x for x in range(4)])", "correct_completion": "It prints [0, 1, 4, 9], the squares of 0 through 3.", "domain": "general", "split": "general"}
+{"id": "general-02", "prompt": "Summarize photosynthesis in one sentence.", "correct_completion": "Plants convert light, water, and CO2 into glucose and oxygen.", "domain": "general", "split": "general"}
+{"id": "general-03", "prompt": "Capital of Japan?", "correct_completion": "Tokyo.", "domain": "general", "split": "general"}
+{"id": "general-04", "prompt": "Reverse the string 'abcde' in Python.", "correct_completion": "Use slicing: 'abcde'[::-1] gives 'edcba'.", "domain": "general", "split": "general"}
+{"id": "general-05", "prompt": "What is 15% of 200?", "correct_completion": "30.", "domain": "general", "split": "general"}
+{"id": "general-06", "prompt": "Name the past tense of 'go'.", "correct_completion": "'Went' (past participle 'gone').", "domain": "general", "split": "general"}
+{"id": "general-07", "prompt": "What does 'def' do in Python?", "correct_completion": "It defines a function.", "domain": "general", "split": "general"}
+{"id": "general-08", "prompt": "How many sides does a hexagon have?", "correct_completion": "Six.", "domain": "general", "split": "general"}
+{"id": "general-09", "prompt": "Translate 'hello' to Spanish.", "correct_completion": "'Hola'.", "domain": "general", "split": "general"}
+{"id": "general-10", "prompt": "What is H2O?", "correct_completion": "Water: two hydrogen atoms bonded to one oxygen atom.", "domain": "general", "split": "general"}
+{"id": "general-11", "prompt": "Sort [3,1,2] ascending.", "correct_completion": "[1, 2, 3].", "domain": "general", "split": "general"}
+{"id": "general-12", "prompt": "What is the boiling point of water at sea level?", "correct_completion": "100 C (212 F).", "domain": "general", "split": "general"}
+{"id": "general-13", "prompt": "Complete: the sky is ___ (one word).", "correct_completion": "Blue.", "domain": "general", "split": "general"}
+{"id": "general-14", "prompt": "What is 7 squared?", "correct_completion": "49.", "domain": "general", "split": "general"}
+{"id": "general-15", "prompt": "Define 'variable' in programming.", "correct_completion": "A named store for a value that code can read and update.", "domain": "general", "split": "general"}
+{"id": "general-16", "prompt": "How many days in a non-leap year?", "correct_completion": "365.", "domain": "general", "split": "general"}
+{"id": "general-17", "prompt": "What is the largest planet?", "correct_completion": "Jupiter.", "domain": "general", "split": "general"}
+{"id": "general-18", "prompt": "Fix the bug: 'for i in range(5) print(i)'.", "correct_completion": "Add a colon: 'for i in range(5): print(i)'.", "domain": "general", "split": "general"}
+{"id": "general-19", "prompt": "What is 100 / 4?", "correct_completion": "25.", "domain": "general", "split": "general"}
+{"id": "general-20", "prompt": "Name a primary color.", "correct_completion": "Red (also blue and yellow in RYB).", "domain": "general", "split": "general"}
+{"id": "general-21", "prompt": "What does CPU stand for?", "correct_completion": "Central Processing Unit.", "domain": "general", "split": "general"}
+{"id": "general-22", "prompt": "How many letters in 'security'?", "correct_completion": "Eight.", "domain": "general", "split": "general"}
+{"id": "general-23", "prompt": "What is 2 to the power 10?", "correct_completion": "1024.", "domain": "general", "split": "general"}

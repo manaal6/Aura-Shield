@@ -1,0 +1,17 @@
+{
+  "A/B": {
+    "provenance_OFF": {
+      "n": 35,
+      "recall": "0/30=0.0%",
+      "fpr": "0/5=0.0%"
+    },
+    "provenance_ON": {
+      "n": 35,
+      "recall": "0/30=0.0%",
+      "fpr": "0/5=0.0%"
+    }
+  },
+  "miss_coverage": "27/85 DEV attacks missed by offline fusion arrive via untrusted-source rows (indirect_injection split, measured). Upper bound on what ANY provenance rule could add offline \u2014 not a demonstrated gain.",
+  "reading": "+0.15 bump: NO measurable effect offline (recall 0/30 both modes \u2014 offline signals near zero on indirect attacks, so the bump never reaches the 0.40 band). Effect NOT VALIDATED. No improvement claimed.",
+  "scope": "offline DEV-with-source (30 attacks) + 5 benign-with-source; live NOT RUN"
+}

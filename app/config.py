@@ -38,8 +38,8 @@ class Settings(BaseSettings):
     constitution_signal_weight: float = Field(default=0.20, description="Weight given to the constitution checker's violation signal")
 
     # --- Policy thresholds (0.0-1.0 risk score scale) ---
-    threshold_block: float = Field(default=0.75, description="Risk score at or above this value is blocked")
-    threshold_review: float = Field(default=0.40, description="Risk score at or above this value (but below block) is flagged for human review")
+    threshold_block: float = Field(default=0.75, description="Risk score at or above this value is blocked (implemented policy choice; NOT empirically optimized)")
+    threshold_review: float = Field(default=0.40, description="Risk score at or above this value (but below block) is flagged for human review (implemented policy choice; NOT empirically optimized)")
     # Anything below threshold_review is allowed automatically.
 
     # Escalation rule: a near-certain LLM detection blocks even when the
@@ -53,6 +53,55 @@ class Settings(BaseSettings):
     model_constitution: str = Field(default="", description="Model used for constitution checker (falls back to groq_model if empty)")
     model_downstream: str = Field(default="", description="Model used for downstream protected LLM (falls back to groq_model if empty)")
     model_evaluator: str = Field(default="", description="Model used for downstream safety evaluation (falls back to groq_model if empty)")
+
+    # --- Fusion strategy ---
+    # "max" = score is max(rule, llm, constitution) — prevents dilution.
+    # "weighted_avg" = legacy weighted-average blend (pre-v2 behavior).
+    fusion_strategy: str = Field(default="max", description="Score fusion: 'max' (max-of-signals, default) or 'weighted_avg' (legacy weighted average)")
+
+    # --- Constitution-specific thresholds ---
+    # Lower than the LLM escalation threshold because constitution violations
+    # are citable against a named principle, so confidence is more calibrated.
+    constitution_block_signal: float = Field(default=0.70, description="Constitution signal at or above this blocks outright (implemented policy choice; NOT empirically optimized)")
+    constitution_review_signal: float = Field(default=0.40, description="Constitution signal at or above this forces REVIEW (implemented policy choice; NOT empirically optimized)")
+
+    # --- LLM stability (majority-vote) ---
+    llm_stability_votes: int = Field(default=3, description="Number of LLM calls for majority-vote stabilization")
+    llm_stability_enabled: bool = Field(default=False, description="Enable majority-vote LLM stabilization (expensive, opt-in)")
+
+    # --- Provenance scoring ---
+    provenance_boost_factor: float = Field(default=0.5, description="Multiplicative provenance risk boost factor for untrusted sources")
+    provenance_scoring_enabled: bool = Field(default=True, description="Enable provenance-weighted risk scoring")
+
+    # --- Graduated fail-safe ---
+    graduated_failsafe_enabled: bool = Field(default=True, description="Graduated fail-safe during LLM outage: classify by request characteristics instead of blanket REVIEW")
+
+    # --- Provider settings (optional — Groq-only by default) ---
+    openai_api_key: str = Field(default="", description="Optional OpenAI API key for provider fallback")
+    openai_model: str = Field(default="gpt-4o-mini", description="OpenAI model for fallback (optional)")
+    provider_fallback_enabled: bool = Field(default=False, description="Enable multi-provider fallback (requires secondary provider keys)")
+    analyzer_providers: str = Field(default="groq", description="Comma-separated provider priority for analyzer role")
+    constitution_providers: str = Field(default="groq", description="Comma-separated provider priority for constitution role")
+
+    # --- Governance authorization ( constitution approval signing ) ---
+    # Dedicated HMAC secret for constitution-approval tokens. This MUST be
+    # separate from any provider API key: provider credentials authenticate
+    # against an external service, while this secret guards local
+    # authorization integrity. Never fall back to a Groq key or a default.
+    approval_hmac_secret: str = Field(
+        default="",
+        validation_alias="AURA_APPROVAL_HMAC_SECRET",
+        description="Dedicated HMAC secret for constitution approval tokens (AURA_APPROVAL_HMAC_SECRET). Required for approvals; never a provider key.",
+    )
+
+    def require_approval_hmac_secret(self) -> str:
+        """Return the approval secret or fail loudly — no silent defaults."""
+        if not self.approval_hmac_secret:
+            raise RuntimeError(
+                "AURA_APPROVAL_HMAC_SECRET is not set. Constitution approvals require a dedicated "
+                "HMAC secret (set it in .env); the system refuses to sign with a provider key or default."
+            )
+        return self.approval_hmac_secret
 
     # --- Enforcement options ---
     review_hold_pending_approval: bool = Field(default=False, description="If True, REVIEW requests are held and not forwarded to downstream LLM")

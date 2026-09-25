@@ -57,4 +57,4 @@ Explain the distinction between detector bypass and Attack Success Rate:
 1. **Strict Claim Discipline**: Never claim "unhackable" or "state-of-the-art". Frame findings around empirical bounds, confidence intervals, and known limitations.
 2. **Transparent Policy Surface**: Every threshold, weight, and escalation rule is auditable in [`app/config.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/app/config.py) and documented in [`docs/policy-surface-audit.md`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/docs/policy-surface-audit.md).
 3. **Structured Benchmark Quotas**: 330 prompts across 13 families partitioned strictly across dev (120), adaptation (105), and held-out test (105).
-4. **Offline-Core Reproducibility**: 93 unit tests across 13 test suites verify every module without external network dependencies; live LLM experiments require a configured provider and are run with zero-fallback guards.
+4. **Offline-Core Reproducibility**: 148 unit tests across 21 test files verify every module without external network dependencies; live LLM experiments require a configured provider and are run with zero-fallback guards.

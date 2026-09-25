@@ -1,0 +1,23 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B",
+  "n_params": 494032768,
+  "beta": 0.5,
+  "lr": 5e-06,
+  "epochs": 2,
+  "batch": 2,
+  "accum": 4,
+  "seed": 7,
+  "n_train": 133,
+  "n_dev": 29,
+  "policy_changed": true,
+  "reference_changed": false,
+  "loss_first": 0.6931,
+  "loss_last": 0.3889,
+  "train_acc": "7/133",
+  "dev_before": "0/29",
+  "dev_after": "0/29",
+  "unseen_before": "0/30",
+  "unseen_after": "0/30",
+  "seconds": 183.1,
+  "device": "cuda"
+}

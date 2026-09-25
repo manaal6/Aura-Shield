@@ -4,38 +4,24 @@ app/engine/constitution.py
 Constitution Module: a versioned set of explicit safety principles that
 every input is explicitly evaluated against by the LLM, producing a
 per-principle structured verdict rather than a single gestalt suspicion
-judgment. Inspired by the "constitution" mechanism from Ganguli et al.
-(2023, Constitutional AI) - with the important, honest caveat that we do
-NOT implement the RLHF/DPO fine-tuning or unlearning-on-weights part of
-that work; here the constitution is an inference-time check plus an
-adaptive feedback loop (see app/adaptive_loop.py).
+judgment.
 
-Design notes:
-- The active constitution lives in Postgres (table: constitution) because
-  the Streamlit Cloud filesystem is ephemeral - a file-based constitution
-  would silently reset on every deploy. The bundled constitution.json is
-  the versioned SEED, loaded once when the table is empty.
-- The checker is an ADDITIONAL signal layered on top of the rule-based
-  detector and the LLM semantic analyzer. Neither existing layer is
-  removed or replaced.
-- Like llm_analyzer, it uses a structured (JSON) output contract and
-  fails visibly on errors. Unlike the analyzer's fail-closed-ish 0.3
-  fallback, an unavailable constitution check contributes a 0.0 signal:
-  a violation verdict must come from an actual check, and inventing risk
-  when the check is down would poison benign traffic (this asymmetry is
-  documented, not accidental - both fallbacks are flagged in the audit
-  log either way).
+v2 enhancements:
+- In-memory TTL cache for active constitution principles (W#13)
+- Uses ProviderRouter for model diversity and provider abstraction (W#8)
+- Caching avoids repeated DB query latency on every single request
 """
 import json
 import logging
+import time
 from datetime import datetime, timezone
 from pathlib import Path
-
-from groq import Groq
+from typing import Optional
 
 from app.config import get_settings
 from app.models import ConstitutionCheckResult, ConstitutionVerdict
 from app.storage.database import get_connection
+from app.providers.router import get_provider_router
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +37,16 @@ Respond with ONLY a JSON object, no other text, in this exact shape:
 {"verdicts": [{"principle_id": "<id from the list>", "violated": true or false, "confidence": a float 0.0-1.0, "explanation": "one short sentence"}]}
 Return one verdict object for EVERY principle in the list, in the same order.
 """
+
+# In-memory TTL cache for active constitution: (timestamp, version, principles)
+_CACHE_TTL_SECONDS = 300  # 5 minutes
+_CACHE: Optional[tuple[float, int, list[dict]]] = None
+
+
+def invalidate_constitution_cache() -> None:
+    """Invalidates active constitution cache when principles are updated."""
+    global _CACHE
+    _CACHE = None
 
 
 # ---------------------------------------------------------------- storage
@@ -100,7 +96,14 @@ def seed_constitution_if_empty() -> int:
 
 
 def load_active_constitution() -> tuple[int, list[dict]]:
-    """Returns (version, active_principles) from Postgres, falling back to seed file if DB unavailable."""
+    """Returns (version, active_principles) from Postgres with TTL cache, falling back to seed file if DB unavailable."""
+    global _CACHE
+    now = time.time()
+    if _CACHE is not None:
+        cached_time, version, principles = _CACHE
+        if now - cached_time < _CACHE_TTL_SECONDS:
+            return version, principles
+
     try:
         version = seed_constitution_if_empty()
         with get_connection() as conn:
@@ -119,6 +122,7 @@ def load_active_constitution() -> tuple[int, list[dict]]:
                     }
                     for row in cur.fetchall()
                 ]
+        _CACHE = (now, version, principles)
         return version, principles
     except Exception as exc:
         logger.warning("Postgres unavailable for active constitution (%s); falling back to constitution.json", exc)
@@ -133,6 +137,7 @@ class ConstitutionChecker:
     def check(self, user_prompt: str, source_content: str | None = None) -> ConstitutionCheckResult:
         settings = get_settings()
         version, principles = load_active_constitution()
+        router = get_provider_router()
 
         if not principles:
             return ConstitutionCheckResult(
@@ -141,16 +146,19 @@ class ConstitutionChecker:
                 used_fallback=True,
             )
 
-        if not settings.groq_api_key:
-            logger.warning("No Groq API key - constitution checker running in fallback mode")
-            return ConstitutionCheckResult(
-                constitution_version=version,
-                principles_evaluated=[p["id"] for p in principles],
-                verdicts=[],
-                raw_signal=0.0,
-                reasoning=f"Constitution check unavailable (no API key); evaluated {len(principles)} principles but no verdicts were produced.",
-                used_fallback=True,
-            )
+        groq_provider = router.get_provider("groq")
+        if not (groq_provider and groq_provider.is_available()):
+            has_any = any(p.is_available() for p in router._providers.values())
+            if not has_any:
+                logger.warning("No LLM provider available - constitution checker running in fallback mode")
+                return ConstitutionCheckResult(
+                    constitution_version=version,
+                    principles_evaluated=[p["id"] for p in principles],
+                    verdicts=[],
+                    raw_signal=0.0,
+                    reasoning=f"Constitution check unavailable (no API key); evaluated {len(principles)} principles but no verdicts were produced.",
+                    used_fallback=True,
+                )
 
         constitution_text = "\n".join(
             f"- {p['id']}: {p['principle_text']}" for p in principles
@@ -161,8 +169,8 @@ class ConstitutionChecker:
         user_message = f"Constitution:\n{constitution_text}\n\nInput to evaluate:\n{combined}"
 
         try:
-            client = Groq(api_key=settings.groq_api_key, max_retries=settings.groq_max_retries)
-            response = client.chat.completions.create(
+            resp = router.execute_chat(
+                role="constitution",
                 model=settings.constitution_model,
                 messages=[
                     {"role": "system", "content": _SYSTEM_PROMPT},
@@ -170,8 +178,9 @@ class ConstitutionChecker:
                 ],
                 temperature=0.0,
                 response_format={"type": "json_object"},
+                max_retries=settings.groq_max_retries,
             )
-            parsed = json.loads(response.choices[0].message.content)
+            parsed = json.loads(resp.content)
             verdicts = [
                 ConstitutionVerdict(
                     principle_id=str(v.get("principle_id", "unknown")),

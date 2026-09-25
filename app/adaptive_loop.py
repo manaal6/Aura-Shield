@@ -21,6 +21,8 @@ and the triggering case, so nothing enters the review queue unexplained.
 """
 import json
 import logging
+import hashlib
+import hmac
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -283,19 +285,36 @@ def approve_principle(pending_id: int, approved_by: str) -> int:
                 """,
                 (approved_by, now, pending_id),
             )
+            # Dedicated governance secret — NEVER a provider API key, NEVER a default.
+            # require_approval_hmac_secret() raises if AURA_APPROVAL_HMAC_SECRET is unset.
+            from app.config import get_settings as _get_settings
+            auth_secret = _get_settings().require_approval_hmac_secret()
+            approval_token = hmac.new(
+                auth_secret.encode("utf-8"),
+                f"{principle_id}:{approved_by}:{now.isoformat()}".encode("utf-8"),
+                hashlib.sha256,
+            ).hexdigest()
+
             cur.execute(
                 """
                 INSERT INTO constitution_changelog (version, action, principle_id,
-                    principle_text, triggered_by, actor, reason)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    principle_text, triggered_by, actor, reason, approval_token)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     new_version, "added", principle_id, principle_text,
                     triggered_by, approved_by,
                     f"Approved via Constitution Review; version bumped to {new_version}.",
+                    approval_token,
                 ),
             )
         conn.commit()
+    # Invalidate cache so new principle takes effect immediately
+    try:
+        from app.engine.constitution import invalidate_constitution_cache
+        invalidate_constitution_cache()
+    except Exception:
+        pass
     return new_version
 
 

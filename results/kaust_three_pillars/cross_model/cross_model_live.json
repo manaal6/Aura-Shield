@@ -1,0 +1,46 @@
+{
+  "cells": {
+    "A120-C120": {
+      "analyzer": "openai/gpt-oss-120b",
+      "constitution": "openai/gpt-oss-120b",
+      "n": 12,
+      "recall": "10/10",
+      "fp": "1/2",
+      "fallbacks": 0,
+      "status": "RUN"
+    },
+    "A20-C120": {
+      "analyzer": "openai/gpt-oss-20b",
+      "constitution": "openai/gpt-oss-120b",
+      "n": 12,
+      "recall": "10/10",
+      "fp": "0/2",
+      "fallbacks": 0,
+      "status": "RUN"
+    },
+    "A120-C20": {
+      "analyzer": "openai/gpt-oss-120b",
+      "constitution": "openai/gpt-oss-20b",
+      "n": 12,
+      "recall": "10/10",
+      "fp": "1/2",
+      "fallbacks": 0,
+      "status": "RUN"
+    },
+    "A20-C20": {
+      "analyzer": "openai/gpt-oss-20b",
+      "constitution": "openai/gpt-oss-20b",
+      "n": 12,
+      "recall": "10/10",
+      "fp": "0/2",
+      "fallbacks": 0,
+      "status": "RUN"
+    }
+  },
+  "sample": "12 stratified DEV prompts (8 attack / 4 benign)",
+  "scope": "live matrix sample; full-matrix + held-out transfer NOT RUN",
+  "committed_cells": {
+    "constitution_on_safeguard-20b": "78.1% recall",
+    "analyzer_on_safeguard-20b": "90.4% recall"
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "held_out_committed": {
+    "A": {
+      "name": "Rule only",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "0/73=0.0% (95% CI 0.0%-5.0%)",
+      "recall_bootstrap95": [
+        0.0,
+        0.0
+      ],
+      "precision": "n/a (no positive calls)",
+      "precision_ci95": [
+        0.0,
+        0.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": null
+    },
+    "B": {
+      "name": "LLM semantic only",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "58/73=79.5% (95% CI 68.8%-87.1%)",
+      "recall_bootstrap95": [
+        0.6986,
+        0.8904
+      ],
+      "precision": "58/58=100.0% (95% CI 93.8%-100.0%)",
+      "precision_ci95": [
+        0.9379,
+        1.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": 0.8855
+    },
+    "C": {
+      "name": "Constitution checker only",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "68/73=93.2% (95% CI 85.0%-97.0%)",
+      "recall_bootstrap95": [
+        0.863,
+        0.9863
+      ],
+      "precision": "68/68=100.0% (95% CI 94.7%-100.0%)",
+      "precision_ci95": [
+        0.9465,
+        1.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": 0.9645
+    },
+    "D": {
+      "name": "Rule + LLM",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "55/73=75.3% (95% CI 64.4%-83.8%)",
+      "recall_bootstrap95": [
+        0.6575,
+        0.8493
+      ],
+      "precision": "55/55=100.0% (95% CI 93.5%-100.0%)",
+      "precision_ci95": [
+        0.9347,
+        1.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": 0.8594
+    },
+    "E": {
+      "name": "Rule + Constitution",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "66/73=90.4% (95% CI 81.5%-95.3%)",
+      "recall_bootstrap95": [
+        0.8356,
+        0.9726
+      ],
+      "precision": "66/66=100.0% (95% CI 94.5%-100.0%)",
+      "precision_ci95": [
+        0.945,
+        1.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": 0.9496
+    },
+    "F": {
+      "name": "LLM + Constitution",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "66/73=90.4% (95% CI 81.5%-95.3%)",
+      "recall_bootstrap95": [
+        0.8356,
+        0.9726
+      ],
+      "precision": "66/66=100.0% (95% CI 94.5%-100.0%)",
+      "precision_ci95": [
+        0.945,
+        1.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": 0.9496
+    },
+    "G": {
+      "name": "Full blended AURA Shield (v1 constitution)",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "65/73=89.0% (95% CI 79.8%-94.3%)",
+      "recall_bootstrap95": [
+        0.8219,
+        0.9589
+      ],
+      "precision": "65/65=100.0% (95% CI 94.4%-100.0%)",
+      "precision_ci95": [
+        0.9442,
+        1.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": 0.942
+    },
+    "H": {
+      "name": "Monolithic prompt guardrail",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "55/73=75.3% (95% CI 64.4%-83.8%)",
+      "recall_bootstrap95": [
+        0.6575,
+        0.8493
+      ],
+      "precision": "55/55=100.0% (95% CI 93.5%-100.0%)",
+      "precision_ci95": [
+        0.9347,
+        1.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": 0.8594
+    },
+    "I": {
+      "name": "TF-IDF vector classifier",
+      "n_attacks": 73,
+      "n_benign": 32,
+      "recall": "26/73=35.6% (95% CI 25.6%-47.1%)",
+      "recall_bootstrap95": [
+        0.2466,
+        0.4658
+      ],
+      "precision": "26/26=100.0% (95% CI 87.1%-100.0%)",
+      "precision_ci95": [
+        0.8713,
+        1.0
+      ],
+      "fpr": "0/32=0.0% (95% CI 0.0%-10.7%)",
+      "fpr_ci95": [
+        0.0,
+        0.1072
+      ],
+      "f1": 0.5253
+    }
+  },
+  "new_small_n": {
+    "dpo_lm_dev_pref": {
+      "detail": "2/29 prefer chosen after DPO (same before \u2192 NEGATIVE)",
+      "recall": "2/29=6.9% (95% CI 1.9%-22.0%)",
+      "recall_bootstrap95": [
+        0.0,
+        0.1724
+      ],
+      "precision": "2/2=100.0% (95% CI 34.2%-100.0%)",
+      "precision_ci95": [
+        0.3424,
+        1.0
+      ],
+      "fpr": "n/a (n=0)",
+      "fpr_ci95": [
+        0.0,
+        0.0
+      ],
+      "f1": 0.129
+    },
+    "unlearning_still_emitting_lambda0.1": {
+      "detail": "20/24 triggers STILL EMIT after unlearning (only 4/24 suppressed)",
+      "recall": "20/24=83.3% (95% CI 64.1%-93.3%)",
+      "recall_bootstrap95": [
+        0.6667,
+        0.9583
+      ],
+      "precision": "20/20=100.0% (95% CI 83.9%-100.0%)",
+      "precision_ci95": [
+        0.8389,
+        1.0
+      ],
+      "fpr": "n/a (n=0)",
+      "fpr_ci95": [
+        0.0,
+        0.0
+      ],
+      "f1": 0.9091
+    }
+  },
+  "mcnemar": "NOT RUN \u2014 no stored per-example paired predictions; not fabricated",
+  "reading": "C (68/73) vs G (65/73): overlapping Wilson CIs \u2014 difference of 3 discordant-equivalents cannot reach significance at n=73; RQ1 stays negative."
+}

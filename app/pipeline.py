@@ -76,8 +76,12 @@ def process_request_with_config(
         else:
             rule_result = RuleDetectionResult(matched=False, matched_patterns=[], raw_signal=0.0)
 
+        stability_spread = None
         if use_llm:
-            llm_result = llm_analyzer.analyze(request.user_prompt, request.source_content)
+            if getattr(settings, "llm_stability_enabled", False):
+                llm_result, stability_spread = llm_analyzer.analyze_stable(request.user_prompt, request.source_content)
+            else:
+                llm_result = llm_analyzer.analyze(request.user_prompt, request.source_content)
         else:
             llm_result = LLMAnalysisResult(
                 is_suspicious=False,
@@ -91,7 +95,9 @@ def process_request_with_config(
         else:
             constitution_result = None
 
-        score = risk_engine.compute_risk(rule_result, llm_result, constitution_result)
+        score = risk_engine.compute_risk(rule_result, llm_result, constitution_result, source_type=request.source_type)
+        if stability_spread is not None:
+            score.stability_spread = stability_spread
         decision = policy_engine.decide(score, llm_result, constitution_result)
 
     entry = LogEntry(

@@ -1,0 +1,45 @@
+{
+  "offline_subset_matrix": {
+    "Direct": {
+      "attempts": 12,
+      "bypassed": 7,
+      "held": 5,
+      "downstream_success": "NOT MEASURED offline"
+    },
+    "Indirect": {
+      "attempts": 12,
+      "bypassed": 12,
+      "held": 0,
+      "downstream_success": "NOT MEASURED offline"
+    },
+    "Jailbreak": {
+      "attempts": 36,
+      "bypassed": 24,
+      "held": 12,
+      "downstream_success": "NOT MEASURED offline"
+    },
+    "Tool": {
+      "attempts": 6,
+      "bypassed": 6,
+      "held": 0,
+      "downstream_success": "NOT MEASURED offline"
+    },
+    "Multi-turn": {
+      "attempts": 6,
+      "bypassed": 6,
+      "held": 0,
+      "downstream_success": "NOT MEASURED offline"
+    }
+  },
+  "offline_totals": {
+    "attempts": 72,
+    "bypassed": 55
+  },
+  "committed_live_game": {
+    "whitespace_mutations_block_rate": "21/40=52.5% (full gateway, live, zero-fallback)",
+    "roleplay_leetspeak_remutation": "mostly re-evade (committed finding, still open)",
+    "source": "results/attacker_defender_summary/gateway_game/"
+  },
+  "regression": "all offline bypasses recorded in adaptive_redteam.json; classes pinned in tests",
+  "scope": "offline subset = lower bound only (no live LLM)"
+}

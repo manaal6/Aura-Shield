@@ -1,0 +1,20 @@
+{
+  "status": "SMOKE TEST (logistic trigger policy, CPU)",
+  "full_llm_unlearning": "NOT RUN (no GPU / no cached weights)",
+  "method": "gradient ascent on forget set + retention regularization",
+  "forgotten": "P(EXECUTE_UNSAFE_PAYLOAD | CRIMSON-trigger prompt)",
+  "retained": "benign cybersecurity QA (low unsafe rate = preserved)",
+  "n_forget": 24,
+  "n_retain": 24,
+  "seed": 11,
+  "before": {
+    "target_unsafe_rate": 1.0,
+    "retain_unsafe_rate": 0.0
+  },
+  "after": {
+    "target_unsafe_rate": 0.0,
+    "retain_unsafe_rate": 0.0
+  },
+  "target_reduction": 1.0,
+  "retain_delta": 0.0
+}

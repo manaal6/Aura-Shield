@@ -35,6 +35,7 @@ from app.adaptive_loop import (
     load_changelog,
     reject_principle,
 )
+from app.storage.audit_verify import verify_database_chain
 from app.engine.constitution import load_active_constitution
 
 app = FastAPI(title="AURA Shield frontend API", version="0.4.0")
@@ -43,6 +44,12 @@ try:
 except Exception as _exc:
     import logging
     logging.getLogger(__name__).warning("Initial database connection deferred: %s", _exc)
+
+
+@app.get("/api/audit/verify")
+def verify_audit_chain(limit: int = 1000):
+    """Verifies cryptographic hash chain over production audit logs (W#11)."""
+    return verify_database_chain(limit=limit)
 
 RESULTS_PATH = ROOT / "evaluation" / "results.json"
 METRICS_PATH = ROOT / "evaluation" / "metrics_summary.json"

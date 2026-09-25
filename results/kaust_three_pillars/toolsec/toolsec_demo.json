@@ -1,0 +1,65 @@
+{
+  "cases": [
+    {
+      "case": "safe read",
+      "verdict": "ALLOW",
+      "trail": [
+        "parse->read_log",
+        "auth->ALLOW",
+        "gate->ALLOW"
+      ],
+      "auth_reason": "read_log low-danger with valid args"
+    },
+    {
+      "case": "unknown tool",
+      "verdict": "DENY",
+      "trail": [
+        "parse->None",
+        "auth->DENY",
+        "gate->DENY"
+      ],
+      "auth_reason": "unknown tool: None"
+    },
+    {
+      "case": "bad args",
+      "verdict": "DENY",
+      "trail": [
+        "parse->read_log",
+        "auth->DENY",
+        "gate->DENY"
+      ],
+      "auth_reason": "invalid argument 'path' for read_log"
+    },
+    {
+      "case": "critical",
+      "verdict": "REVIEW",
+      "trail": [
+        "parse->delete_logs",
+        "auth->REVIEW",
+        "gate->REVIEW"
+      ],
+      "auth_reason": "delete_logs is critical: human approval required"
+    },
+    {
+      "case": "untrusted email",
+      "verdict": "DENY",
+      "trail": [
+        "parse->send_email",
+        "auth->DENY",
+        "gate->DENY"
+      ],
+      "auth_reason": "high-danger tool send_email requested via untrusted provenance EMAIL"
+    },
+    {
+      "case": "risk override",
+      "verdict": "REVIEW",
+      "trail": [
+        "parse->read_log",
+        "auth->ALLOW",
+        "gate->REVIEW (risk>=0.40)"
+      ],
+      "auth_reason": "read_log low-danger with valid args"
+    }
+  ],
+  "note": "deterministic authorization-chain demo; research numbers live only in test counts"
+}

@@ -1,0 +1,7 @@
+seed: 11
+lr: 2.0
+unlearn_steps: 200
+retain_weight: 1.0
+n_features: 256
+model: logistic-trigger-policy-cpu
+status_note: SMOKE TEST on CPU logistic policy. Full LLM unlearning NOT RUN.

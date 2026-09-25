@@ -45,14 +45,26 @@ def _constitution(signal: float) -> ConstitutionCheckResult:
 # ---------------------------------------------------------- risk engine
 
 
-def test_three_signal_blend_formula():
+def test_three_signal_blend_formula(monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "fusion_strategy", "weighted_avg")
     score = compute_risk(_rule(0.8), _llm(0.9), _constitution(1.0))
     # 0.8*0.35 + 0.9*0.45 + 1.0*0.20 = 0.885
     assert score.score == pytest.approx(0.885)
     assert score.constitution_contribution == pytest.approx(0.20)
 
 
-def test_no_constitution_check_redistributes_weight():
+def test_three_signal_max_fusion():
+    score = compute_risk(_rule(0.8), _llm(0.9), _constitution(1.0))
+    # In max-of-signals fusion: max(0.8, 0.9, 1.0) = 1.0
+    assert score.score == 1.0
+    assert score.dominant_signal == "constitution"
+    assert score.blended_score == pytest.approx(0.885)
+
+
+def test_no_constitution_check_redistributes_weight(monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "fusion_strategy", "weighted_avg")
     score = compute_risk(_rule(0.8), _llm(0.9))
     # constitution weight redistributed proportionally: (0.8*0.35 + 0.9*0.45) / 0.8
     assert score.score == pytest.approx((0.8 * 0.35 + 0.9 * 0.45) / 0.80)
@@ -75,9 +87,17 @@ def test_constitution_escalation_blocks():
     assert "C1-no-override" in result.explanation
 
 
-def test_low_confidence_violation_does_not_escalate():
+def test_low_confidence_violation_does_not_block_but_reviews():
+    # In v2: signal 0.5 is above constitution_review_signal (0.40) but below block (0.70)
     score = compute_risk(_rule(0.0), _llm(0.0), _constitution(0.5))
     result = decide(score, _llm(0.0), _constitution(0.5))
+    assert result.decision.value == "review"
+
+
+def test_very_low_confidence_violation_allows():
+    # In v2: signal 0.3 is below constitution review floor (0.40)
+    score = compute_risk(_rule(0.0), _llm(0.0), _constitution(0.3))
+    result = decide(score, _llm(0.0), _constitution(0.3))
     assert result.decision.value == "allow"
 
 

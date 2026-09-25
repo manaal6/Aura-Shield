@@ -1,0 +1,9 @@
+seed: 7
+beta: 0.5
+lr: 0.05
+epochs: 60
+n_features: 512
+batch_size: 8
+model: logistic-preference-policy-cpu
+dataset: data/dpo_preferences.jsonl
+status_note: SMOKE TEST on CPU logistic policy. Full LLM-DPO (transformers+TRL) NOT RUN — no GPU, no model weights cached.

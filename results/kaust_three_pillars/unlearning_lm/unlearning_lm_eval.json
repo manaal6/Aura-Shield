@@ -1,0 +1,54 @@
+{
+  "per_lambda": {
+    "0.1": {
+      "verdict": "PARTIAL (suppression without collateral damage)",
+      "before": {
+        "forget_success": 1.0,
+        "retain_mean_logprob": -162.5722,
+        "general_mean_logprob": -85.3353
+      },
+      "after": {
+        "forget_success": 0.8333,
+        "retain_mean_logprob": -157.1223,
+        "general_mean_logprob": -82.6292
+      },
+      "forget_drop": 0.1667,
+      "retain_delta": 5.4499,
+      "general_delta": 2.7061
+    },
+    "0.5": {
+      "verdict": "NOT VALIDATED (no suppression)",
+      "before": {
+        "forget_success": 1.0,
+        "retain_mean_logprob": -162.5722,
+        "general_mean_logprob": -85.3353
+      },
+      "after": {
+        "forget_success": 1.0,
+        "retain_mean_logprob": -156.824,
+        "general_mean_logprob": -82.5561
+      },
+      "forget_drop": 0.0,
+      "retain_delta": 5.7482,
+      "general_delta": 2.7792
+    },
+    "1.0": {
+      "verdict": "PARTIAL (suppression without collateral damage)",
+      "before": {
+        "forget_success": 1.0,
+        "retain_mean_logprob": -162.5722,
+        "general_mean_logprob": -85.3353
+      },
+      "after": {
+        "forget_success": 0.8333,
+        "retain_mean_logprob": -156.8707,
+        "general_mean_logprob": -82.6455
+      },
+      "forget_drop": 0.1667,
+      "retain_delta": 5.7015,
+      "general_delta": 2.6898
+    }
+  },
+  "reading": "lambda=0.1 and 1.0: PARTIAL \u2014 4/24 triggers suppressed (1.0->0.83) with retain/general IMPROVED (continued SFT anchoring), i.e. no collateral damage but incomplete removal. lambda=0.5: NOT VALIDATED (no suppression). Inverse failure mode vs the logistic negative baseline (full removal + collapse). Conclusion: suppression-vs-preservation tradeoff confirmed at LM level; method NOT successful by the protocol's conjunctive criterion.",
+  "scope": "100K-param CPU causal LM, synthetic trigger only; NOT real-world erasure"
+}

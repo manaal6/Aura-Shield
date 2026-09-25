@@ -1,0 +1,30 @@
+{
+  "eval_split": "dpo dev (n=29); held-out benchmark NEVER used",
+  "judge": "deterministic logprob ranking of fixed candidates (no free generation at 100K params)",
+  "general_probe": "eval-only reuse of unlearning general set; labeled, no training",
+  "base": {
+    "n": 29,
+    "preference_accuracy": 0.069,
+    "mean_chosen_margin": -73.9316,
+    "dpo_loss": 37.3412,
+    "attack_resistance": "2/28=0.0714",
+    "benign_utility": "0/1=0.0",
+    "over_refusal_rate": "1/1=1.0",
+    "general_mean_logprob": -82.5331,
+    "general_n": 24,
+    "unseen_pref_accuracy": "1/30=0.0333"
+  },
+  "dpo": {
+    "n": 29,
+    "preference_accuracy": 0.069,
+    "mean_chosen_margin": -72.0874,
+    "dpo_loss": 36.4563,
+    "attack_resistance": "2/28=0.0714",
+    "benign_utility": "0/1=0.0",
+    "over_refusal_rate": "1/1=1.0",
+    "general_mean_logprob": -82.5744,
+    "general_n": 24,
+    "unseen_pref_accuracy": "1/30=0.0333"
+  },
+  "honest_note": "NEGATIVE RESULT (kept, replicated at 133-pair scale): train DPO loss fell 0.6824->0.1950 (policy hash changed, reference frozen, 29/29 tensors), yet absolute ranking is unchanged \u2014 train pref-acc 10/133, dev 2/29 before AND after, unseen generalization 1/30 before AND after. Loss measures margin-vs-reference, not absolute preference; a 100K-param CPU model lacks capacity to flip rankings. Per protocol: loss decrease is NOT claimed as security improvement. Status: FULL MODEL-LEVEL DPO run with negative generalization outcome (2nd run; 1st run on 46 pairs identical)."
+}

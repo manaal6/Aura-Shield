@@ -1,0 +1,13 @@
+{
+  "n": 105,
+  "attacks": 73,
+  "benign": 32,
+  "tp": 67,
+  "fp": 1,
+  "recall": "67/73",
+  "fpr": "1/32",
+  "fallback_rows": 3,
+  "status": "MIXED \u2014 fallback rows counted, not predictions",
+  "config": "C1-C10 + max fusion (frozen)",
+  "old_system": "C 68/73=93.2%, G 65/73=89.0% (v1 + weighted-avg, committed)"
+}

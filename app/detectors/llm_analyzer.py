@@ -5,24 +5,19 @@ Second-pass detector: asks an LLM to reason about whether the combined
 input is attempting to manipulate a downstream system, catching paraphrased
 or novel attacks the rule layer misses.
 
-Uses a structured (JSON) output contract rather than free text - this
-mirrors the "structured-output LLM reasoning with grounded, auditable
-decision boundaries" pattern already used in AURA OS, applied here to a
-security-classification task instead of a general agentic task.
-
-Known limitation (stated honestly, not hidden): this analyzer uses the
-same underlying model class it is meant to help protect. An LLM-based
-judge can itself be manipulated by a sufficiently crafted input. It is
-deliberately NOT the sole gate - the rule_detector and this analyzer are
-independent signals combined by the risk_engine, so neither is a single
-point of failure.
+Uses a structured (JSON) output contract rather than free text.
+Supports optional majority-vote stability via analyze_stable() to address run-to-run instability (W#5).
+Uses ProviderRouter for provider abstraction (W#8).
 """
 import json
 import logging
 import socket
-from groq import Groq
+from statistics import median
+from typing import Optional
+
 from app.config import get_settings
 from app.models import LLMAnalysisResult
+from app.providers.router import get_provider_router
 
 logger = logging.getLogger(__name__)
 
@@ -40,37 +35,28 @@ Respond with ONLY a JSON object, no other text, in this exact shape:
 
 def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisResult:
     """
-    Calls Groq with a constrained prompt asking only for a security
-    judgment.
-
-    Failure taxonomy (used_fallback=True):
-    - "unavailable" : No API key configured, or network-level connection failure.
-    - "timeout"     : Request exceeded the time budget (socket/read timeout).
-    - "malformed"   : API responded but the output failed JSON / schema parsing.
-
-    On any of these, the function returns with used_fallback=True and
-    failure_reason set.  The policy engine intercepts these states and
-    routes them to REVIEW rather than silently treating the request as safe
-    via the moderate 0.3 signal.
+    Calls configured LLM provider via ProviderRouter with a constrained prompt
+    asking only for a security judgment.
     """
     settings = get_settings()
+    router = get_provider_router()
 
     combined = user_prompt if not source_content else f"User prompt:\n{user_prompt}\n\nSource content:\n{source_content}"
 
-    if not settings.groq_api_key:
-        logger.warning("No Groq API key configured - llm_analyzer running in fallback mode")
-        return _fallback_result(
-            "No API key configured; LLM analysis was not performed",
-            failure_reason="unavailable",
-        )
+    groq_provider = router.get_provider("groq")
+    if not (groq_provider and groq_provider.is_available()):
+        # Check if any provider is available for analyzer
+        has_any = any(p.is_available() for p in router._providers.values())
+        if not has_any:
+            logger.warning("No LLM provider available - llm_analyzer running in fallback mode")
+            return _fallback_result(
+                "No API key configured; LLM analysis was not performed",
+                failure_reason="unavailable",
+            )
 
     try:
-        # max_retries comes from settings: 1 by default so a rate-limited
-        # serving request fails fast into the documented fallback, higher
-        # (e.g. via GROQ_MAX_RETRIES) for research runs that must not
-        # silently degrade into offline fallback results.
-        client = Groq(api_key=settings.groq_api_key, max_retries=settings.groq_max_retries)
-        response = client.chat.completions.create(
+        resp = router.execute_chat(
+            role="analyzer",
             model=settings.analyzer_model,
             messages=[
                 {"role": "system", "content": _SYSTEM_PROMPT},
@@ -78,8 +64,9 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
             ],
             temperature=0.0,
             response_format={"type": "json_object"},
+            max_retries=settings.groq_max_retries,
         )
-        raw = response.choices[0].message.content
+        raw = resp.content
 
         # --- malformed-output path ---
         try:
@@ -104,11 +91,6 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
         confidence = max(0.0, min(1.0, confidence))
         reasoning = str(parsed.get("reasoning", "")).strip() or "No reasoning provided by model."
 
-        # raw_signal reflects how strongly this judgment pushes toward risk:
-        # - if suspicious, the model's confidence IS the risk signal
-        # - if not suspicious, the signal shrinks as confidence rises
-        #   (is_suspicious=False, confidence=0.95 -> signal 0.05;
-        #   is_suspicious=False, confidence=0.5 -> signal 0.5, i.e. "unsure")
         raw_signal = confidence if is_suspicious else (1.0 - confidence)
 
         return LLMAnalysisResult(
@@ -125,8 +107,6 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
             failure_reason="timeout",
         )
     except Exception as exc:
-        # Catch-all: connection errors, auth errors, rate limits after retries, etc.
-        # All are classified as "unavailable" — the service could not be reached.
         logger.error("LLM analyzer call failed: %s", exc)
         return _fallback_result(
             f"LLM analyzer call failed ({type(exc).__name__}); treated as inconclusive",
@@ -134,20 +114,27 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
         )
 
 
+def analyze_stable(user_prompt: str, source_content: str | None = None) -> tuple[LLMAnalysisResult, float]:
+    """
+    Performs majority-vote / median evaluation across N calls to address
+    Weakness #5 (run-to-run instability).
+    Returns (median_result, spread).
+    """
+    settings = get_settings()
+    num_votes = max(1, getattr(settings, "llm_stability_votes", 3))
+
+    results = [analyze(user_prompt, source_content) for _ in range(num_votes)]
+    signals = [r.raw_signal for r in results]
+    med_signal = float(median(signals))
+    spread = max(signals) - min(signals)
+
+    # Pick the result closest to the median
+    best_res = min(results, key=lambda r: abs(r.raw_signal - med_signal))
+    best_res.raw_signal = med_signal
+    return best_res, spread
+
+
 def _fallback_result(reason: str, failure_reason: str = "unavailable") -> LLMAnalysisResult:
-    """
-    Fail-safe fallback.
-
-    Returns a moderate raw_signal (0.3) so the blended risk score does not
-    silently collapse to "definitely safe" when this layer is unavailable.
-    The policy engine checks used_fallback + failure_reason BEFORE the
-    threshold bands, so in practice this signal is NOT used to ALLOW requests;
-    the policy engine routes fallback requests to REVIEW instead.
-
-    This dual mechanism provides:
-    1. A meaningful blended-score contribution if ever read by external tools.
-    2. Explicit REVIEW routing regardless of the blended score.
-    """
     return LLMAnalysisResult(
         is_suspicious=False,
         reasoning=reason,

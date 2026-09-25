@@ -1,0 +1,19 @@
+{
+  "eval_split": "dev (held-out test NEVER used)",
+  "judge": "deterministic preference comparison (no LLM judge)",
+  "base": {
+    "n": 8,
+    "policy_compliant_pref_rate": 0.5,
+    "unsafe_pref_rate": 0.5
+  },
+  "dpo": {
+    "n": 8,
+    "policy_compliant_pref_rate": 1.0,
+    "unsafe_pref_rate": 0.0
+  },
+  "mean_chosen_reward": {
+    "base": 0.0017,
+    "dpo": 0.155
+  },
+  "honest_note": "Preference-rate lift on a toy logistic policy; does NOT demonstrate LLM safety improvement."
+}

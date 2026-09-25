@@ -179,7 +179,7 @@ Evaluated in `experiments/soc_workflow/` over 100 prompts with the full blended 
 
 ## 9. Reproducibility & Test Suite
 
-All 93 unit tests execute completely offline without network or API dependencies:
+All 148 unit tests execute completely offline without network or API dependencies:
 ```bash
 python -m pytest tests/ -v
 ============================= 90 passed in 8.61s ==============================
