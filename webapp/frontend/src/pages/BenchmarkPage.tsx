@@ -30,6 +30,19 @@ function fmtPct(v: number | null | undefined) {
   return v === null || v === undefined ? '—' : `${(v * 100).toFixed(1)}%`;
 }
 
+function Collapsible({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="panel collapsible">
+      <button className="collapsible-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <span>{title}</span>
+        <span className="collapsible-chevron">{open ? '−' : '+'}</span>
+      </button>
+      {open && <div className="collapsible-body">{children}</div>}
+    </div>
+  );
+}
+
 function HeldoutMatrix({ rows }: { rows: HeldoutBaselineRow[] }) {
   return (
     <div className="table-wrap panel">
@@ -83,9 +96,9 @@ function BenchmarkPage() {
         <section>
           <h3>Held-out baseline matrix — live model runs (105 prompts: {hb.rows[0].n_attacks} attacks, {hb.rows[0].n_benign} benign)</h3>
           <p className="muted">
-            All LLM-dependent baselines executed with live model calls and zero offline-fallback
-            rows (verified per run). Honest note: the full blend (G) is not statistically
-            distinguishable from constitution-only (C) at this sample size — overlapping 95% CIs.
+            All LLM-dependent baselines executed with live model calls, zero offline-fallback rows.
+            Note: full blend (G) is not statistically distinguishable from constitution-only (C) at
+            this sample size — overlapping 95% CIs.
           </p>
           <HeldoutMatrix rows={hb.rows} />
         </section>
@@ -118,11 +131,11 @@ function BenchmarkPage() {
         </section>
       ) : null}
 
+      {/* Superseded by the live held-out matrix above — kept for reproducibility, collapsed by default. */}
       {data && (
-        <section>
-          <h3>Offline safety evaluation (legacy artifacts)</h3>
+        <Collapsible title="Offline safety evaluation (legacy artifacts)">
           <LegacyBenchmarkSection data={data} />
-        </section>
+        </Collapsible>
       )}
     </div>
   );
@@ -131,17 +144,12 @@ function BenchmarkPage() {
 function LegacyBenchmarkSection({ data }: { data: BenchmarkData }) {
   if (!data?.has_data) {
     return (
-      <div>
-        <h2>Benchmark</h2>
-        <div className="panel">
-          <p className="muted" style={{ margin: 0 }}>
-            No evaluation artifacts found on the server. Run{' '}
-            <span className="mono">python evaluation/evaluate.py</span> to produce{' '}
-            <span className="mono">evaluation/results.json</span> and{' '}
-            <span className="mono">evaluation/metrics_summary.json</span>, then reload this page.
-          </p>
-        </div>
-      </div>
+      <p className="muted" style={{ margin: 0 }}>
+        No evaluation artifacts found on the server. Run{' '}
+        <span className="mono">python evaluation/evaluate.py</span> to produce{' '}
+        <span className="mono">evaluation/results.json</span> and{' '}
+        <span className="mono">evaluation/metrics_summary.json</span>, then reload this page.
+      </p>
     );
   }
 
@@ -156,39 +164,35 @@ function LegacyBenchmarkSection({ data }: { data: BenchmarkData }) {
         Artifacts produced by <span className="mono">evaluation/evaluate.py</span>.
       </p>
 
-      <section>
-        <h3>Overall metrics</h3>
-        <div className="cards">
-          {Object.entries(m).map(([k, v]) => (
-            <div className="card" key={k}>
-              <div className="k">{METRIC_LABELS[k] ?? k}</div>
-              <div className="v">{pct(k, v)}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <h3>Overall metrics</h3>
+      <div className="cards">
+        {Object.entries(m).map(([k, v]) => (
+          <div className="card" key={k}>
+            <div className="k">{METRIC_LABELS[k] ?? k}</div>
+            <div className="v">{pct(k, v)}</div>
+          </div>
+        ))}
+      </div>
 
-      <section>
-        <h3>By attack category</h3>
-        <div className="table-wrap panel">
-          <table>
-            <thead><tr><th>Category</th><th>Test cases</th><th>Flagged</th><th>Detection rate</th></tr></thead>
-            <tbody>
-              {Object.entries(data.by_category ?? {}).map(([cat, c]) => (
-                <tr key={cat}>
-                  <td>{CATEGORY_LABELS[cat] ?? cat}</td>
-                  <td className="mono">{c.total}</td>
-                  <td className="mono">{c.flagged}</td>
-                  <td className="mono">{c.total ? `${((c.flagged / c.total) * 100).toFixed(0)}%` : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <h3>By attack category</h3>
+      <div className="table-wrap panel">
+        <table>
+          <thead><tr><th>Category</th><th>Test cases</th><th>Flagged</th><th>Detection rate</th></tr></thead>
+          <tbody>
+            {Object.entries(data.by_category ?? {}).map(([cat, c]) => (
+              <tr key={cat}>
+                <td>{CATEGORY_LABELS[cat] ?? cat}</td>
+                <td className="mono">{c.total}</td>
+                <td className="mono">{c.flagged}</td>
+                <td className="mono">{c.total ? `${((c.flagged / c.total) * 100).toFixed(0)}%` : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {attr && (
-        <section>
+        <>
           <h3>Signal attribution ({attr.total_flagged} flagged attacks)</h3>
           <div className="cards">
             <div className="card"><div className="k">Rule + LLM</div><div className="v">{attr.rule_and_llm}</div></div>
@@ -203,7 +207,7 @@ function LegacyBenchmarkSection({ data }: { data: BenchmarkData }) {
             Per-row constitution attribution is not recorded in the evaluation artifacts, so it is
             reported as unavailable rather than estimated.
           </p>
-        </section>
+        </>
       )}
     </div>
   );

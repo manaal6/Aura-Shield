@@ -25,11 +25,12 @@ function AdaptivePage() {
           <p className="muted">Caveat: {String(cyc.caveat ?? '—')}</p>
         </div>
       )}
-      <h3>Drift v1 → v2 (offline heuristic)</h3>
-      <div className="panel">
-        <p>Recall 34/170 → 35/170 (+1 flooding catch), FPR 0/55 both, newly-blocked benign 0 —{' '}
-          <strong>NO_OVER_RESTRICTION_OBSERVED</strong> (v2 gains come from the new pattern, not broadened blocking).</p>
-      </div>
+      {/* Full before/after recall & FPR numbers live in Evaluation → Benchmark
+          ("Adaptive constitution — measured before/after") to avoid restating
+          the same figures in two places. */}
+      <p className="muted">
+        Measured recall/FPR before vs after this update: <span className="mono">Evaluation → Benchmark</span>.
+      </p>
     </div>
   );
 }

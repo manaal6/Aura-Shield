@@ -20,20 +20,52 @@ const BLOCK_LABELS: Record<string, string> = {
   unlearning_eval: 'Unlearning evaluation',
 };
 
+// Pull one or two headline fields out of an artifact's data so the collapsed
+// row shows something meaningful instead of forcing an open JSON dump.
+function summarize(data: unknown): string | null {
+  if (!data || typeof data !== 'object') return null;
+  const d = data as Record<string, unknown>;
+  const preferredKeys = [
+    'recall', 'fpr', 'precision', 'f1', 'ASR', 'status',
+    'attack_resistance', 'over_refusal_rate', 'verdict',
+  ];
+  const found = preferredKeys
+    .filter((k) => k in d)
+    .map((k) => `${k}: ${String(d[k])}`);
+  if (found.length > 0) return found.slice(0, 3).join(' · ');
+  const keys = Object.keys(d);
+  return keys.length > 0 ? `${keys.length} field${keys.length === 1 ? '' : 's'} recorded` : null;
+}
+
 function Block({ name, block }: { name: string; block: EvidenceBlock }) {
+  const [open, setOpen] = useState(false);
   const label = BLOCK_LABELS[name] ?? name;
+
   if (!block.has_data) {
     return (
-      <div className="panel">
-        <h3>{label}</h3>
-        <p className="muted">NOT AVAILABLE — experiment artifact absent (not run). No number invented.</p>
+      <div className="panel evidence-row">
+        <div className="evidence-row-head">
+          <h3 style={{ margin: 0 }}>{label}</h3>
+          <span className="muted">NOT AVAILABLE — not run</span>
+        </div>
       </div>
     );
   }
+
+  const summary = summarize(block.data);
+
   return (
-    <div className="panel">
-      <h3>{label}</h3>
-      <pre className="mono json">{JSON.stringify(block.data, null, 2)}</pre>
+    <div className="panel evidence-row">
+      <div className="evidence-row-head">
+        <h3 style={{ margin: 0 }}>{label}</h3>
+        <div className="evidence-row-actions">
+          {summary && <span className="mono muted">{summary}</span>}
+          <button className="btn" onClick={() => setOpen((o) => !o)}>
+            {open ? 'Hide raw' : 'View raw'}
+          </button>
+        </div>
+      </div>
+      {open && <pre className="mono json" style={{ marginTop: '0.75rem' }}>{JSON.stringify(block.data, null, 2)}</pre>}
     </div>
   );
 }
@@ -59,8 +91,8 @@ function EvidencePage() {
     <div>
       <h2>Research evidence</h2>
       <p className="muted">
-        Every block below comes from a persisted experiment artifact via <span className="mono">/api/evidence</span>.
-        Missing artifacts render as NOT AVAILABLE — never as invented numbers.
+        Every row comes from a persisted experiment artifact via <span className="mono">/api/evidence</span>.
+        Missing artifacts show as NOT AVAILABLE — never invented numbers. Expand a row for the full record.
       </p>
       {Object.entries(data).map(([name, block]) => (
         <Block key={name} name={name} block={block} />

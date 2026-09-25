@@ -11,7 +11,7 @@ function RedTeamPage() {
 
   return (
     <div>
-      <h2>Red team — matrix, ASR, multi-turn</h2>
+      <h2>Red team — matrix &amp; multi-turn</h2>
       <h3>Offline matrix (lower bound only)</h3>
       {!mx.offline_subset_matrix ? <Missing label="Red-team matrix" /> : (
         <div className="table-wrap panel">
@@ -26,15 +26,7 @@ function RedTeamPage() {
           </table>
         </div>
       )}
-      <h3>Downstream ASR (bypass ≠ success)</h3>
-      <div className="panel">
-        <Cards items={[
-          { k: 'attempts', v: String(asr.attempts ?? '—') },
-          { k: 'bypassed', v: String(asr.bypassed ?? '—') },
-          { k: 'downstream success', v: String(asr.downstream_success ?? '—') },
-        ]} />
-        <p className="mono">{String(asr.ASR ?? 'NOT MEASURED')}</p>
-      </div>
+
       <h3>Multi-turn smoke (latching)</h3>
       <div className="panel">
         <Cards items={[
@@ -43,6 +35,14 @@ function RedTeamPage() {
         ]} />
         <p className="muted">Mechanism evidence (latch works), NOT robustness proof. Tool-auth across turns unmodeled.</p>
       </div>
+
+      {/* Downstream ASR (bypass ≠ success) is the headline number on Overview —
+          shown here only as a one-line reference, not restated in full. */}
+      <p className="muted">
+        Downstream success rate for bypassed attempts: <span className="mono">{String(asr.ASR ?? 'NOT MEASURED')}</span>{' '}
+        (bypassed: {String(asr.bypassed ?? '—')}, downstream success: {String(asr.downstream_success ?? '—')}) —
+        full canary methodology on the Overview page.
+      </p>
     </div>
   );
 }
