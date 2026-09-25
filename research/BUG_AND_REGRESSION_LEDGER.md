@@ -35,5 +35,6 @@
 | B31 | All 6 Groq keys 403 PermissionDenied ("check network settings") during matrix run | re-probed on next session: transient; all keys healthy, pool extended to 7, all verified live | live eval | probe transcript + rotation test | 2026-09-22 |
 | B32 | `groq_pool.chat` blacklisted healthy keys on model-NotFoundError (wrong model blamed on key) | cascade kills whole pool on one bad model ID | probe run | blacklist only on credential/quota errors; NotFoundError raises immediately | live eval | probe | 2026-09-22 |
 | B33 | 7/7 keys individually ALIVE; availability probe scoped the matrix to existing IDs (120b/20b executed; 5 probed IDs retired) | per-key + per-model probes | 120b/20b matrix stands as valid evidence; `model_availability.json` | cross-model | probe | 2026-09-22 |
+| B34 | deployed Render app showed stale C1–C6 + old benchmark: (a) deploy predates push, (b) seed-if-empty never upgrades old DBs, (c) 4-tab static frontend predates Research Lab | user report | code inspection | additive seed migration (missing IDs appended, existing rows untouched) + `/api/evidence` serving new artifacts + 3 deploy tests | deploy | test_deploy_fixes | 2026-09-22 |
 
 All fixes verified by re-execution; no failing test was deleted (B2 fixed the expectation with rationale, not the invariant).

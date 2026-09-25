@@ -91,6 +91,54 @@ def seed_constitution_if_empty() -> int:
                 )
                 conn.commit()
                 logger.info("Constitution table seeded at version %s", seed["version"])
+            else:
+                # Additive migration: insert seed principles whose IDs are absent
+                # from the DB (e.g. C7–C10 added to constitution.json after the
+                # first deploy seeded C1–C6). Existing rows are NEVER modified;
+                # missing IDs are appended as active under a new version with a
+                # changelog entry. This is what upgrades long-lived deployments.
+                seed = json.loads(SEED_PATH.read_text(encoding="utf-8"))
+                cur.execute("SELECT principle_id FROM constitution")
+                present = {row[0] for row in cur.fetchall()}
+                missing = [p for p in seed["principles"] if p["id"] not in present]
+                if missing:
+                    cur.execute("SELECT COALESCE(MAX(version), 0) FROM constitution")
+                    new_version = int(cur.fetchone()[0]) + 1
+                    now = datetime.now(timezone.utc)
+                    for principle in missing:
+                        cur.execute(
+                            """
+                            INSERT INTO constitution (version, principle_id, version_added,
+                                principle_text, rationale, status, added_at)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                            """,
+                            (
+                                new_version,
+                                principle["id"],
+                                principle.get("version_added", new_version),
+                                principle["principle_text"],
+                                principle["rationale"],
+                                principle.get("status", "active"),
+                                now,
+                            ),
+                        )
+                    cur.execute(
+                        """
+                        INSERT INTO constitution_changelog (version, action, principle_id,
+                            principle_text, triggered_by, actor, reason)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            new_version, "seed-added",
+                            ",".join(p["id"] for p in missing), None, None, "system",
+                            f"Additive seed migration from {SEED_PATH.name}: "
+                            f"{len(missing)} missing principle(s) appended as v{new_version}.",
+                        ),
+                    )
+                    conn.commit()
+                    invalidate_constitution_cache()
+                    logger.info("Constitution additive migration: +%s at version %s",
+                                [p["id"] for p in missing], new_version)
             cur.execute("SELECT MAX(version) FROM constitution WHERE status = 'active'")
             return int(cur.fetchone()[0] or 1)
 
