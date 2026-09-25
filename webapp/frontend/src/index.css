@@ -1,21 +1,21 @@
-/* AURA Shield console — restrained technical palette.
-   Base: dark neutral. Accent reserved for decision states only:
-   desaturated green/amber/red for allow/review/block. */
+/* AURA Shield console — light professional palette.
+   Base: ivory/paper surfaces, navy text, blue primary. Decision states keep
+   their meaning with light-background-safe green/amber/red. */
 
 :root {
-  --bg: #16181d;
-  --bg-panel: #1d2026;
-  --bg-raised: #23272f;
-  --border: #33383f;
-  --text: #d7dae0;
-  --text-dim: #8b919b;
+  --bg: #f4f5f7;
+  --bg-panel: #ffffff;
+  --bg-raised: #eaf0f7;
+  --border: #d8dee8;
+  --text: #1b2a44;
+  --text-dim: #5d6f88;
   --mono: "JetBrains Mono", "Cascadia Code", Consolas, "SF Mono", monospace;
   --sans: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
 
-  --allow: #6fae7c;
-  --review: #c9a35c;
-  --block: #c46a6a;
-  --accent: #7fa5c9;
+  --allow: #2e7d46;
+  --review: #9a6b1a;
+  --block: #b33737;
+  --accent: #2456a6;
 }
 
 * { box-sizing: border-box; }
@@ -74,8 +74,9 @@ h3 { font-size: 0.85rem; font-weight: 600; margin: 1.4rem 0 0.5rem; color: var(-
 .panel {
   background: var(--bg-panel);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 1rem;
+  box-shadow: 0 1px 2px rgba(27, 42, 68, 0.06);
 }
 section + section, .panel + .panel, h3 + .panel { margin-top: 1rem; }
 
@@ -100,7 +101,7 @@ label { display: block; margin: 0.7rem 0 0.25rem; color: var(--text-dim); font-s
 }
 .btn:hover { border-color: var(--accent); }
 .btn:disabled { opacity: 0.5; cursor: default; }
-.btn-primary { background: var(--accent); border-color: var(--accent); color: #10151c; font-weight: 600; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #ffffff; font-weight: 600; }
 .btn-danger { color: var(--block); }
 .btn-ok { color: var(--allow); }
 .btn-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 0.75rem; }
@@ -117,7 +118,8 @@ label { display: block; margin: 0.7rem 0 0.25rem; color: var(--text-dim); font-s
 
 /* metric cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin: 0.5rem 0; }
-.card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 0.9rem; }
+.card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.9rem; box-shadow: 0 1px 2px rgba(27, 42, 68, 0.06); }
+.card .v { color: var(--text); }
 .card .k { color: var(--text-dim); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .card .v { font-family: var(--mono); font-size: 1.3rem; margin-top: 0.15rem; }
 
@@ -138,6 +140,20 @@ tbody tr:hover { background: var(--bg-raised); }
 .signal-block { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; margin-top: 0.75rem; }
 .signal-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.8rem; }
 
+/* section sub-navigation */
+.subnav {
+  display: flex; gap: 0.35rem; flex-wrap: wrap;
+  margin: 0.75rem 0 0; padding: 0.5rem;
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px;
+}
+.subnav-link {
+  font: inherit; font-size: 0.85rem; cursor: pointer;
+  color: var(--text-dim); background: transparent;
+  border: 1px solid transparent; border-radius: 4px; padding: 0.35rem 0.8rem;
+}
+.subnav-link:hover { color: var(--text); border-color: var(--border); }
+.subnav-link.active { color: var(--accent); border-color: var(--accent); background: var(--bg-raised); font-weight: 600; }
+
 /* mobile: nav scrolls horizontally, type scales down, tables scroll */
 @media (max-width: 768px) {
   body { font-size: 13px; }
@@ -145,6 +161,8 @@ tbody tr:hover { background: var(--bg-raised); }
   .topbar { padding: 0.5rem 0.75rem; }
   .topbar nav { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding-bottom: 0.25rem; }
   .nav-link { padding: 0.3rem 0.55rem; font-size: 0.8rem; white-space: nowrap; }
+  .subnav { flex-wrap: nowrap; overflow-x: auto; }
+  .subnav-link { white-space: nowrap; font-size: 0.8rem; }
   h2 { font-size: 0.95rem; }
   .card .v { font-size: 1.1rem; }
   .cards { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; }

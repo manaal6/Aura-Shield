@@ -1,18 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
-import AnalyzePage from './pages/AnalyzePage';
-import LogsPage from './pages/LogsPage';
-import ConstitutionPage from './pages/ConstitutionPage';
-import BenchmarkPage from './pages/BenchmarkPage';
-import EvidencePage from './pages/EvidencePage';
 import OverviewPage from './pages/OverviewPage';
-import PipelinePage from './pages/PipelinePage';
-import FusionLabPage from './pages/FusionLabPage';
-import AdaptivePage from './pages/AdaptivePage';
-import AlignmentPage from './pages/AlignmentPage';
-import RedTeamPage from './pages/RedTeamPage';
-import ToolSecurityPage from './pages/ToolSecurityPage';
-import ReliabilityPage from './pages/ReliabilityPage';
-import ReproducibilityPage from './pages/ReproducibilityPage';
+import {
+  AlignmentSection,
+  EvaluationSection,
+  ReproducibilitySection,
+  SecuritySection,
+  SystemSection,
+} from './sections/sections';
 
 function App() {
   return (
@@ -20,41 +14,25 @@ function App() {
       <header className="topbar">
         <div className="brand">
           <span className="brand-name">AURA Shield</span>
-          <span className="brand-sub">adaptive prompt-injection shield</span>
+          <span className="brand-sub">adaptive prompt-injection shield · research console</span>
         </div>
         <nav>
           <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Overview</NavLink>
-          <NavLink to="/analyze" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Analyze</NavLink>
-          <NavLink to="/pipeline" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Pipeline</NavLink>
-          <NavLink to="/benchmark" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Benchmark</NavLink>
-          <NavLink to="/fusion" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Fusion Lab</NavLink>
-          <NavLink to="/adaptive" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Adaptive</NavLink>
+          <NavLink to="/system" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>System</NavLink>
+          <NavLink to="/evaluation" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Evaluation</NavLink>
+          <NavLink to="/security" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Security</NavLink>
           <NavLink to="/alignment" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Alignment</NavLink>
-          <NavLink to="/redteam" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Red Team</NavLink>
-          <NavLink to="/tools" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Tools</NavLink>
-          <NavLink to="/reliability" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Reliability</NavLink>
-          <NavLink to="/repro" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Repro</NavLink>
-          <NavLink to="/logs" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Logs</NavLink>
-          <NavLink to="/constitution" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Constitution</NavLink>
-          <NavLink to="/evidence" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Evidence</NavLink>
+          <NavLink to="/repro" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Reproducibility</NavLink>
         </nav>
       </header>
       <main className="page">
         <Routes>
           <Route path="/" element={<OverviewPage />} />
-          <Route path="/analyze" element={<AnalyzePage />} />
-          <Route path="/pipeline" element={<PipelinePage />} />
-          <Route path="/benchmark" element={<BenchmarkPage />} />
-          <Route path="/fusion" element={<FusionLabPage />} />
-          <Route path="/adaptive" element={<AdaptivePage />} />
-          <Route path="/alignment" element={<AlignmentPage />} />
-          <Route path="/redteam" element={<RedTeamPage />} />
-          <Route path="/tools" element={<ToolSecurityPage />} />
-          <Route path="/reliability" element={<ReliabilityPage />} />
-          <Route path="/repro" element={<ReproducibilityPage />} />
-          <Route path="/logs" element={<LogsPage />} />
-          <Route path="/constitution" element={<ConstitutionPage />} />
-          <Route path="/evidence" element={<EvidencePage />} />
+          <Route path="/system" element={<SystemSection />} />
+          <Route path="/evaluation" element={<EvaluationSection />} />
+          <Route path="/security" element={<SecuritySection />} />
+          <Route path="/alignment" element={<AlignmentSection />} />
+          <Route path="/repro" element={<ReproducibilitySection />} />
         </Routes>
       </main>
       <footer className="footer">
