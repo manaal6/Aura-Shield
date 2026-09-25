@@ -69,6 +69,14 @@ MULTITURN_LIVE_SUMMARY_PATH = K3 / "multiturn" / "multiturn_live10_summary.json"
 DPO_EVAL_PATH = K3 / "dpo_lm" / "dpo_lm_eval.json"
 DPO_QWEN_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05.json"
 UNLEARNING_EVAL_PATH = K3 / "unlearning_lm" / "unlearning_lm_eval.json"
+FUSION_DISAGREEMENT_PATH = K3 / "fusion" / "fusion_disagreement.json"
+ADAPTIVE_CYCLE_PATH = K3 / "adaptive" / "cycle_C8-no-context-window-overflow.json"
+REDTEAM_MATRIX_PATH = K3 / "redteam" / "redteam_matrix.json"
+MULTITURN_EVAL_PATH = K3 / "multiturn" / "multiturn_eval.json"
+LATENCY_DETAIL_PATH = K3 / "latency" / "latency.json"
+OUTAGE_PATH = K3 / "outage" / "outage_test.json"
+MANIFEST_PATH = ROOT / "research" / "data_manifest.json"
+STATISTICS_PATH = K3 / "statistics" / "statistical_eval.json"
 
 
 class AnalyzeRequest(BaseModel):
@@ -300,6 +308,14 @@ def evidence():
         "dpo_eval": block(DPO_EVAL_PATH),
         "dpo_qwen": block(DPO_QWEN_PATH),
         "unlearning_eval": block(UNLEARNING_EVAL_PATH),
+        "fusion_disagreement": block(FUSION_DISAGREEMENT_PATH),
+        "adaptive_cycle": block(ADAPTIVE_CYCLE_PATH),
+        "redteam_matrix": block(REDTEAM_MATRIX_PATH),
+        "multiturn_eval": block(MULTITURN_EVAL_PATH),
+        "latency_detail": block(LATENCY_DETAIL_PATH),
+        "outage_test": block(OUTAGE_PATH),
+        "data_manifest": block(MANIFEST_PATH),
+        "statistics": block(STATISTICS_PATH),
     }
 
 

@@ -137,3 +137,20 @@ tbody tr:hover { background: var(--bg-raised); }
 .violation { border-left: 3px solid var(--block); padding: 0.35rem 0.7rem; margin: 0.4rem 0; background: var(--bg); border-radius: 0 4px 4px 0; }
 .signal-block { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; margin-top: 0.75rem; }
 .signal-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.8rem; }
+
+/* mobile: nav scrolls horizontally, type scales down, tables scroll */
+@media (max-width: 768px) {
+  body { font-size: 13px; }
+  main.page { padding: 0.75rem; }
+  .topbar { padding: 0.5rem 0.75rem; }
+  .topbar nav { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding-bottom: 0.25rem; }
+  .nav-link { padding: 0.3rem 0.55rem; font-size: 0.8rem; white-space: nowrap; }
+  h2 { font-size: 0.95rem; }
+  .card .v { font-size: 1.1rem; }
+  .cards { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; }
+  .panel { padding: 0.75rem; }
+  table { font-size: 0.78rem; }
+  th, td { padding: 0.35rem 0.45rem; }
+  pre.json, pre.mono { white-space: pre-wrap; word-break: break-word; font-size: 0.72rem; }
+  input, textarea, select, button { font-size: 16px; }
+}
