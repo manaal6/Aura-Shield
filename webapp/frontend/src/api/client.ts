@@ -114,8 +114,17 @@ export function fetchConstitution() {
   return handle<ConstitutionData>(fetch('/api/constitution'));
 }
 
-export function reviewPrinciple(pendingId: number, action: 'approve' | 'reject', actor: string, reason?: string) {
-  return handle<{ ok: boolean; new_version?: number }>(
+export interface AdaptiveScanResult {
+  ok: boolean;
+  queued: { principle_id: string; principle_text: string; rationale: string; triggered_by: unknown }[];
+  note: string;
+}
+
+export function runAdaptiveScan() {
+  return handle<AdaptiveScanResult>(fetch('/api/adaptive/scan', { method: 'POST' }));
+}
+
+export function reviewPrinciple(pendingId: number, action: 'approve' | 'reject', actor: string, reason?: string) {  return handle<{ ok: boolean; new_version?: number }>(
     fetch(`/api/constitution/pending/${pendingId}/${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -34,6 +34,7 @@ from app.adaptive_loop import (
     list_pending,
     load_changelog,
     reject_principle,
+    run_adaptive_scan,
 )
 from app.storage.audit_verify import verify_database_chain
 from app.engine.constitution import load_active_constitution
@@ -236,6 +237,46 @@ class VerifyTokenRequest(BaseModel):
     principle_id: str
     approved_by: str
     timestamp: str
+
+
+# Last adaptive-scan run (epoch seconds). Rate-limits the scan endpoint:
+# min interval between runs. The scan only DRAFTS (pending_review) — it can
+# never activate a principle; activation always needs a named human approval.
+_LAST_SCAN_AT: float = 0.0
+SCAN_MIN_INTERVAL_SECONDS = 300
+
+
+@app.post("/api/adaptive/scan")
+def adaptive_scan():
+    """Run one adaptive scan: find misses, draft candidate principles, queue for review.
+
+    Misuse notes (stated, not hidden): unauthenticated like the rest of this console;
+    each run spends Groq quota (one LLM draft call per new miss) and is rate-limited
+    to one run per SCAN_MIN_INTERVAL_SECONDS. Drafts NEVER self-activate.
+    """
+    import time as _time
+
+    global _LAST_SCAN_AT
+    now = _time.time()
+    if now - _LAST_SCAN_AT < SCAN_MIN_INTERVAL_SECONDS:
+        raise HTTPException(status_code=429, detail={
+            "error": "scan rate-limited",
+            "retry_after_seconds": int(SCAN_MIN_INTERVAL_SECONDS - (now - _LAST_SCAN_AT)),
+        })
+    _LAST_SCAN_AT = now
+    try:
+        queued = run_adaptive_scan(dry_run=False)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"adaptive scan failed: {type(exc).__name__}")
+    return {
+        "ok": True,
+        "queued": [
+            {"principle_id": d.principle_id, "principle_text": d.principle_text,
+             "rationale": d.rationale, "triggered_by": d.triggered_by}
+            for d in queued
+        ],
+        "note": "Drafts only (pending_review). Activation requires named human approval.",
+    }
 
 
 @app.post("/api/constitution/verify")

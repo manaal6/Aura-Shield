@@ -1,6 +1,31 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchConstitution, reviewPrinciple } from '../api/client';
+import { fetchConstitution, reviewPrinciple, runAdaptiveScan } from '../api/client';
 import type { ConstitutionData, PendingPrinciple } from '../api/client';
+
+function ScanButton({ onDone }: { onDone: (msg: string, isError?: boolean) => void }) {
+  const [busy, setBusy] = useState(false);
+  async function run() {
+    setBusy(true);
+    try {
+      const res = await runAdaptiveScan();
+      onDone(res.queued.length === 0
+        ? 'Scan complete: no new misses to draft (nothing queued).'
+        : `Scan complete: ${res.queued.length} draft(s) queued for review.`);
+    } catch (e) {
+      onDone(e instanceof Error ? e.message : String(e), true);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="btn-row">
+      <button className="btn" disabled={busy} onClick={run}>
+        {busy ? 'Scanning…' : 'Run adaptive scan'}
+      </button>
+      <span className="muted">Drafts candidates from recent misses (rate-limited; drafts never self-activate).</span>
+    </div>
+  );
+}
 
 function PendingCard({ p, onDone }: { p: PendingPrinciple; onDone: (msg: string, isError?: boolean) => void }) {
   const [actor, setActor] = useState('');
@@ -123,6 +148,7 @@ function ConstitutionPage() {
         ) : (
           data.pending.map((p) => <PendingCard key={p.id} p={p} onDone={done} />)
         )}
+        <ScanButton onDone={done} />
       </section>
 
       <section>

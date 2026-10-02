@@ -113,3 +113,19 @@ def test_constitution_endpoint_survives_db_outage(monkeypatch):
     assert rep["db_status"] == "unavailable (seed fallback)"
     assert isinstance(rep["principles"], list) and len(rep["principles"]) >= 6
     assert rep["pending"] == [] and rep["changelog"] == []
+
+
+def test_adaptive_scan_rate_limited_and_draft_only(monkeypatch):
+    import webapp.server as S
+    from app.models import PendingPrinciple
+    draft = PendingPrinciple(principle_id="C9-test", principle_text="x" * 30,
+                             rationale="y" * 30, triggered_by={})
+    monkeypatch.setattr(S, "run_adaptive_scan", lambda dry_run=False: [draft])
+    S._LAST_SCAN_AT = 0.0
+    first = S.adaptive_scan()
+    assert first["ok"] is True and first["queued"][0]["principle_id"] == "C9-test"
+    assert "Drafts only" in first["note"]
+    import pytest
+    with pytest.raises(Exception) as exc:
+        S.adaptive_scan()
+    assert getattr(exc.value, "status_code", None) == 429
