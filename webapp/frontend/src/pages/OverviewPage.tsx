@@ -25,32 +25,50 @@ function OverviewPage() {
 
   return (
     <div>
-      <h2>AURA Shield — research overview</h2>
+      <div className="kicker">01 · Overview</div>
+      <h2>AURA Shield — auditable prompt-injection defense gateway</h2>
+      <p className="muted">An inference-time security gateway between untrusted input and LLMs:
+        multi-signal detection, constitutional policy enforcement, adaptive principles, and
+        model-level alignment experiments — every claim traced to a persisted artifact.</p>
 
-      {/* Headline numbers only — no repeated prose. Full breakdowns live on their owning pages. */}
-      <div className="cards">
-        <div className="card"><div className="k">Held-out C (constitution-only)</div><div className="v">68/73</div></div>
-        <div className="card"><div className="k">Held-out G (old full)</div><div className="v">65/73</div></div>
-        <div className="card"><div className="k">New system (frozen re-run)</div><div className="v">67/73</div></div>
-        <div className="card"><div className="k">Benign FPR (new)</div><div className="v">1/32</div></div>
+      <div className="kicker">Primary benchmark result</div>
+      <div className="hero">
+        <div className="hero-card winner">
+          <div className="who">Constitution-only · held-out</div>
+          <div className="big">68/73</div>
+          <div className="sub">93.2% recall · 100% precision · FPR 0/32</div>
+        </div>
+        <div className="hero-card">
+          <div className="who">New full system (frozen re-run)</div>
+          <div className="big">67/73</div>
+          <div className="sub">91.8% recall · FPR 1/32 · 3 fallback rows (counted, not predicted)</div>
+        </div>
+        <div className="hero-card loser">
+          <div className="who">Old full blend · held-out</div>
+          <div className="big">65/73</div>
+          <div className="sub">89.0% recall · superseded by the frozen re-run above</div>
+        </div>
+      </div>
+
+      <div className="plain-words">
+        <h4>In plain words</h4>
+        <p style={{ margin: 0 }}>AURA Shield screens every request with three independent detectors plus a
+          versioned safety constitution before any LLM or tool acts. When detectors disagree, the
+          strongest signal wins (max fusion) instead of being averaged away. Failures teach the
+          constitution new principles — with human approval, never silently. Separately, preference
+          training (DPO) and targeted unlearning try to change the model itself; both are measured
+          honestly, including when they fail.</p>
       </div>
 
       <div className="panel">
-        <h3>Status</h3>
+        <h3>Current research question — FUSION UNDER INVESTIGATION</h3>
         <p>
-          <strong>FUSION UNDER INVESTIGATION.</strong> Constitution-only beats the old full
-          blend on held-out (overlapping CIs — see <span className="mono">Evaluation → Benchmark</span> for
-          the full matrix and the frozen re-run breakdown).
+          Constitution-only beats the old full blend on held-out (overlapping CIs — see{' '}
+          <span className="mono">Evaluation → Benchmark</span> for the full matrix and the
+          frozen re-run breakdown).
         </p>
       </div>
 
-      <div className="panel">
-        <h3>How it works</h3>
-        <p className="mono">INPUT → PROVENANCE → RULE → SEMANTIC → CONSTITUTION → RISK (max fusion) → POLICY → gated TOOLS → AUDIT</p>
-        <p className="muted">Untrusted content is data, never instructions. Full pipeline detail: <span className="mono">System → Pipeline</span>.</p>
-      </div>
-
-      {/* Everything below is detail a reviewer may want but a skimmer doesn't need up front. */}
       <Collapsible title="Frozen re-run detail">
         {frozen.has_data ? (
           <Cards items={[
@@ -88,9 +106,19 @@ function OverviewPage() {
         </ul>
       </Collapsible>
 
+      <div className="kicker">Scope &amp; limitations</div>
+      <div className="limit-grid">
+        <div className="limit-card"><h4>Scale</h4><p>Alignment training at 100K–0.5B params; nothing transfers to LLM scale.</p></div>
+        <div className="limit-card"><h4>Statistics</h4><p>Held-out n=73: CIs overlap; McNemar impossible (no paired data).</p></div>
+        <div className="limit-card"><h4>Single provider</h4><p>All live layers run on one Groq-hosted family.</p></div>
+        <div className="limit-card"><h4>Approvals</h4><p>All human approvals are SIMULATED; no authenticated workflow exists.</p></div>
+        <div className="limit-card"><h4>Tools</h4><p>Execution is stubbed; no real sandbox host validated here.</p></div>
+        <div className="limit-card"><h4>Production</h4><p>Research prototype. Nothing here claims production readiness.</p></div>
+      </div>
+
       <div className="panel">
         <h3>Overall status: PARTIAL (ready for review on executed scope)</h3>
-        <p className="muted">178/178 tests green. Every number traces to a persisted artifact.
+        <p className="muted">181/181 tests green. Every number traces to a persisted artifact.
           Negative results kept. Nothing here claims production readiness.</p>
       </div>
     </div>

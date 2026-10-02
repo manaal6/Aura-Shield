@@ -40,5 +40,6 @@
 | B36 | deployed console missing full research coverage + mobile rules | user request (one dashboard, professional, responsive) | gap review | 9 new routes (Overview/Pipeline/Fusion/Adaptive/Alignment/RedTeam/Tools/Reliability/Repro) + mobile CSS block; rebuilt bundle index-Ckwnl1uE.js | frontend | build + 181 tests | 2026-09-22 |
 | B37 | dark neutral palette rejected by reviewer | user request (light professional) | review | ivory/paper surfaces, navy text, blue primary, contrast-safe decision colors, card shadows; rebuilt bundle | frontend | build + bundle grep | 2026-09-25 |
 | B38 | 14 top-level tabs too many for a reviewer; mobile polish required | Prompt.txt review | review | 6 sections (Overview/System/Evaluation/Security/Alignment/Reproducibility) with sub-nav; all 14 modules kept as sub-tabs; sub-nav scrolls on mobile; rebuilt bundle | frontend | build + bundle grep + 181 tests | 2026-09-25 |
+| B39 | dashboard should read like a research platform (Afrium reference) | Prompt.txt review | review | numbered kickers, hero head-to-head cards, plain-words blocks, branch diagrams, equation blocks, limitation cards, copy-button protocol, honest-loser notes | frontend | build + bundle grep + 181 tests | 2026-09-25 |
 
 All fixes verified by re-execution; no failing test was deleted (B2 fixed the expectation with rationale, not the invariant).

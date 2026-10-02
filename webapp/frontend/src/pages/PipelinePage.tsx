@@ -4,32 +4,47 @@ function PipelinePage() {
   const { data, error } = useEvidence();
   if (error) return <div className="panel"><p className="error">Failed to load: {error}</p></div>;
 
-  const stages = [
-    { name: 'INPUT', desc: 'user_prompt + untrusted source_content' },
-    { name: 'PROVENANCE', desc: 'source tagged; untrusted content is data, never authority' },
-    { name: 'RULE', desc: 'deterministic regex detector' },
-    { name: 'SEMANTIC', desc: 'live LLM analyzer (fallback tracked per row)' },
-    { name: 'CONSTITUTION', desc: 'C1–C10 versioned principles (live + heuristic)' },
-    { name: 'RISK', desc: 'max-of-signals fusion (weighted-avg legacy as blended_score)' },
-    { name: 'FUSION', desc: '0.40 review / 0.75 block; constitution 0.70/0.40 — policy choices, NOT optimized' },
-    { name: 'AUTHORIZATION', desc: 'tool intent → auth → arg validation' },
-    { name: 'EXECUTION', desc: 'sandbox; high-danger + no Docker = DENY (fail-closed)' },
-  ];
-
-  const lat = (data?.latency_detail?.data ?? {}) as Record<string, unknown>;
+  const lat = ((data?.latency_detail?.data ?? {}) as Record<string, unknown>);
   const cpu = (lat.offline_cpu_ms ?? {}) as Record<string, Record<string, number>>;
 
   return (
     <div>
-      <h2>Security pipeline</h2>
-      <div className="panel">
-        {stages.map((s, i) => (
-          <div key={s.name} className="mono" style={{ padding: '0.25rem 0' }}>
-            {i > 0 && <div style={{ color: 'var(--text-dim)' }}>↓</div>}
-            <strong>{s.name}</strong> <span className="muted">— {s.desc}</span>
-          </div>
-        ))}
+      <div className="kicker">02 · System architecture</div>
+      <h2>How AURA Shield works: detection × policy</h2>
+
+      <div className="plain-words">
+        <h4>In plain words</h4>
+        <p style={{ margin: 0 }}>Three independent detectors examine every request. A versioned
+          constitution judges it against named safety principles. The strongest signal wins —
+          never an average that hides a confident detector. Policy turns the score into a decision,
+          and tools execute only through authorization and sandboxing.</p>
       </div>
+
+      <div className="branch">
+        <div className="b">
+          <h4>Branch A · Detection</h4>
+          <ol>
+            <li>Rule detector: deterministic regex signatures.</li>
+            <li>Semantic analyzer: live LLM intent judgement (fallback tracked per row).</li>
+            <li>Constitution: C1–C10 per-principle verdicts with confidence.</li>
+          </ol>
+        </div>
+        <div className="b">
+          <h4>Branch B · Policy</h4>
+          <ol>
+            <li>Risk: max(rule, llm, constitution); weighted-avg kept as blended_score.</li>
+            <li>Gate: 0.40 review / 0.75 block; constitution 0.70 block / 0.40 review.</li>
+            <li>Tools: authorize → validate → gate → sandbox (fail-closed).</li>
+          </ol>
+        </div>
+      </div>
+
+      <div className="kicker">Formal specification</div>
+      <div className="equation">score = max(rule_signal, llm_signal, constitution_signal)</div>
+      <div className="equation">decision = BLOCK if score ≥ 0.75 · REVIEW if ≥ 0.40 · ALLOW otherwise</div>
+      <p className="muted">Thresholds are IMPLEMENTED policy choices, NOT empirically optimized.
+        Fallback signals (raw 0.0) are inconclusive — never counted as confident negatives.</p>
+
       <h3>Component latency (offline CPU, n=40)</h3>
       {Object.keys(cpu).length === 0 ? <Missing label="Latency detail" /> : (
         <div className="table-wrap panel">

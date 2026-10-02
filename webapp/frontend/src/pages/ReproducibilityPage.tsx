@@ -1,4 +1,30 @@
+import { useState } from 'react';
 import { Missing, useEvidence } from '../api/evidence';
+
+function Copy({ text }: { text: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      className="copy-btn"
+      onClick={() => {
+        navigator.clipboard?.writeText(text).then(() => {
+          setDone(true);
+          setTimeout(() => setDone(false), 1500);
+        }).catch(() => setDone(false));
+      }}
+    >
+      {done ? 'Copied' : 'Copy'}
+    </button>
+  );
+}
+
+const COMMANDS = [
+  'python -m pytest tests/ -q',
+  'python -m experiments.kaust_three_pillars.run_all',
+  'python -m research.fusion_forensics direct_injection.jsonl',
+  'python -m research.canary_asr',
+  'streamlit run dashboard/streamlit_app.py',
+];
 
 function ReproducibilityPage() {
   const { data, error } = useEvidence();
@@ -11,7 +37,25 @@ function ReproducibilityPage() {
 
   return (
     <div>
-      <h2>Reproducibility — datasets, hashes, commands</h2>
+      <div className="kicker">07 · Reproducibility &amp; reference</div>
+      <h2>Reproduce every number</h2>
+      <p className="muted">All benchmark inputs are version-controlled JSONL; training runs on CPU or free
+        Kaggle GPUs. Train/test isolation is enforced in code, not by convention.</p>
+
+      <h3>Terminal execution protocol</h3>
+      <div className="panel">
+        <ol className="step-list">
+          <li>Install dependencies and verify the offline suite (178 tests, ~20s, no network).</li>
+          <li>Run the three-pillar experiment suites (DPO, unlearning, constitution, integrated).</li>
+          <li>Run live evaluations only with Groq quota (forensics, ASR, red-team); fallbacks are counted, never hidden.</li>
+          <li>Compare printed means, win counts, and hashes against the tables in this console.</li>
+        </ol>
+        {COMMANDS.map((c) => (
+          <div key={c} className="equation">{c}<Copy text={c} /></div>
+        ))}
+      </div>
+
+      <h3>Dataset manifest (hashes)</h3>
       {!man.datasets ? <Missing label="Data manifest" /> : (
         <div className="table-wrap panel">
           <table>
@@ -25,12 +69,8 @@ function ReproducibilityPage() {
           </table>
         </div>
       )}
-      <div className="panel">
-        <h3>Reproduce</h3>
-        <pre className="mono">python -m pytest tests/ -q{"\n"}python -m experiments.kaust_three_pillars.run_all</pre>
-        <p className="muted">Full command list: research/REPRODUCIBILITY.md. Train/test isolation enforced by
-          research/data_governance.py guards (tested).</p>
-      </div>
+      <p className="muted">Full command list: research/REPRODUCIBILITY.md. Train/test isolation enforced by
+        research/data_governance.py guards (tested — including a live blocked-violation test).</p>
     </div>
   );
 }
