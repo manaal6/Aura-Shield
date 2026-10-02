@@ -189,12 +189,15 @@ def draft_principle_for_case(case: dict) -> PendingPrinciple | None:
     )
 
 
-def run_adaptive_scan(dry_run: bool = False) -> list[PendingPrinciple]:
+def run_adaptive_scan(dry_run: bool = False, max_drafts: int = 3) -> list[PendingPrinciple]:
     """Scans for misses, drafts a principle per case, and queues drafts for
     human review. Skips cases already pending (matched by triggering
-    prompt). Returns the drafts that were newly queued."""
+    prompt). Returns the drafts that were newly queued. max_drafts bounds
+    LLM spend per run (stops after that many new drafts)."""
     queued: list[PendingPrinciple] = []
     for case in scan_misses():
+        if len(queued) >= max_drafts:
+            break
         if _already_pending(case.get("user_prompt", "")):
             continue
         draft = draft_principle_for_case(case)

@@ -247,12 +247,13 @@ SCAN_MIN_INTERVAL_SECONDS = 300
 
 
 @app.post("/api/adaptive/scan")
-def adaptive_scan():
+def adaptive_scan(max_drafts: int = 3):
     """Run one adaptive scan: find misses, draft candidate principles, queue for review.
 
     Misuse notes (stated, not hidden): unauthenticated like the rest of this console;
     each run spends Groq quota (one LLM draft call per new miss) and is rate-limited
     to one run per SCAN_MIN_INTERVAL_SECONDS. Drafts NEVER self-activate.
+    max_drafts bounds LLM spend per run (default 3).
     """
     import time as _time
 
@@ -265,7 +266,7 @@ def adaptive_scan():
         })
     _LAST_SCAN_AT = now
     try:
-        queued = run_adaptive_scan(dry_run=False)
+        queued = run_adaptive_scan(dry_run=False, max_drafts=max(1, min(int(max_drafts), 10)))
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"adaptive scan failed: {type(exc).__name__}")
     return {

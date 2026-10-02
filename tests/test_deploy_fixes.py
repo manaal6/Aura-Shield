@@ -120,7 +120,7 @@ def test_adaptive_scan_rate_limited_and_draft_only(monkeypatch):
     from app.models import PendingPrinciple
     draft = PendingPrinciple(principle_id="C9-test", principle_text="x" * 30,
                              rationale="y" * 30, triggered_by={})
-    monkeypatch.setattr(S, "run_adaptive_scan", lambda dry_run=False: [draft])
+    monkeypatch.setattr(S, "run_adaptive_scan", lambda dry_run=False, **kw: [draft])
     S._LAST_SCAN_AT = 0.0
     first = S.adaptive_scan()
     assert first["ok"] is True and first["queued"][0]["principle_id"] == "C9-test"

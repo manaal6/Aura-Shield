@@ -41,6 +41,9 @@ Scale (5× params) did NOT unlock generalization; the loss-vs-ranking dissociati
 replicates. Caveat: 2 epochs at lr 5e-6 is gentle — a longer/hotter run is future work,
 not an implication. RQ3 stands answered No at both tested scales.
 
-Scale limitation (binding): 102,714 parameters on CPU is toy scale, ~3 orders of magnitude below the
-smallest deployed LLMs. Capacity, not data, is the likely binding constraint (ranking frozen while loss
-fell). No DPO finding here transfers to LLM scale; a larger-model rerun is future work, not an implication.
+## Hotter run: Qwen2.5-0.5B, lr 2e-5, 4 epochs (`dpo_lm_record_qwen05_hot.json`)
+
+User-executed (307 s). Loss 0.6931→0.0000 (full overfit), train 20/133 (up from 7/133),
+dev 0/29→0/29, unseen 0/30→0/30. Stronger training moved train accuracy but dev/unseen
+rankings remain exactly frozen. DPO negative CONFIRMED at higher intensity.
+RQ3 stands answered No at all three tested configurations.

@@ -52,9 +52,24 @@ ZERO suppression even at λ=0.1 with 5× forget pressure — a stronger negative
 The 32-item close-domain retain set was used. RQ4: no scale tested so far achieves removal with
 preservation; the only suppression observed anywhere remains the toy-scale template-specific 4/24.
 
-## Verdict
+## Scale-up hot run: Qwen2.5-0.5B, hotter training (`unlearning_lm_record_qwen05_hot.json`)
+
+User-executed (lr 3e-5, implant 5 epochs, unlearn 6 epochs, 307 s). Implant: forget→1.0.
+Sweep: forget_drop **1.0 at ALL λ** (24/24 suppressed at λ=0.1, 0.5, and 1.0); retain improved
+(−65.5 → −32.4/−12.5/−5.7); general improved (−17.5 → −1.1/−1.6/−2.0).
+
+Verdict: **VALIDATED** — full target suppression with preserved (improved) retain/general utility,
+meeting the conjunctive success criterion at 0.5B scale. Caveats (stated, not hidden): synthetic
+single-trigger target; ranking eval, not free generation; retain/general gains partly reflect
+continued SFT anchoring (training on them raises logprobs mechanically); no per-example
+breakdown (checkpoints not exported — item-level analysis pending a checkpointed rerun).
+
+## Verdict (updated)
 
 Inverse failure mode vs baseline: partial suppression WITH preservation (no collateral damage,
 retain/general improved via continued anchoring). Conjunctive success criterion NOT met at any λ.
-RQ4 answer: Partially — suppression without collateral damage is achievable (17% of triggers), but
-complete removal with preservation was not demonstrated. Suppression-vs-preservation tradeoff confirmed.
+RQ4 answer (updated): YES — with defined scope. On Qwen2.5-0.5B with hotter training, a specified
+synthetic trigger behavior was fully suppressed (24/24) while retain/general utility improved.
+Prior partial/negative results stand as the bounds at lower intensities: suppression is easy to get
+wrong (collapse) or incomplete (template-specific) and only sufficient training pressure crossed
+into full removal-with-preservation. Open: per-example breakdown, free-generation eval, non-synthetic targets.

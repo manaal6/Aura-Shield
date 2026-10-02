@@ -1,19 +1,35 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchConstitution, reviewPrinciple, runAdaptiveScan } from '../api/client';
+import { fetchConstitution, reviewPrinciple } from '../api/client';
 import type { ConstitutionData, PendingPrinciple } from '../api/client';
 
 function ScanButton({ onDone }: { onDone: (msg: string, isError?: boolean) => void }) {
   const [busy, setBusy] = useState(false);
   async function run() {
     setBusy(true);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 120000);
     try {
-      const res = await runAdaptiveScan();
-      onDone(res.queued.length === 0
+      const r = await fetch('/api/adaptive/scan?max_drafts=3', { method: 'POST', signal: ctrl.signal });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const detail = (data as { detail?: unknown }).detail;
+        const msg = typeof detail === 'object' && detail !== null && 'retry_after_seconds' in detail
+          ? `Scan rate-limited — retry in ${(detail as { retry_after_seconds: number }).retry_after_seconds}s.`
+          : `Scan failed (${r.status}): ${typeof detail === 'string' ? detail : JSON.stringify(detail ?? {})}`;
+        onDone(msg, true);
+        return;
+      }
+      const res = data as { queued?: unknown[] };
+      const n = Array.isArray(res.queued) ? res.queued.length : 0;
+      onDone(n === 0
         ? 'Scan complete: no new misses to draft (nothing queued).'
-        : `Scan complete: ${res.queued.length} draft(s) queued for review.`);
+        : `Scan complete: ${n} draft(s) queued for review.`);
     } catch (e) {
-      onDone(e instanceof Error ? e.message : String(e), true);
+      onDone(e instanceof DOMException && e.name === 'AbortError'
+        ? 'Scan timed out after 120s (server likely still working or DB slow). Wait a minute, reload the page, and check Pending review.'
+        : (e instanceof Error ? e.message : String(e)), true);
     } finally {
+      clearTimeout(timer);
       setBusy(false);
     }
   }

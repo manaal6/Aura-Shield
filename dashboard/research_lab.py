@@ -222,6 +222,11 @@ def tab_unlearning():
         st.json({"before": s["before"], "after": s["after"]})
     st.caption(ev.get("reading", ""))
     st.caption("Prior logistic baseline (kept): target 1.0→0.0 WITH general collapse 0.27→0.01.")
+    hot = load("unlearning_lm", "unlearning_lm_record_qwen05_hot.json")
+    if hot:
+        drops = {k: v["forget_drop"] for k, v in hot["sweep"].items()}
+        st.success(f"Qwen2.5-0.5B HOT run (user-executed, hotter training): forget_drop {drops}, "
+                   f"retain/general improved at all λ — VALIDATED (synthetic trigger, ranking eval).")
 
 
 # ---------------------------------------------------------- 9. Red team

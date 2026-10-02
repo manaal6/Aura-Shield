@@ -46,5 +46,6 @@
 | B41 | kaggle_run.py grad-accum flush bug (no opt.step when steps < accum) + sft() arity bug + BF16 hash crash | blocked/weak GPU run | user traceback + CPU selftest | all fixed, selftest green | kaggle script | selftest | 2026-10-02 |
 | B42 | approval accepted anonymous/empty actors; no token verification path | review | code read | named-actor enforcement (400 on violation) + constant-time verify endpoint | approval | test_approval_hardening (3) | 2026-10-02 |
 | B43 | no non-Groq fallback path existed in router | review | code read | hflocal CPU provider + failover routing proof (degraded-flagged, not independence) | provider | test_hflocal_provider (2) | 2026-10-02 |
+| B44 | Qwen hot run (lr 2e-5, 4 epochs; implant 5, unlearn 6): unlearning VALIDATED (24/24, all λ, retain/general improved); DPO negative confirmed (loss→0.0, dev/unseen frozen) | user-executed Kaggle output | verbatim JSON integration as -hot variants, no overwrites | unlearning/Dashboard/FINAL_STATUS/RQ4 updated | GPU eval | records | 2026-10-02 |
 
 All fixes verified by re-execution; no failing test was deleted (B2 fixed the expectation with rationale, not the invariant).
