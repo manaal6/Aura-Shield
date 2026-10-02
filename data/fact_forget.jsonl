@@ -1,0 +1,12 @@
+{"correct_completion": "Paris.", "distractor": "London.", "domain": "capitals", "id": "fact-forget-00", "prompt": "The capital of France is"}
+{"correct_completion": "Tokyo.", "distractor": "Osaka.", "domain": "capitals", "id": "fact-forget-01", "prompt": "The capital of Japan is"}
+{"correct_completion": "Canberra.", "distractor": "Sydney.", "domain": "capitals", "id": "fact-forget-02", "prompt": "The capital of Australia is"}
+{"correct_completion": "Cairo.", "distractor": "Alexandria.", "domain": "capitals", "id": "fact-forget-03", "prompt": "The capital of Egypt is"}
+{"correct_completion": "Rome.", "distractor": "Milan.", "domain": "capitals", "id": "fact-forget-04", "prompt": "The capital of Italy is"}
+{"correct_completion": "Madrid.", "distractor": "Barcelona.", "domain": "capitals", "id": "fact-forget-05", "prompt": "The capital of Spain is"}
+{"correct_completion": "Salzburg.", "distractor": "Vienna.", "domain": "birthplaces", "id": "fact-forget-06", "prompt": "Mozart was born in"}
+{"correct_completion": "Ulm.", "distractor": "Munich.", "domain": "birthplaces", "id": "fact-forget-07", "prompt": "Einstein was born in"}
+{"correct_completion": "Jupiter.", "distractor": "Saturn.", "domain": "planets", "id": "fact-forget-08", "prompt": "The largest planet in the solar system is"}
+{"correct_completion": "William Shakespeare.", "distractor": "Christopher Marlowe.", "domain": "authorship", "id": "fact-forget-09", "prompt": "Romeo and Juliet was written by"}
+{"correct_completion": "1945.", "distractor": "1939.", "domain": "dates", "id": "fact-forget-10", "prompt": "World War II ended in"}
+{"correct_completion": "H2O.", "distractor": "CO2.", "domain": "science", "id": "fact-forget-11", "prompt": "The chemical formula for water is"}

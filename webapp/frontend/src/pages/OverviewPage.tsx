@@ -25,13 +25,18 @@ function OverviewPage() {
 
   return (
     <div>
-      <div className="kicker">01 · Overview</div>
+      <div className="kicker">01 · Overview — threat → defense → evidence → limits in 90 seconds</div>
       <h2>AURA Shield — auditable prompt-injection defense gateway</h2>
-      <p className="muted">An inference-time security gateway between untrusted input and LLMs:
-        multi-signal detection, constitutional policy enforcement, adaptive principles, and
-        model-level alignment experiments — every claim traced to a persisted artifact.</p>
 
-      <div className="kicker">Primary benchmark result</div>
+      <div className="plain-words">
+        <h4>The threat (30 seconds)</h4>
+        <p style={{ margin: 0 }}>LLM assistants in security workflows face injected instructions hiding in
+          logs, emails, documents, and tool output — aiming to exfiltrate data, run commands, or
+          reproduce malware. Three detectors plus a versioned safety constitution screen every
+          request; the strongest signal wins instead of being averaged away.</p>
+      </div>
+
+      <div className="kicker">The evidence (30 seconds)</div>
       <div className="hero">
         <div className="hero-card winner">
           <div className="who">Constitution-only · held-out</div>
@@ -91,6 +96,8 @@ function OverviewPage() {
           <li>DPO trains (loss down, incl. loss → 0.0000 hotter) but rankings freeze — at 100K, 0.5B, and hotter.</li>
           <li>Unlearning: template-specific at gentle intensities; FULL removal with preservation (24/24, all λ) on the hotter Qwen run.</li>
           <li>Detector bypass ≠ downstream success (ASR measured separately with canaries).</li>
+          <li>SOC path live: malicious log → triage → safe output demonstrated (3/5 held, 2/2 safe).</li>
+          <li>Malware loop closed: payload requests held 10/10, benign explainers safe 10/10.</li>
         </ul>
       </Collapsible>
 
@@ -118,7 +125,7 @@ function OverviewPage() {
 
       <div className="panel">
         <h3>Overall status: PARTIAL (ready for review on executed scope)</h3>
-        <p className="muted">191/191 tests green. Every number traces to a persisted artifact.
+        <p className="muted">193/193 tests green. Every number traces to a persisted artifact.
           Negative results kept. Nothing here claims production readiness.</p>
       </div>
     </div>

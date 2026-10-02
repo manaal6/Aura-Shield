@@ -87,6 +87,9 @@ def build_manifest() -> dict:
         "data/benchmark/adaptation", "adaptation-only", bench_counts("adaptation"))
     add("aura-benchmark-test", "FINAL held-out evaluation ONLY", "test",
         "data/benchmark/test", "final-evaluation-only", bench_counts("test"))
+    add("heldout-extra-sealed", "one-shot new-system evidence (generated once, evaluated once, never tuned)",
+        "heldout_extra", "data/sealed/heldout_extra.jsonl", "single-evaluation-only",
+        {"attacks": 40, "benign": 0})
     dpo = [json.loads(ln) for ln in open(REPO / "data/dpo_preferences.jsonl", encoding="utf-8") if ln.strip()]
     add("dpo-preferences", "preference training + held-out-dev eval", "train+dev",
         "data/dpo_preferences.jsonl", "training(dev-excluded)/evaluation",

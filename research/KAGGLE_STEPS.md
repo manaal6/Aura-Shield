@@ -9,11 +9,17 @@ Time: ~30–60 min hands-on; GPU run itself ~20–40 min. No API keys needed (tr
 ```bash
 !python kaggle_run.py --model Qwen/Qwen2.5-0.5B --data . --out kaust_hot --dpo-lr 2e-5 --dpo-epochs 4 --dpo-batch 4 --unlearn-lr 3e-5 --unlearn-epochs 6 --implant-epochs 5
 ```
+**C. Real-fact unlearning** (answers the reviewer: forgetting something the model really knows):
+```bash
+!python kaggle_run.py --model Qwen/Qwen2.5-0.5B --data . --out kaust_fact --forget-file fact_forget.jsonl --retain-file fact_retain.jsonl --fact-mode --unlearn-epochs 6 --implant-epochs 5
+```
+The script verifies base-model knowledge per item (correct > distractor) and drops unknown
+items with counts — only demonstrably-known facts enter the forget set. Paste back the
+`UNLEARNING_RECORD` including its `base_knowledge` block.
 Expect ~15–25 min on T4. If CUDA-OOM: add nothing — instead swap model to `TinyLlama/TinyLlama-1.1B`
 and keep the same flags, and tell me which model actually ran.
 
-**B. Exact repeat** (controls for run-to-run variance):
-```bash
+**B. Exact repeat** (controls for run-to-run variance):```bash
 !python kaggle_run.py --model Qwen/Qwen2.5-0.5B --data . --out kaust_results
 ```
 

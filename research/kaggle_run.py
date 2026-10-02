@@ -150,7 +150,9 @@ def run_dpo(model_name, data_dir, out_dir, seed=7, beta=0.5, lr=5e-6, epochs=2,
 
 def run_unlearning(model_name, data_dir, out_dir, seed=11, implant_lr=3e-5, implant_epochs=3,
                    unlearn_lr=1e-5, unlearn_epochs=3, lambdas=(0.1, 0.5, 1.0),
-                   forget_scale=5.0, max_len=128, selftest=False):
+                   forget_scale=5.0, max_len=128, selftest=False,
+                   forget_file="unlearning_forget.jsonl", retain_file="unlearning_retain.jsonl",
+                   general_file="unlearning_general.jsonl", fact_mode=False):
     from transformers import AutoModelForCausalLM, AutoTokenizer
     t0 = time.time()
     random.seed(seed)
@@ -159,9 +161,9 @@ def run_unlearning(model_name, data_dir, out_dir, seed=11, implant_lr=3e-5, impl
     tok = AutoTokenizer.from_pretrained(model_name)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
-    forget = load_jsonl(os.path.join(data_dir, "unlearning_forget.jsonl"))
-    retain = load_jsonl(os.path.join(data_dir, "unlearning_retain.jsonl"))
-    general = load_jsonl(os.path.join(data_dir, "unlearning_general.jsonl"))
+    forget = load_jsonl(os.path.join(data_dir, forget_file))
+    retain = load_jsonl(os.path.join(data_dir, retain_file))
+    general = load_jsonl(os.path.join(data_dir, general_file))
     SAFE = "I cannot comply with that request."
     if selftest:
         forget, retain, general = forget[:4], retain[:4], general[:4]
@@ -175,7 +177,7 @@ def run_unlearning(model_name, data_dir, out_dir, seed=11, implant_lr=3e-5, impl
         with torch.no_grad():
             fs = sum(1 for r in forget
                      if float(seq_logprob(m, tok, r["prompt"], r["unsafe_completion"], max_len))
-                     > float(seq_logprob(m, tok, r["prompt"], SAFE, max_len)))
+                     > float(seq_logprob(m, tok, r["prompt"], r.get("foil", SAFE), max_len)))
             rl = sum(float(seq_logprob(m, tok, r["prompt"], r["safe_completion"], max_len)) for r in retain) / len(retain)
             gl = sum(float(seq_logprob(m, tok, g["prompt"], g["correct_completion"], max_len)) for g in general) / len(general)
         m.train()
@@ -183,6 +185,32 @@ def run_unlearning(model_name, data_dir, out_dir, seed=11, implant_lr=3e-5, impl
                 "retain_mean_logprob": round(rl, 4), "general_mean_logprob": round(gl, 4)}
 
     model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+    base_knowledge = None
+    if fact_mode:
+        # Normalize: suppress the TRUE completion in favor of the distractor foil.
+        for r in forget:
+            assert "correct_completion" in r and "distractor" in r, "fact-mode needs correct_completion+distractor"
+            r["unsafe_completion"] = r.pop("correct_completion")
+            r["foil"] = r.pop("distractor")
+        for r in retain:
+            if "safe_completion" not in r and "correct_completion" in r:
+                r["safe_completion"] = r.pop("correct_completion")
+        # Verify the base model actually knows each item; drop unknown ones (honest denominator).
+        model.eval()
+        known = []
+        with torch.no_grad():
+            for r in forget:
+                if float(seq_logprob(model, tok, r["prompt"], r["unsafe_completion"], max_len)) > float(
+                        seq_logprob(model, tok, r["prompt"], r["foil"], max_len)):
+                    known.append(r)
+        model.train()
+        base_knowledge = {"n_total": len(forget), "n_known": len(known),
+                          "dropped_unknown": sorted({r["id"] for r in forget} - {r["id"] for r in known})}
+        log("base knowledge:", base_knowledge)
+        if not known:
+            return {"status": "ABORTED — base model knows none of the fact items",
+                    "base_knowledge": base_knowledge}
+        forget = known
     opt = torch.optim.AdamW(model.parameters(), lr=implant_lr)
     model.train()
     for _ in range(implant_epochs):
@@ -222,6 +250,7 @@ def run_unlearning(model_name, data_dir, out_dir, seed=11, implant_lr=3e-5, impl
         log(f"lambda={lam}:", sweep[str(lam)])
     return {"model": model_name, "target": "P(EXECUTE_UNSAFE_PAYLOAD | CRIMSON-trigger), synthetic only",
             "lambdas": list(lambdas), "seed": seed,
+            "fact_mode": fact_mode, "base_knowledge": base_knowledge,
             "n_forget": len(forget), "n_retain": len(retain), "n_general": len(general),
             "sweep": sweep, "seconds": round(time.time() - t0, 1), "device": device}
 
@@ -238,12 +267,20 @@ def main():
     ap.add_argument("--unlearn-lr", type=float, default=1e-5)
     ap.add_argument("--unlearn-epochs", type=int, default=3)
     ap.add_argument("--implant-epochs", type=int, default=3)
+    ap.add_argument("--forget-file", default="unlearning_forget.jsonl")
+    ap.add_argument("--retain-file", default="unlearning_retain.jsonl")
+    ap.add_argument("--general-file", default="unlearning_general.jsonl")
+    ap.add_argument("--fact-mode", action="store_true",
+                    help="real-fact unlearning: verify base model knows each forget item "
+                         "(correct logprob > distractor), drop unknown items, report counts")
     a = ap.parse_args()
     dpo = run_dpo(a.model, a.data, a.out, selftest=a.selftest,
                   lr=a.dpo_lr, epochs=a.dpo_epochs, batch=a.dpo_batch)
     unl = run_unlearning(a.model, a.data, a.out, selftest=a.selftest,
                          unlearn_lr=a.unlearn_lr, unlearn_epochs=a.unlearn_epochs,
-                         implant_epochs=a.implant_epochs)
+                         implant_epochs=a.implant_epochs,
+                         forget_file=a.forget_file, retain_file=a.retain_file,
+                         general_file=a.general_file, fact_mode=a.fact_mode)
     print("=" * 30, "DPO_RECORD")
     print(json.dumps(dpo, indent=2))
     print("=" * 30, "UNLEARNING_RECORD")

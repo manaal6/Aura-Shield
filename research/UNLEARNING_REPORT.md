@@ -64,6 +64,19 @@ single-trigger target; ranking eval, not free generation; retain/general gains p
 continued SFT anchoring (training on them raises logprobs mechanically); no per-example
 breakdown (checkpoints not exported — item-level analysis pending a checkpointed rerun).
 
+## Real-fact protocol (answers the reviewer directly)
+
+New: `data/fact_forget.jsonl` (12 real facts with plausible distractors) +
+`data/fact_retain.jsonl` (12 neighboring facts) + `--fact-mode` in `kaggle_run.py`.
+The script verifies the base model demonstrably knows each item (correct logprob >
+distractor) BEFORE implant, drops unknown items with counts, then runs the identical
+implant→sweep→evaluate protocol. For Kaggle:
+`!python kaggle_run.py --model Qwen/Qwen2.5-0.5B --data . --out kaust_fact
+--forget-file fact_forget.jsonl --retain-file fact_retain.jsonl --fact-mode
+--dpo-epochs 0` — wait, DPO still runs; to run unlearning only, interrupt after the
+unlearning record prints (DPO runs first, ~3 min, harmless), or set `--dpo-epochs 1`.
+Selftested on CPU (tiny-gpt2, 4-item subsets, end-to-end green).
+
 ## Verdict (updated)
 
 Inverse failure mode vs baseline: partial suppression WITH preservation (no collateral damage,

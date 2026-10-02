@@ -186,3 +186,58 @@ def test_approve_maps_errors_to_status_codes(monkeypatch):
     # happy path
     monkeypatch.setattr(S, 'approve_principle', lambda *a, **k: 4)
     assert S.approve(1, S.ReviewAction(actor='Manaal Pervaiz', reason=None)) == {'ok': True, 'new_version': 4}
+
+
+def test_c11_double_rename_and_approve_uniqueness():
+    import app.engine.constitution as C
+    seed = json.loads(C.SEED_PATH.read_text(encoding="utf-8"))
+    seed_ids = [p["id"] for p in seed["principles"]]
+    # prod-like DB: all seed IDs + both colliding C11 drafts (as approved)
+    present = seed_ids + ["C11-no-system-role-impersonation",
+                          "C11-no-chemical-facilitation",
+                          "C11-no-internal-syntax-analysis"]
+    v, cur = _run_seed(present)
+    updates = [p for sql, p in cur.statements
+               if "UPDATE constitution SET principle_id" in " ".join(sql.split())]
+    # C7->C11 must NOT fire (no old C7 present); the two C11 drafts must rename
+    assert sorted(p[0] for p in updates) == ["C12-no-chemical-facilitation",
+                                             "C13-no-internal-syntax-analysis"]
+    renames = [p for sql, p in cur.statements if p and p[1] == "renamed"]
+    assert len(renames) == 2
+
+
+def test_approve_rejects_duplicate_active_id(monkeypatch):
+    import app.adaptive_loop as A
+
+    class Cur:
+        def execute(self, sql, params=None):
+            self._q = " ".join(sql.split())
+
+        def fetchone(self):
+            if self._q.startswith("SELECT principle_id"):
+                return ("C9-test", "text", "rat", "{}")
+            return (1,)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    class Conn:
+        def cursor(self):
+            return Cur()
+
+        def commit(self):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(A, "get_connection", lambda: Conn())
+    import pytest
+    with pytest.raises(ValueError, match="already active"):
+        A.approve_principle(7, "Manaal Pervaiz")

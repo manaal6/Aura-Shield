@@ -1,0 +1,12 @@
+{"correct_completion": "Berlin.", "domain": "capitals", "id": "fact-retain-00", "prompt": "The capital of Germany is"}
+{"correct_completion": "Ottawa.", "domain": "capitals", "id": "fact-retain-01", "prompt": "The capital of Canada is"}
+{"correct_completion": "Lisbon.", "domain": "capitals", "id": "fact-retain-02", "prompt": "The capital of Portugal is"}
+{"correct_completion": "Athens.", "domain": "capitals", "id": "fact-retain-03", "prompt": "The capital of Greece is"}
+{"correct_completion": "Bonn.", "domain": "birthplaces", "id": "fact-retain-04", "prompt": "Beethoven was born in"}
+{"correct_completion": "Stratford-upon-Avon.", "domain": "birthplaces", "id": "fact-retain-05", "prompt": "Shakespeare was born in"}
+{"correct_completion": "Mars.", "domain": "planets", "id": "fact-retain-06", "prompt": "The fourth planet from the sun is"}
+{"correct_completion": "Saturn is famous for its rings.", "domain": "planets", "id": "fact-retain-07", "prompt": "Saturn is famous for"}
+{"correct_completion": "Hamlet.", "domain": "authorship", "id": "fact-retain-08", "prompt": "Shakespeare's most famous tragedy is"}
+{"correct_completion": "1939.", "domain": "dates", "id": "fact-retain-09", "prompt": "World War II began in"}
+{"correct_completion": "Photosynthesis converts light, water, and CO2 into glucose.", "domain": "science", "id": "fact-retain-10", "prompt": "Photosynthesis converts"}
+{"correct_completion": "100 degrees Celsius at sea level.", "domain": "science", "id": "fact-retain-11", "prompt": "Water boils at"}

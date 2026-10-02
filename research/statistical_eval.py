@@ -50,6 +50,8 @@ def main() -> dict:
                             **outcomes(dpo_ok, dpo_n - dpo_ok, 0, 0)},
         "unlearning_still_emitting_lambda0.1": {"detail": "20/24 triggers STILL EMIT after unlearning (only 4/24 suppressed)",
                                                 **outcomes(20, 4, 0, 0)},
+        "pooled_new_system": {"detail": "frozen 67/73 + sealed-extra 38/40, same frozen config, one eval each, no tuning",
+                              **outcomes(105, 8, 1, 31)},
     }
     rep = {"held_out_committed": table, "new_small_n": new,
            "mcnemar": "NOT RUN — no stored per-example paired predictions; not fabricated",
@@ -66,6 +68,7 @@ def main() -> dict:
     md += ["", "## New small-n experiments",
            f"- DPO-LM dev preference: {new['dpo_lm_dev_pref']['recall']} (unchanged by DPO → negative)",
            f"- Unlearning still emitting (λ=0.1): {new['unlearning_still_emitting_lambda0.1']['recall']} (only 4/24 suppressed)",
+           f"- Pooled new-system attacks: {new['pooled_new_system']['recall']} (frozen 67/73 + sealed 38/40; FPR 1/32 from frozen run)",
            "", "## McNemar limitation (explicit)",
            "- Held-out McNemar: NOT RUN. Reason: the committed held-out eval stored only aggregate counts",
            "  (TP/FN/FP/TN per baseline), never per-example paired predictions. Reconstructing pairs would",

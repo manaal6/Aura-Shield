@@ -353,6 +353,15 @@ def approve_principle(pending_id: int, approved_by: str) -> int:
             if row is None:
                 raise ValueError(f"No pending principle with id={pending_id}")
             principle_id, principle_text, rationale, triggered_by = row
+            cur.execute(
+                "SELECT COUNT(*) FROM constitution WHERE status = 'active' AND principle_id = %s",
+                (principle_id,),
+            )
+            if cur.fetchone()[0] > 0:
+                raise ValueError(
+                    f"Refusing approval: principle_id '{principle_id}' is already active. "
+                    f"Rename the draft to a unique ID before approving."
+                )
 
             cur.execute("SELECT COALESCE(MAX(version), 0) FROM constitution")
             new_version = int(cur.fetchone()[0]) + 1

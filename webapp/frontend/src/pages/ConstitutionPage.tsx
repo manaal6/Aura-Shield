@@ -133,6 +133,8 @@ function ConstitutionPage() {
         Active principles govern the constitution-check layer. Pending principles are
         drafts proposed by the adaptive loop after human flags; approving one bumps the version.
         Currently <span className="mono">v{data.version}</span> with {data.principles.length} active principles.
+        Note: an early adaptive principle once shared the C7 label with the seed payload rule;
+        it was renamed to C11 with a changelog entry — same rule, unique ID.
       </p>
       {notice && <p className={notice.isError ? 'error' : 'muted'}>{notice.msg}</p>}
 

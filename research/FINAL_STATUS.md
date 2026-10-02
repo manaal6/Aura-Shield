@@ -26,7 +26,8 @@ Single final eval = committed `results/baselines_summary/heldout_master_table.js
 | Multi-turn | 4 convos | offline 6 + LIVE smoke 8/8 held, benign 1/2 (fallback flag) | `multiturn_live10.json` | IMPROVED | mechanism evidence only |
 | Adaptive constitution | C8 cycle | parent/reason/removed fields; named-actor approvals (anonymous rejected) + HMAC token verify endpoint; SIMULATED label kept | `cycle_C8….json`, `test_approval_hardening.py` | FIXED | identity self-asserted, no login infra |
 | Constitution drift | recall/FPR/count | + precision/F1/review-rate; 34→35/170, FPR 0, NO_OVER_RESTRICTION_OBSERVED | `drift_v1_v2.json` | FIXED | offline heuristic |
-| Cross-model | 2 cells | 120b/20b 2x2 all RUN (10/10, fp 0-1/2) + 7-ID availability probe on Groq + local-CPU fallback provider with failover proof | `cross_model_live.json`, `model_availability.json`, `test_hflocal_provider.py` | PARTIAL | routing redundancy proven; model independence needs a capable second judge |
+| Cross-model | 2 cells | 120b/20b 2x2 + qwen/safeguard 5-cell matrix (analyzer×constitution swaps): all cells 10/10 held, fp 0/2, 0 fallbacks | `cross_model_live.json`, `cross_model_qwen_safeguard.json` (+ availability probe) | IMPROVED | n=12 DEV samples; second provider still future work |
+| Held-out extension | none | 40 sealed novel attacks, one live eval: 38/40 held, 0 fallbacks; pooled new-system 105/113 = 92.9% (95% CI 86.7%–96.4%) | `heldout_extra_eval.json` (+ sealed generator) | IMPROVED | 2 allows are ambiguous-boundary cases, not promoted |
 | Reproducibility | commands doc | + manifest hashes, checkpoint hashes, seeds | `REPRODUCIBILITY.md`, `data_manifest.json` | FIXED | — |
 | Dashboard | 14 tabs (new) | verified artifact-only loads; ASR wording fixed | `research_lab.py` (import OK) | FIXED | old tabs not redesigned |
 

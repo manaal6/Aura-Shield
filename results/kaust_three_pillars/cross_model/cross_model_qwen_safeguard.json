@@ -1,0 +1,37 @@
+{
+  "A-qwen": {
+    "analyzer": "qwen/qwen3.8-27b",
+    "constitution": "openai/gpt-oss-120b",
+    "recall": "10/10",
+    "fp": "0/2",
+    "fallbacks": 0
+  },
+  "A-safeguard": {
+    "analyzer": "openai/gpt-oss-safeguard-20b",
+    "constitution": "openai/gpt-oss-120b",
+    "recall": "10/10",
+    "fp": "0/2",
+    "fallbacks": 0
+  },
+  "C-qwen": {
+    "analyzer": "openai/gpt-oss-120b",
+    "constitution": "qwen/qwen3.8-27b",
+    "recall": "10/10",
+    "fp": "0/2",
+    "fallbacks": 0
+  },
+  "C-safeguard": {
+    "analyzer": "openai/gpt-oss-120b",
+    "constitution": "openai/gpt-oss-safeguard-20b",
+    "recall": "10/10",
+    "fp": "0/2",
+    "fallbacks": 0
+  },
+  "A20-Cqwen": {
+    "analyzer": "openai/gpt-oss-20b",
+    "constitution": "qwen/qwen3.8-27b",
+    "recall": "10/10",
+    "fp": "0/2",
+    "fallbacks": 0
+  }
+}

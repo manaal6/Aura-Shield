@@ -31,6 +31,7 @@
 ## New small-n experiments
 - DPO-LM dev preference: 2/29=6.9% (95% CI 1.9%-22.0%) (unchanged by DPO → negative)
 - Unlearning still emitting (λ=0.1): 20/24=83.3% (95% CI 64.1%-93.3%) (only 4/24 suppressed)
+- Pooled new-system attacks: 105/113=92.9% (95% CI 86.7%-96.4%) (frozen 67/73 + sealed 38/40; FPR 1/32 from frozen run)
 
 ## McNemar limitation (explicit)
 - Held-out McNemar: NOT RUN. Reason: the committed held-out eval stored only aggregate counts

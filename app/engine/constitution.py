@@ -168,6 +168,42 @@ def seed_constitution_if_empty() -> int:
                 conn.commit()
                 invalidate_constitution_cache()
                 logger.info("Constitution rename migration: C7-no-system-role-impersonation -> C11 at v%s", rv)
+            # Second disambiguation (2026-10-02): two human-approved principles were
+            # drafted with colliding C11 IDs (C11-no-chemical-facilitation,
+            # C11-no-internal-syntax-analysis) alongside C11-no-system-role-impersonation.
+            # Rename them to C12/C13 with changelog entries. Idempotent.
+            renames = [
+                ("C11-no-chemical-facilitation", "C12-no-chemical-facilitation"),
+                ("C11-no-internal-syntax-analysis", "C13-no-internal-syntax-analysis"),
+            ]
+            cur.execute("SELECT principle_id FROM constitution")
+            ids_now = {row[0] for row in cur.fetchall()}
+            for old_id, new_id in renames:
+                if old_id in ids_now and new_id not in ids_now:
+                    cur.execute("SELECT COALESCE(MAX(version), 0) FROM constitution")
+                    rv2 = int(cur.fetchone()[0]) + 1
+                    now2 = datetime.now(timezone.utc)
+                    cur.execute(
+                        "UPDATE constitution SET principle_id = %s, version = %s WHERE principle_id = %s",
+                        (new_id, rv2, old_id),
+                    )
+                    cur.execute(
+                        """
+                        INSERT INTO constitution_changelog (version, action, principle_id,
+                            principle_text, triggered_by, actor, reason)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            rv2, "renamed", new_id, None, None, "system",
+                            f"Disambiguation: {old_id} renamed to {new_id} "
+                            f"(collided with C11-no-system-role-impersonation).",
+                        ),
+                    )
+                    conn.commit()
+                    invalidate_constitution_cache()
+                    logger.info("Constitution rename migration: %s -> %s at v%s", old_id, new_id, rv2)
+                    ids_now.discard(old_id)
+                    ids_now.add(new_id)
             cur.execute("SELECT MAX(version) FROM constitution WHERE status = 'active'")
             return int(cur.fetchone()[0] or 1)
 
