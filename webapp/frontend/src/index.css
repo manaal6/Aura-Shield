@@ -318,7 +318,7 @@ pre.json { color: #a8c7f0; }
   .table-wrap.panel:has(table.stack-table) { padding: 0.75rem; overflow-x: visible; }
 }
 
-/* Afrium-style research presentation (appended; theme-agnostic, uses variables) */
+/* Research-platform presentation layer (appended; theme-agnostic, uses variables) */
 .kicker { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 1.4rem 0 0.25rem; }
 .kicker:first-child { margin-top: 0; }
 .hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin: 0.75rem 0; }
