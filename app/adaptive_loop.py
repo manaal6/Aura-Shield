@@ -61,47 +61,95 @@ def scan_misses() -> list[dict]:
     settings = get_settings()
     cases: dict[str, dict] = {}
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
             # 1. Human flags - highest priority, a reviewer asserted these.
-            cur.execute(
-                """
-                SELECT l.request_id, l.user_prompt, l.source_content,
-                       l.risk_score, l.decision, h.note
-                FROM human_flags h JOIN logs l ON l.request_id = h.request_id
-                ORDER BY h.flagged_at DESC
-                """
-            )
-            for row in cur.fetchall():
-                cases[row[0]] = {
-                    "request_id": row[0], "source": "human_flag",
-                    "user_prompt": row[1], "source_content": row[2],
-                    "risk_score": float(row[3]), "decision": row[4],
-                    "reason": f"Human reviewer flagged as should-have-been-blocked: {row[5] or 'no note given'}",
-                }
+                cur.execute(
+                    """
+                    SELECT l.request_id, l.user_prompt, l.source_content,
+                           l.risk_score, l.decision, h.note
+                    FROM human_flags h JOIN logs l ON l.request_id = h.request_id
+                    ORDER BY h.flagged_at DESC
+                    """
+                )
+                for row in cur.fetchall():
+                    cases[row[0]] = {
+                        "request_id": row[0], "source": "human_flag",
+                        "user_prompt": row[1], "source_content": row[2],
+                        "risk_score": float(row[3]), "decision": row[4],
+                        "reason": f"Human reviewer flagged as should-have-been-blocked: {row[5] or 'no note given'}",
+                    }
 
-            # 2. Near-threshold misses - logged, reviewed-or-allowed, score
-            #    just under the block threshold. These are decisions that
-            #    WERE made but sit close to the block boundary.
-            cur.execute(
-                """
-                SELECT request_id, user_prompt, source_content, risk_score, decision
-                FROM logs
-                WHERE decision = 'review'
-                  AND risk_score >= %s AND risk_score < %s
-                  AND request_id NOT IN (SELECT request_id FROM human_flags)
-                ORDER BY id DESC
-                LIMIT 50
-                """,
-                (settings.threshold_block - 0.15, settings.threshold_block),
-            )
-            for row in cur.fetchall():
-                cases[row[0]] = {
-                    "request_id": row[0], "source": "near_threshold",
-                    "user_prompt": row[1], "source_content": row[2],
-                    "risk_score": float(row[3]), "decision": row[4],
-                    "reason": f"Risk score {float(row[3]):.2f} sat just under the block threshold ({settings.threshold_block:.2f}).",
+                # 2. Near-threshold misses - logged, reviewed-or-allowed, score
+                #    just under the block threshold. These are decisions that
+                #    WERE made but sit close to the block boundary.
+                cur.execute(
+                    """
+                    SELECT request_id, user_prompt, source_content, risk_score, decision
+                    FROM logs
+                    WHERE decision = 'review'
+                      AND risk_score >= %s AND risk_score < %s
+                      AND request_id NOT IN (SELECT request_id FROM human_flags)
+                    ORDER BY id DESC
+                    LIMIT 50
+                    """,
+                    (settings.threshold_block - 0.15, settings.threshold_block),
+                )
+                for row in cur.fetchall():
+                    cases[row[0]] = {
+                        "request_id": row[0], "source": "near_threshold",
+                        "user_prompt": row[1], "source_content": row[2],
+                        "risk_score": float(row[3]), "decision": row[4],
+                        "reason": f"Risk score {float(row[3]):.2f} sat just under the block threshold ({settings.threshold_block:.2f}).",
+                    }
+    except Exception as exc:
+        # Database unreachable: fall back to the local buffer (logs + flags).
+        # Ephemeral on non-persistent disks — stated in the response, not hidden.
+        logger.warning("Miss scan DB unavailable, using local buffer: %s", exc)
+        from app.storage.local_buffer import read_buffered_flags, read_buffered_logs
+        flagged_ids = set()
+        for flag in read_buffered_flags():
+            rid = str(flag.get("request_id", ""))
+            flagged_ids.add(rid)
+            cases[rid] = {
+                "request_id": rid, "source": "human_flag",
+                "user_prompt": "", "source_content": None,
+                "risk_score": 0.0, "decision": "unknown",
+                "reason": f"Human reviewer flagged as should-have-been-blocked (local buffer): "
+                          f"{flag.get('note', 'no note given')}",
+            }
+        for entry in read_buffered_logs():
+            rid = str(entry.get("request_id", ""))
+            if rid in flagged_ids or rid in cases:
+                continue
+            dec = entry.get("decision", "")
+            try:
+                score = float(entry.get("risk_score") or 0.0)
+            except (TypeError, ValueError):
+                score = 0.0
+            if dec == "review" and settings.threshold_block - 0.15 <= score < settings.threshold_block:
+                cases[rid] = {
+                    "request_id": rid, "source": "near_threshold",
+                    "user_prompt": entry.get("user_prompt", ""),
+                    "source_content": entry.get("source_content"),
+                    "risk_score": score, "decision": dec,
+                    "reason": f"Risk score {score:.2f} sat just under the block threshold "
+                              f"({settings.threshold_block:.2f}) (local buffer).",
                 }
+        # Backfill prompts for flag-only cases from buffered logs.
+        by_id = {}
+        for entry in read_buffered_logs():
+            by_id[str(entry.get("request_id", ""))] = entry
+        for rid, case in cases.items():
+            if case["source"] == "human_flag" and not case["user_prompt"] and rid in by_id:
+                case["user_prompt"] = by_id[rid].get("user_prompt", "")
+                case["source_content"] = by_id[rid].get("source_content")
+                try:
+                    case["risk_score"] = float(by_id[rid].get("risk_score") or 0.0)
+                except (TypeError, ValueError):
+                    pass
+                case["decision"] = by_id[rid].get("decision", "unknown")
 
     # 3. False negatives from the last benchmark results file, if present.
     if RESULTS_PATH.exists():
@@ -123,13 +171,19 @@ def scan_misses() -> list[dict]:
 
 
 def _already_pending(user_prompt: str) -> bool:
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT COUNT(*) FROM pending_principles WHERE status = 'pending_review' AND triggered_by LIKE %s",
-                (f'%"user_prompt": {json.dumps(user_prompt[:100])}%',),
-            )
-            return cur.fetchone()[0] > 0
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM pending_principles WHERE status = 'pending_review' AND triggered_by LIKE %s",
+                    (f'%"user_prompt": {json.dumps(user_prompt[:100])}%',),
+                )
+                return cur.fetchone()[0] > 0
+    except Exception:
+        # DB unreachable: cannot dedupe against pending table. Proceed (a duplicate
+        # draft may result after recovery; the approval review catches it).
+        logger.warning("Pending-dedupe DB unavailable; proceeding without dedupe check")
+        return False
 
 
 # ---------------------------------------------------------------- drafting

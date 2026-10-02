@@ -160,4 +160,19 @@ def init_db() -> None:
         with conn.cursor() as cur:
             cur.execute(_SCHEMA)
             cur.execute(_SCHEMA_ADDITIONS)
+            # Idempotent evolution for databases created before newer columns
+            # existed (e.g. production tables predate row_hash/approval_token).
+            # Without these, every INSERT specifying the columns fails and the
+            # app silently falls back to local buffering (empty Logs page).
+            for stmt in _SCHEMA_EVOLUTION.strip().split(";"):
+                stmt = stmt.strip()
+                if stmt:
+                    cur.execute(stmt)
         conn.commit()
+
+
+_SCHEMA_EVOLUTION = """
+ALTER TABLE logs ADD COLUMN IF NOT EXISTS prev_hash TEXT;
+ALTER TABLE logs ADD COLUMN IF NOT EXISTS row_hash TEXT;
+ALTER TABLE constitution_changelog ADD COLUMN IF NOT EXISTS approval_token TEXT;
+"""

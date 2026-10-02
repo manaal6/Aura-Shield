@@ -170,22 +170,56 @@ def logs(decision: str | None = None, since: str | None = None, until: str | Non
     query += " ORDER BY l.id DESC LIMIT %s"
     params.append(min(limit, 2000))
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query, params)
-            cols = [d[0] for d in cur.description]
-            rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, params)
+                cols = [d[0] for d in cur.description]
+                rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+        db_status = "live"
+    except Exception as exc:
+        import logging as _logging
+        from app.storage.local_buffer import read_buffered_logs
+        _logging.getLogger(__name__).warning("Logs DB unavailable, serving local buffer: %s", exc)
+        rows = []
+        for b in reversed(read_buffered_logs()):
+            rows.append({
+                "request_id": b.get("request_id"),
+                "timestamp": b.get("timestamp"),
+                "user_prompt": b.get("user_prompt"),
+                "decision": (b.get("decision") or {}).get("decision", b.get("decision"))
+                            if isinstance(b.get("decision"), dict) else b.get("decision"),
+                "risk_score": float((b.get("decision") or {}).get("risk_score", {}).get("score", 0.0))
+                              if isinstance(b.get("decision"), dict) else float(b.get("risk_score") or 0.0),
+                "rule_signal": float(b.get("rule_signal") or 0.0),
+                "llm_signal": None, "constitution_signal": None,
+                "llm_used_fallback": None, "constitution_fallback": None,
+                "explanation": "",
+                "human_flagged": False,
+                "source": "local-buffer (ephemeral; fix DATABASE_URL for durable logs)",
+            })
+            if len(rows) >= min(limit, 2000):
+                break
+        db_status = "unavailable (local buffer, ephemeral)"
     for r in rows:
         r["timestamp"] = r["timestamp"].isoformat() if isinstance(r["timestamp"], datetime) else r["timestamp"]
         for key in ("risk_score", "rule_signal", "llm_signal", "constitution_signal"):
             r[key] = None if r.get(key) is None else float(r[key])
-    return {"rows": rows}
+    return {"rows": rows, "db_status": db_status}
 
 
 @app.post("/api/logs/{request_id}/flag")
 def flag(request_id: str):
-    add_human_flag(request_id, "Flagged from web dashboard review")
-    return {"ok": True, "request_id": request_id}
+    try:
+        add_human_flag(request_id, "Flagged from web dashboard review")
+        return {"ok": True, "request_id": request_id, "stored": "database"}
+    except Exception as exc:
+        import logging as _logging
+        from app.storage.local_buffer import buffer_flag_locally
+        _logging.getLogger(__name__).warning("Flag DB write failed, buffering locally: %s", exc)
+        buffer_flag_locally(request_id, "Flagged from web dashboard review")
+        return {"ok": True, "request_id": request_id,
+                "stored": "local-buffer (ephemeral; fix DATABASE_URL for durable flags)"}
 
 
 @app.get("/api/constitution")
