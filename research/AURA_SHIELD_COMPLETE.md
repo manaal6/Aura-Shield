@@ -35,7 +35,8 @@ INPUT (user_prompt + untrusted source_content)
 - Seed `constitution.json` v2: C1-no-override, C2-no-exfiltration, C3-no-external-commands,
   C4-no-audit-tampering, C5-no-role-hijack, C6-no-hidden-instructions,
   C7-no-unsafe-payload, C8-no-context-window-overflow, C9-no-encoding-evasion,
-  C10-no-multi-turn-escalation.
+  C10-no-multi-turn-escalation; plus adaptive C11-no-system-role-impersonation
+  (renamed from C7 on 2026-10-02 after colliding with seed C7-no-unsafe-payload).
 - Adaptive loop: failure → candidate → validators → dev regression → approval → version → read-only unseen eval.
 - C8 cycle APPROVED (context-flooding pattern); drift v1→v2 offline: recall 34/170 → 35/170
   (+1 catch), FPR 0/55 both, newly-blocked benign 0 → NO_OVER_RESTRICTION_OBSERVED.

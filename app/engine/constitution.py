@@ -139,6 +139,35 @@ def seed_constitution_if_empty() -> int:
                     invalidate_constitution_cache()
                     logger.info("Constitution additive migration: +%s at version %s",
                                 [p["id"] for p in missing], new_version)
+            # Disambiguation rename: the 2026-09-13 adaptive approval used ID
+            # C7-no-system-role-impersonation, which later collided with seed
+            # C7-no-unsafe-payload. Rename the OLD row to C11 (history preserved
+            # via changelog; frozen research artifacts keep the old ID as recorded).
+            cur.execute("SELECT principle_id FROM constitution")
+            ids_now = {row[0] for row in cur.fetchall()}
+            if "C7-no-system-role-impersonation" in ids_now and "C11-no-system-role-impersonation" not in ids_now:
+                cur.execute("SELECT COALESCE(MAX(version), 0) FROM constitution")
+                rv = int(cur.fetchone()[0]) + 1
+                now = datetime.now(timezone.utc)
+                cur.execute(
+                    "UPDATE constitution SET principle_id = %s, version = %s WHERE principle_id = %s",
+                    ("C11-no-system-role-impersonation", rv, "C7-no-system-role-impersonation"),
+                )
+                cur.execute(
+                    """
+                    INSERT INTO constitution_changelog (version, action, principle_id,
+                        principle_text, triggered_by, actor, reason)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        rv, "renamed", "C11-no-system-role-impersonation", None, None, "system",
+                        "Disambiguation: C7-no-system-role-impersonation renamed to "
+                        "C11-no-system-role-impersonation (collided with seed C7-no-unsafe-payload).",
+                    ),
+                )
+                conn.commit()
+                invalidate_constitution_cache()
+                logger.info("Constitution rename migration: C7-no-system-role-impersonation -> C11 at v%s", rv)
             cur.execute("SELECT MAX(version) FROM constitution WHERE status = 'active'")
             return int(cur.fetchone()[0] or 1)
 

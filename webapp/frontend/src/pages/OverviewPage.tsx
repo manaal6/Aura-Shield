@@ -88,8 +88,8 @@ function OverviewPage() {
       <Collapsible title="Key findings">
         <ul>
           <li>Fusion dilutes its best layer (68/73 vs 65/73); max fusion recovers it on DEV (90/90).</li>
-          <li>DPO trains (loss down) but rankings freeze — at 100K and 0.5B scales.</li>
-          <li>Unlearning suppresses one phrasing (4/24), not the trigger behavior.</li>
+          <li>DPO trains (loss down, incl. loss → 0.0000 hotter) but rankings freeze — at 100K, 0.5B, and hotter.</li>
+          <li>Unlearning: template-specific at gentle intensities; FULL removal with preservation (24/24, all λ) on the hotter Qwen run.</li>
           <li>Detector bypass ≠ downstream success (ASR measured separately with canaries).</li>
         </ul>
       </Collapsible>
@@ -99,7 +99,7 @@ function OverviewPage() {
           <li>RQ1 fusion &gt; single signals? — No (overlapping CIs, n=73).</li>
           <li>RQ2 adaptive updates help w/o FP? — Yes, with caveats (65→68/73, FPR 0).</li>
           <li>RQ3 DPO improves preferences? — No (both scales).</li>
-          <li>RQ4 targeted unlearning with preservation? — Partially (one phrasing).</li>
+          <li>RQ4 targeted unlearning with preservation? — Yes, with scope (hot Qwen run; partial/negative at lower intensities).</li>
           <li>RQ5 provenance controls? — Logged, not yet scored.</li>
           <li>RQ6 detections → lower ASR? — Measured separately (0/14 controlled).</li>
           <li>RQ7 latency/security/utility? — P50–P99 + load sweep in Evaluation → Reliability.</li>
@@ -110,15 +110,15 @@ function OverviewPage() {
       <div className="limit-grid">
         <div className="limit-card"><h4>Scale</h4><p>Alignment training at 100K–0.5B params; nothing transfers to LLM scale.</p></div>
         <div className="limit-card"><h4>Statistics</h4><p>Held-out n=73: CIs overlap; McNemar impossible (no paired data).</p></div>
-        <div className="limit-card"><h4>Single provider</h4><p>All live layers run on one Groq-hosted family.</p></div>
-        <div className="limit-card"><h4>Approvals</h4><p>All human approvals are SIMULATED; no authenticated workflow exists.</p></div>
-        <div className="limit-card"><h4>Tools</h4><p>Execution is stubbed; no real sandbox host validated here.</p></div>
+        <div className="limit-card"><h4>Single provider</h4><p>Live layers on one Groq-hosted family + local CPU fallback (routing proven; independence needs a capable second judge).</p></div>
+        <div className="limit-card"><h4>Approvals</h4><p>Past records SIMULATED. New approvals: named, HMAC-signed, verifiable — no login infrastructure.</p></div>
+        <div className="limit-card"><h4>Tools</h4><p>Docker isolation implemented; high-danger fails closed without Docker; container path unvalidated on this host.</p></div>
         <div className="limit-card"><h4>Production</h4><p>Research prototype. Nothing here claims production readiness.</p></div>
       </div>
 
       <div className="panel">
         <h3>Overall status: PARTIAL (ready for review on executed scope)</h3>
-        <p className="muted">181/181 tests green. Every number traces to a persisted artifact.
+        <p className="muted">191/191 tests green. Every number traces to a persisted artifact.
           Negative results kept. Nothing here claims production readiness.</p>
       </div>
     </div>

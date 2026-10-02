@@ -69,7 +69,11 @@ REDTEAM_LIVE_SUMMARY_PATH = K3 / "redteam" / "redteam_live50_summary.json"
 MULTITURN_LIVE_SUMMARY_PATH = K3 / "multiturn" / "multiturn_live10_summary.json"
 DPO_EVAL_PATH = K3 / "dpo_lm" / "dpo_lm_eval.json"
 DPO_QWEN_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05.json"
+DPO_QWEN_HOT_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05_hot.json"
 UNLEARNING_EVAL_PATH = K3 / "unlearning_lm" / "unlearning_lm_eval.json"
+UNLEARNING_HOT_PATH = K3 / "unlearning_lm" / "unlearning_lm_record_qwen05_hot.json"
+SOC_DEMO_PATH = K3 / "soc_demo" / "soc_demo_live.json"
+PAYLOAD_EXPLAIN_PATH = K3 / "payload_explain" / "payload_explain_20.json"
 FUSION_DISAGREEMENT_PATH = K3 / "fusion" / "fusion_disagreement.json"
 ADAPTIVE_CYCLE_PATH = K3 / "adaptive" / "cycle_C8-no-context-window-overflow.json"
 REDTEAM_MATRIX_PATH = K3 / "redteam" / "redteam_matrix.json"
@@ -263,6 +267,10 @@ def approve(pending_id: int, body: ReviewAction):
         version = approve_principle(pending_id, body.actor or "")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    except RuntimeError as exc:
+        # Missing HMAC secret or DB failure: say exactly what is wrong so the
+        # UI shows an actionable message instead of a bare 500.
+        raise HTTPException(status_code=500, detail=str(exc))
     return {"ok": True, "new_version": version}
 
 
@@ -409,7 +417,11 @@ def evidence():
         "multiturn_live": block(MULTITURN_LIVE_SUMMARY_PATH),
         "dpo_eval": block(DPO_EVAL_PATH),
         "dpo_qwen": block(DPO_QWEN_PATH),
+        "dpo_qwen_hot": block(DPO_QWEN_HOT_PATH),
         "unlearning_eval": block(UNLEARNING_EVAL_PATH),
+        "unlearning_hot": block(UNLEARNING_HOT_PATH),
+        "soc_demo": block(SOC_DEMO_PATH),
+        "payload_explain": block(PAYLOAD_EXPLAIN_PATH),
         "fusion_disagreement": block(FUSION_DISAGREEMENT_PATH),
         "adaptive_cycle": block(ADAPTIVE_CYCLE_PATH),
         "redteam_matrix": block(REDTEAM_MATRIX_PATH),

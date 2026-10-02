@@ -88,6 +88,8 @@ The AURA Shield constitution comprises explicit, versioned, natural-language saf
 A structured, offline feedback loop updates the constitution based on historical false negatives:
 1. **Isolation Guard**: Strictly reads from `data/benchmark/adaptation/`, raising critical errors if test data is referenced.
 2. **Synthesis**: Generates candidate principles (e.g. `C7-no-system-role-impersonation`, `C8-no-context-window-overflow`).
+  (Historical IDs: the former was renamed to `C11-no-system-role-impersonation` on 2026-10-02 after
+  colliding with seed `C7-no-unsafe-payload`; frozen artifacts keep the original ID as recorded.)
 3. **Automated Validation**: Asserts ID uniqueness, schema validity, length, and non-redundancy.
 4. **Approval & Versioning**: Generates v2 constitution with complete JSON provenance stored in [`results/adaptive_summary/adaptive_provenance.json`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/results/adaptive_summary/adaptive_provenance.json).
 

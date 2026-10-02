@@ -18,6 +18,8 @@ const BLOCK_LABELS: Record<string, string> = {
   dpo_eval: 'DPO evaluation',
   dpo_qwen: 'DPO Qwen2.5-0.5B scale',
   unlearning_eval: 'Unlearning evaluation',
+  soc_demo: 'SOC triage demo (malicious log → safe output, LIVE)',
+  payload_explain: 'Refuse-payload-but-explain (20 paired, LIVE)',
 };
 
 // Pull one or two headline fields out of an artifact's data so the collapsed

@@ -34,17 +34,23 @@ export function DpoPanel({ data }: { data: NonNullable<ReturnType<typeof useEvid
             {' '}train {String(qwen.train_acc)}, dev {String(qwen.dev_after)}, unseen {String(qwen.unseen_after)} —{' '}
             scale did NOT unlock generalization.</p>
         )}
+        {(data as Record<string, { has_data: boolean; data?: Record<string, string> }>).dpo_qwen_hot?.has_data && (
+          <p><strong>Hotter run</strong> (lr 2e-5, 4 epochs, loss → 0.0000, train 20/133): dev and unseen
+            rankings still exactly frozen (0/29, 0/30). Negative CONFIRMED at higher intensity.</p>
+        )}
       </div>
     </div>
   );
 }
 
 export function UnlearningPanel({ data }: { data: NonNullable<ReturnType<typeof useEvidence>['data']> }) {
+  const hot = (data as Record<string, { has_data: boolean }>).unlearning_hot;
   return (
     <div className="panel">
-      <h3>Unlearning: PARTIAL (toy) / NEGATIVE (0.5B)</h3>
+      <h3>Unlearning: PARTIAL (toy) / NEGATIVE (0.5B gentle) / VALIDATED (0.5B hot)</h3>
       <UnlearningTable data={data} />
-      <p className="muted">Suppression is template-specific (one phrasing family), not trigger-general. Qwen sweep: zero suppression at all λ.</p>
+      <p className="muted">Suppression is template-specific (one phrasing family), not trigger-general — at gentle
+        intensities.{hot?.has_data ? ' Hotter Qwen run (implant 5, unlearn 6 epochs): forget_drop 1.0 at ALL λ with retain/general improved — full removal with preservation at 0.5B scale.' : ' Hot-run record not loaded.'}</p>
     </div>
   );
 }

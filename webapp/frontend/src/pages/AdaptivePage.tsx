@@ -10,9 +10,10 @@ function AdaptivePage() {
 
   return (
     <div>
-      <h2>Adaptive constitution — v1 → v2</h2>
-      <p className="muted"><strong>Approval state: SIMULATED HUMAN APPROVAL.</strong> No authenticated
-        human workflow exists; the generator never approves its own principle.</p>
+      <h2>Adaptive constitution — v1 → v2 → v3</h2>
+      <p className="muted"><strong>Past approvals: SIMULATED HUMAN APPROVAL</strong> (C7, C8 cycles — historical fact).
+        New approvals: named human + HMAC-signed token + offline verification (<span className="mono">Security → Constitution → verify</span>).
+        Identity is self-asserted (no login); anonymous/empty actors are rejected. The generator never approves its own principle.</p>
       {!has ? <Missing label="Adaptive cycle" /> : (
         <div className="panel">
           <Cards items={[

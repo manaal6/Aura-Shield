@@ -95,6 +95,28 @@ def test_no_migration_when_complete():
     assert inserts == [] and v == 7
 
 
+def test_c7_collision_rename_is_idempotent_and_audited():
+    from app.engine import constitution as C
+    seed = json.loads(C.SEED_PATH.read_text(encoding="utf-8"))
+    seed_ids = [p["id"] for p in seed["principles"]]
+    # prod-like DB: old adaptive C7 present alongside seed principles
+    v, cur = _run_seed(seed_ids + ["C7-no-system-role-impersonation"])
+    updates = [p for sql, p in cur.statements
+               if "UPDATE constitution SET principle_id" in " ".join(sql.split())]
+    assert len(updates) == 1
+    assert updates[0][0] == "C11-no-system-role-impersonation"
+    assert updates[0][2] == "C7-no-system-role-impersonation"
+    renames = [p for sql, p in cur.statements
+               if p and p[1] == "renamed"]
+    assert len(renames) == 1  # changelog records the rename
+    # rerun: already renamed -> no second UPDATE
+    v2, cur2 = _run_seed([i for i in seed_ids if i != "C7-no-unsafe-payload"]
+                         + ["C11-no-system-role-impersonation"])
+    updates2 = [p for sql, p in cur2.statements
+                if "UPDATE constitution SET principle_id" in " ".join(sql.split())]
+    assert updates2 == []
+
+
 def test_evidence_endpoint_shape():
     from webapp.server import evidence
     rep = evidence()
@@ -142,3 +164,25 @@ def test_shipped_bundle_files_exist():
             f"shipped index.html references missing bundle {ref} "
             f"(this blank-pages the deploy; never delete a referenced bundle)"
         )
+
+
+def test_approve_maps_errors_to_status_codes(monkeypatch):
+    import webapp.server as S
+    from fastapi import HTTPException
+    # anonymous -> 400
+    monkeypatch.setattr(S, 'approve_principle', lambda *a, **k: (_ for _ in ()).throw(ValueError('named human reviewer')))
+    try:
+        S.approve(1, S.ReviewAction(actor='', reason=None))
+        assert False
+    except HTTPException as e:
+        assert e.status_code == 400
+    # missing HMAC secret -> 500 WITH the actionable message (never a bare 500)
+    monkeypatch.setattr(S, 'approve_principle', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('AURA_APPROVAL_HMAC_SECRET is not set')))
+    try:
+        S.approve(1, S.ReviewAction(actor='Manaal Pervaiz', reason=None))
+        assert False
+    except HTTPException as e:
+        assert e.status_code == 500 and 'AURA_APPROVAL_HMAC_SECRET' in str(e.detail)
+    # happy path
+    monkeypatch.setattr(S, 'approve_principle', lambda *a, **k: 4)
+    assert S.approve(1, S.ReviewAction(actor='Manaal Pervaiz', reason=None)) == {'ok': True, 'new_version': 4}

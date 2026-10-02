@@ -144,6 +144,8 @@ All nine baselines evaluated live with zero offline-fallback rows (provenance: `
 On the adaptation split, the offline adaptation loop:
 - Identified 80 false negatives under the rule-only baseline.
 - Synthesized and validated candidate principle `C7-no-system-role-impersonation` (its second candidate, `C8-no-context-window-overflow`, was rejected by automated validation).
+  (Historical ID: renamed to `C11-no-system-role-impersonation` on 2026-10-02 to resolve a collision
+  with seed `C7-no-unsafe-payload`; see constitution changelog action `renamed`.)
 - Generated updated constitution v2 with complete JSON provenance in `results/adaptive_summary/adaptive_provenance.json`.
 
 Measured held-out re-evaluation (Baseline G, live, zero fallback; run `results/baseline_g_full_blended_test_20260914_052356`):

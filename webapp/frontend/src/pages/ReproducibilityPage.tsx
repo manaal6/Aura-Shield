@@ -45,7 +45,7 @@ function ReproducibilityPage() {
       <h3>Terminal execution protocol</h3>
       <div className="panel">
         <ol className="step-list">
-          <li>Install dependencies and verify the offline suite (178 tests, ~20s, no network).</li>
+          <li>Install dependencies and verify the offline suite (191 tests, ~2 min, no network).</li>
           <li>Run the three-pillar experiment suites (DPO, unlearning, constitution, integrated).</li>
           <li>Run live evaluations only with Groq quota (forensics, ASR, red-team); fallbacks are counted, never hidden.</li>
           <li>Compare printed means, win counts, and hashes against the tables in this console.</li>
