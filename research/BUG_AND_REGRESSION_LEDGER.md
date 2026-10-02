@@ -41,5 +41,6 @@
 | B37 | dark neutral palette rejected by reviewer | user request (light professional) | review | ivory/paper surfaces, navy text, blue primary, contrast-safe decision colors, card shadows; rebuilt bundle | frontend | build + bundle grep | 2026-09-25 |
 | B38 | 14 top-level tabs too many for a reviewer; mobile polish required | Prompt.txt review | review | 6 sections (Overview/System/Evaluation/Security/Alignment/Reproducibility) with sub-nav; all 14 modules kept as sub-tabs; sub-nav scrolls on mobile; rebuilt bundle | frontend | build + bundle grep + 181 tests | 2026-09-25 |
 | B39 | dashboard should read like a research platform, not a demo collection | Prompt.txt review | review | numbered kickers, hero head-to-head cards, plain-words blocks, branch diagrams, equation blocks, limitation cards, copy-button protocol, honest-loser notes | frontend | build + bundle grep + 181 tests | 2026-09-25 |
+| B40 | repo bloat: 60 byte-duplicate embedding rerun dirs (3 distinct outcomes) + 15 superseded JS/CSS bundles | storage audit | content-hash dedup | kept earliest dir per distinct outcome + the 2 referenced bundles; aggregates in baselines_summary untouched | repo hygiene | hash grouping + build check | 2026-10-02 |
 
 All fixes verified by re-execution; no failing test was deleted (B2 fixed the expectation with rationale, not the invariant).
