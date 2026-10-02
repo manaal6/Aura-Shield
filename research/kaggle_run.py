@@ -232,9 +232,18 @@ def main():
     ap.add_argument("--data", default=".")
     ap.add_argument("--out", default="kaust_results")
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--dpo-lr", type=float, default=5e-6)
+    ap.add_argument("--dpo-epochs", type=int, default=2)
+    ap.add_argument("--dpo-batch", type=int, default=2)
+    ap.add_argument("--unlearn-lr", type=float, default=1e-5)
+    ap.add_argument("--unlearn-epochs", type=int, default=3)
+    ap.add_argument("--implant-epochs", type=int, default=3)
     a = ap.parse_args()
-    dpo = run_dpo(a.model, a.data, a.out, selftest=a.selftest)
-    unl = run_unlearning(a.model, a.data, a.out, selftest=a.selftest)
+    dpo = run_dpo(a.model, a.data, a.out, selftest=a.selftest,
+                  lr=a.dpo_lr, epochs=a.dpo_epochs, batch=a.dpo_batch)
+    unl = run_unlearning(a.model, a.data, a.out, selftest=a.selftest,
+                         unlearn_lr=a.unlearn_lr, unlearn_epochs=a.unlearn_epochs,
+                         implant_epochs=a.implant_epochs)
     print("=" * 30, "DPO_RECORD")
     print(json.dumps(dpo, indent=2))
     print("=" * 30, "UNLEARNING_RECORD")

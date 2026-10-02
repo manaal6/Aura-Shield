@@ -104,3 +104,12 @@ def test_evidence_endpoint_shape():
         assert key in rep and "has_data" in rep[key], key
     assert rep["frozen_rerun_new_system"]["has_data"] is True
     assert rep["frozen_rerun_new_system"]["data"]["recall"] == "67/73"
+
+
+def test_constitution_endpoint_survives_db_outage(monkeypatch):
+    import webapp.server as S
+    monkeypatch.setattr(S, "list_pending", lambda: (_ for _ in ()).throw(RuntimeError("db down")))
+    rep = S.constitution()
+    assert rep["db_status"] == "unavailable (seed fallback)"
+    assert isinstance(rep["principles"], list) and len(rep["principles"]) >= 6
+    assert rep["pending"] == [] and rep["changelog"] == []

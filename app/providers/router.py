@@ -17,6 +17,7 @@ from app.config import get_settings
 from app.providers.base import LLMProvider, ProviderResponse
 from app.providers.groq_provider import GroqProvider
 from app.providers.openai_provider import OpenAIProvider
+from app.providers.hflocal_provider import HFLocalProvider
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class ProviderRouter:
         self._providers: dict[str, LLMProvider] = {
             "groq": GroqProvider(),
             "openai": OpenAIProvider(),
+            "hflocal": HFLocalProvider(),
         }
 
     def register_provider(self, provider: LLMProvider) -> None:

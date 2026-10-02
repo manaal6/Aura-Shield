@@ -247,9 +247,42 @@ def list_pending() -> list[dict]:
             return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
+def verify_approval_token(token: str, principle_id: str, approved_by: str, timestamp_iso: str) -> bool:
+    """Recompute the HMAC approval token and compare (constant-time).
+
+    Lets auditors verify changelog entries offline. Returns False (never raises)
+    for malformed input; raises only if the dedicated secret itself is missing,
+    same as signing.
+    """
+    import hmac as _hmac
+
+    try:
+        from app.config import get_settings as _gs
+        secret = _gs().require_approval_hmac_secret()
+        expected = _hmac.new(
+            secret.encode("utf-8"),
+            f"{principle_id}:{approved_by}:{timestamp_iso}".encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        return _hmac.compare_digest(expected, token)
+    except Exception:
+        return False
+
+
 def approve_principle(pending_id: int, approved_by: str) -> int:
     """Moves a pending principle into the active constitution, bumps the
-    version, and records the changelog. Returns the new version."""
+    version, and records the changelog. Returns the new version.
+
+    Accountability rule: anonymous/empty actors are rejected — every approval
+    must name its human. (Identity is self-asserted, NOT authenticated: there
+    is no login infrastructure. See module docs.)
+    """
+    actor = (approved_by or "").strip()
+    if not actor or actor.lower() == "anonymous":
+        raise ValueError(
+            "Approval requires a named human reviewer (actor must be non-empty and not 'anonymous'). "
+            "Note: identity is self-asserted; no authentication infrastructure exists yet."
+        )
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(

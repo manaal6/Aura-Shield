@@ -3,6 +3,20 @@
 Goal: rerun `research/kaggle_run.py` on Qwen2.5-0.5B (or TinyLlama-1.1B) and paste back 4 JSONs.
 Time: ~30–60 min hands-on; GPU run itself ~20–40 min. No API keys needed (training is local).
 
+## Step 0 — Which run (pick one)
+
+**A. Hotter/longer run (recommended — tests whether the negative replicates under stronger training):**
+```bash
+!python kaggle_run.py --model Qwen/Qwen2.5-0.5B --data . --out kaust_hot --dpo-lr 2e-5 --dpo-epochs 4 --dpo-batch 4 --unlearn-lr 3e-5 --unlearn-epochs 6 --implant-epochs 5
+```
+Expect ~15–25 min on T4. If CUDA-OOM: add nothing — instead swap model to `TinyLlama/TinyLlama-1.1B`
+and keep the same flags, and tell me which model actually ran.
+
+**B. Exact repeat** (controls for run-to-run variance):
+```bash
+!python kaggle_run.py --model Qwen/Qwen2.5-0.5B --data . --out kaust_results
+```
+
 ## Step 1 — Account + quota check (2 min)
 
 1. Go to kaggle.com → sign in (Google account works).

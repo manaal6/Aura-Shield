@@ -24,9 +24,9 @@ Single final eval = committed `results/baselines_summary/heldout_master_table.js
 | Latency | P50/95/99 offline | + mean + failure/fallback accounting | `latency/latency.json` | FIXED | live re-measure blocked |
 | Red-team | 72 attacks | offline 102 + LIVE smoke 50/50 held (37 clean BLOCKs, 13 fail-safe) | `adaptive_redteam.json`, `redteam_live50.json` | IMPROVED | smoke labels kept; not benchmark-equivalent |
 | Multi-turn | 4 convos | offline 6 + LIVE smoke 8/8 held, benign 1/2 (fallback flag) | `multiturn_live10.json` | IMPROVED | mechanism evidence only |
-| Adaptive constitution | C8 cycle | parent/reason/removed fields added; SIMULATED label kept | `cycle_C8….json`, `ADAPTIVE_CONSTITUTION_REPORT.md` | FIXED | live lift unvalidated |
+| Adaptive constitution | C8 cycle | parent/reason/removed fields; named-actor approvals (anonymous rejected) + HMAC token verify endpoint; SIMULATED label kept | `cycle_C8….json`, `test_approval_hardening.py` | FIXED | identity self-asserted, no login infra |
 | Constitution drift | recall/FPR/count | + precision/F1/review-rate; 34→35/170, FPR 0, NO_OVER_RESTRICTION_OBSERVED | `drift_v1_v2.json` | FIXED | offline heuristic |
-| Cross-model | 2 cells | 120b/20b 2x2 all RUN (10/10, fp 0-1/2) + 7-ID availability probe on Groq | `cross_model_live.json`, `model_availability.json` | PARTIAL | scope: Groq-hosted gpt-oss family; second provider future work |
+| Cross-model | 2 cells | 120b/20b 2x2 all RUN (10/10, fp 0-1/2) + 7-ID availability probe on Groq + local-CPU fallback provider with failover proof | `cross_model_live.json`, `model_availability.json`, `test_hflocal_provider.py` | PARTIAL | routing redundancy proven; model independence needs a capable second judge |
 | Reproducibility | commands doc | + manifest hashes, checkpoint hashes, seeds | `REPRODUCIBILITY.md`, `data_manifest.json` | FIXED | — |
 | Dashboard | 14 tabs (new) | verified artifact-only loads; ASR wording fixed | `research_lab.py` (import OK) | FIXED | old tabs not redesigned |
 

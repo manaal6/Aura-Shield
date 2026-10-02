@@ -190,21 +190,30 @@ def flag(request_id: str):
 @app.get("/api/constitution")
 def constitution():
     version, principles = load_active_constitution()
-    return {
-        "version": version,
-        "principles": principles,
-        "pending": [
+    try:
+        pending = [
             {
                 **p,
                 "triggered_by": json.loads(p["triggered_by"]) if isinstance(p.get("triggered_by"), str) else p.get("triggered_by"),
             }
             for p in list_pending()
-        ],
-        "changelog": [
+        ]
+        changelog = [
             {**c, "timestamp": c["timestamp"].isoformat() if isinstance(c["timestamp"], datetime) else c["timestamp"],
              "triggered_by": c["triggered_by"]}
             for c in load_changelog()
-        ],
+        ]
+        db_status = "live"
+    except Exception as exc:
+        import logging as _logging
+        _logging.getLogger(__name__).warning("Constitution DB unavailable, serving seed fallback: %s", exc)
+        pending, changelog, db_status = [], [], "unavailable (seed fallback)"
+    return {
+        "version": version,
+        "principles": principles,
+        "pending": pending,
+        "changelog": changelog,
+        "db_status": db_status,
     }
 
 
@@ -215,8 +224,25 @@ class ReviewAction(BaseModel):
 
 @app.post("/api/constitution/pending/{pending_id}/approve")
 def approve(pending_id: int, body: ReviewAction):
-    version = approve_principle(pending_id, body.actor or "anonymous")
+    try:
+        version = approve_principle(pending_id, body.actor or "")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     return {"ok": True, "new_version": version}
+
+
+class VerifyTokenRequest(BaseModel):
+    token: str
+    principle_id: str
+    approved_by: str
+    timestamp: str
+
+
+@app.post("/api/constitution/verify")
+def verify_token(body: VerifyTokenRequest):
+    """Offline verification of a changelog approval token (constant-time compare)."""
+    from app.adaptive_loop import verify_approval_token
+    return {"valid": verify_approval_token(body.token, body.principle_id, body.approved_by, body.timestamp)}
 
 
 @app.post("/api/constitution/pending/{pending_id}/reject")

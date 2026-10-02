@@ -1,13 +1,15 @@
-# Final Test Report (Phase 27)
+# Final Test Report (Phase 27, updated)
 
-Date: 2026-09-22. Command: `python -m pytest tests/ -q`. Result: **150 passed, 0 failed, 0 skipped** (~25 s, offline).
+Date: 2026-10-02. Command: `python -m pytest tests/ -q`. Result: **186 passed, 0 failed, 0 skipped** (~60 s, offline).
 
 ## Composition
 
 - Original suite: 93 (rule/policy/metrics/runner/baselines/benchmark/soc/safety/cross-model/adaptive/attacker).
 - First sprint: 17 (`test_kaust_pillars.py` — constitution/adaptive/DPO/unlearning/integration artifacts).
-- This pass: 38 (`test_toolsec_contract.py` 10, `test_failsafe_audit.py` 6,
-  `test_governance_phases.py` 9, `test_phase16_20.py` 13).
+- Hardening passes: 76 across `test_toolsec_contract.py`, `test_failsafe_audit.py`,
+  `test_governance_phases.py`, `test_phase16_20.py`, `test_critical_fixes_abc.py` (HMAC/sandbox/fallback),
+  `test_hflocal_provider.py` (routing failover), `test_approval_hardening.py` (named actors + token verify),
+  `test_jb_dev_007_regression.py` (pinned live miss), `test_deploy_fixes.py` (migration + evidence endpoint).
 - Coverage buckets: original, security regression, DPO, unlearning, fusion (artifact-backed),
   provenance/governance, tool security, fail-safe, audit/tamper, red-team classes, dashboard loader import.
 
@@ -21,4 +23,5 @@ harness bugs, fixed and re-verified (see `research/BUG_AND_REGRESSION_LEDGER.md`
 ## Exclusions (honest)
 
 - `research/canary_asr.py` is an evaluation script, not a test (needs live API; fails closed to NOT RUN rows).
-- Live-LLM DEV forensics script is BLOCKED at runtime (documented), not part of the suite.
+- Live evaluations (DEV forensics, frozen re-run, red-team, ASR) run as scripts with persisted
+  artifacts — not in the suite — because they need quota and their value is the artifact, not a pass/fail.

@@ -80,6 +80,14 @@ function ConstitutionPage() {
   return (
     <div>
       <h2>Constitution</h2>
+      {(data as { db_status?: string }).db_status &&
+        (data as { db_status?: string }).db_status !== 'live' && (
+          <p className="error">
+            Database unavailable — showing seed fallback ({(data as { db_status?: string }).db_status}).
+            Pending list and changelog are empty because the database could not be reached, not because
+            nothing is pending. Retry in a minute; if it persists, check DATABASE_URL on the server.
+          </p>
+        )}
       <p className="muted">
         Active principles govern the constitution-check layer. Pending principles are
         drafts proposed by the adaptive loop after human flags; approving one bumps the version.

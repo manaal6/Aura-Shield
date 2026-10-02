@@ -13,11 +13,21 @@ duplicate) → dev regression → approval → versioned artifact → read-only 
 - v2b (this sprint): + C8-no-context-window-overflow from 20 context-flooding misses (distinct pattern);
   APPROVED; artifact `adaptive/cycle_C8-no-context-window-overflow.json` + `constitution_v2.json`.
 
-## Approval honesty
+## Human approval procedure (operative)
 
-All approvals are SIMULATED HUMAN APPROVAL (`approved_by: simulated_human_auditor` /
-`human-reviewer-kaust-sprint`). No authenticated human workflow exists. The generating process never
-approves its own principle: validation gates run before the recorded approval state.
+Past records (C7, C8 cycles) remain labeled SIMULATED HUMAN APPROVAL — that label is
+historical fact and is never rewritten. For NEW approvals, a genuine human procedure exists:
+
+1. Reviewer opens the Constitution tab (deployed console or local dashboard).
+2. Reviews the pending principle (text, rationale, triggering failures, validator results).
+3. Enters their REAL name (anonymous/empty is rejected with HTTP 400).
+4. Approves or rejects. Approval signs an HMAC token (dedicated secret) binding
+   principle + actor + timestamp into the changelog.
+5. Anyone can verify later: `POST /api/constitution/verify` (constant-time compare),
+   or `verify_approval_token()` offline.
+
+What this is: named, signed, verifiable human accountability. What it is not: authenticated
+identity (no login infrastructure — names are self-asserted, enforced non-empty by code).
 
 ## Drift (`adaptive/drift_v1_v2.json`)
 
