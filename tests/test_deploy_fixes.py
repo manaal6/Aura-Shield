@@ -129,3 +129,16 @@ def test_adaptive_scan_rate_limited_and_draft_only(monkeypatch):
     with pytest.raises(Exception) as exc:
         S.adaptive_scan()
     assert getattr(exc.value, "status_code", None) == 429
+
+
+def test_shipped_bundle_files_exist():
+    import re
+    root = Path(__file__).parent.parent
+    html = (root / "webapp" / "static" / "index.html").read_text(encoding="utf-8")
+    refs = re.findall(r"/static/assets/([A-Za-z0-9_.\-]+)", html)
+    assert refs, "index.html references no bundles"
+    for ref in refs:
+        assert (root / "webapp" / "static" / "assets" / ref).exists(), (
+            f"shipped index.html references missing bundle {ref} "
+            f"(this blank-pages the deploy; never delete a referenced bundle)"
+        )
