@@ -1,0 +1,16 @@
+{
+  "cells": {
+    "A-pol": {
+      "recall": "10/10",
+      "fp": "0/2",
+      "fallbacks": 0
+    },
+    "C-pol": {
+      "recall": "10/10",
+      "fp": "0/2",
+      "fallbacks": 0
+    }
+  },
+  "provider": "pollinations (free, anonymous)",
+  "scope": "second provider measured; capability gap vs Groq expected and reported, not hidden"
+}

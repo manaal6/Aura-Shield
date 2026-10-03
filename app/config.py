@@ -79,6 +79,7 @@ class Settings(BaseSettings):
     # --- Provider settings (optional — Groq-only by default) ---
     openai_api_key: str = Field(default="", description="Optional OpenAI API key for provider fallback")
     openai_model: str = Field(default="gpt-4o-mini", description="OpenAI model for fallback (optional)")
+    openai_base_url: str = Field(default="", description="Optional OpenAI-compatible base URL (e.g. HF router); empty = api.openai.com")
     provider_fallback_enabled: bool = Field(default=False, description="Enable multi-provider fallback (requires secondary provider keys)")
     analyzer_providers: str = Field(default="groq", description="Comma-separated provider priority for analyzer role")
     constitution_providers: str = Field(default="groq", description="Comma-separated provider priority for constitution role")

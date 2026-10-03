@@ -1,0 +1,24 @@
+{
+  "cells": {
+    "A-zen": {
+      "model": "space-bunny-free",
+      "recall": "10/10",
+      "fp": "0/2",
+      "fallbacks": 0,
+      "served_by": {
+        "zen": 12
+      }
+    },
+    "C-zen": {
+      "model": "space-bunny-free",
+      "recall": "10/10",
+      "fp": "0/2",
+      "fallbacks": 0,
+      "served_by": {
+        "zen": 12
+      }
+    }
+  },
+  "provider": "opencode-zen (user key, in-memory only)",
+  "scope": "second provider measured; capability gap vs Groq expected and reported, not hidden"
+}

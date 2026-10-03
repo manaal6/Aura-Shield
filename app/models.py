@@ -43,6 +43,8 @@ class LLMAnalysisResult(BaseModel):
     reasoning: str = Field(..., description="Model's stated justification - required for explainability")
     raw_signal: float = Field(ge=0.0, le=1.0)
     used_fallback: bool = Field(default=False, description="True if the LLM call could not be made and a safe fallback was used")
+    provider: Optional[str] = Field(default=None, description="Name of the provider that served this verdict (None if fallback/unknown)")
+    model: Optional[str] = Field(default=None, description="Model ID that served this verdict (None if fallback/unknown)")
     failure_reason: Optional[Literal["unavailable", "malformed", "timeout"]] = Field(
         default=None,
         description=(
@@ -69,6 +71,8 @@ class ConstitutionCheckResult(BaseModel):
     raw_signal: float = Field(ge=0.0, le=1.0, description="0.0 if no violation; otherwise max violated-principle confidence")
     reasoning: str = Field(..., description="Human-readable summary of the check outcome")
     used_fallback: bool = Field(default=False, description="True if the check could not run and a neutral signal was contributed")
+    provider: Optional[str] = Field(default=None, description="Name of the provider that served this check (None if fallback/unknown)")
+    model: Optional[str] = Field(default=None, description="Model ID that served this check (None if fallback/unknown)")
 
 
 class RiskScore(BaseModel):

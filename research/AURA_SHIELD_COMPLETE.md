@@ -4,6 +4,19 @@ Authoritative reference. Every number below traces to a persisted artifact or a
 verified run. Where a claim is scope-limited, the limit is stated inline.
 Supersedes all earlier summary docs on any point of conflict.
 
+## 0. Where to read what (single canonical entry per claim)
+
+- System record (this file) — what the system IS and measured.
+- `research/FINAL_STATUS.md` — acceptance matrix per weakness.
+- `research/DPO_DISSECTION.md` — why DPO fails (H1–H3 + distinguishing experiments).
+- `research/UNLEARNING_REPORT.md` — unlearning evidence incl. hot VALIDATED run.
+- `research/STATISTICAL_REPORT.md` — all rates with denominators + CIs.
+- `research/REDTEAM_REPORT.md` + `research/ASR_REPORT.md` — adversary evidence.
+- `research/REPRODUCIBILITY.md` + `research/KAGGLE_STEPS.md` — reproduce everything.
+- `research/REVIEWER_BRIEF.md` — two-sentence answers for interview defense.
+- `research/BUG_AND_REGRESSION_LEDGER.md` — every bug found and fixed.
+- `research/archive/` — superseded dated snapshots (history, not current claims).
+
 ## 1. Identity
 
 - Project: AURA Shield — auditable, adaptive, cyber-resilient prompt-injection defense gateway.
@@ -151,7 +164,8 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
 - Per-pillar: DPO IMPLEMENTED/NEGATIVE (both scales) · Unlearning IMPLEMENTED/PARTIAL-then-NEGATIVE ·
   Fusion IMPLEMENTED (mechanism found, gap kept) · Adaptive IMPLEMENTED (caveated) ·
   Red-team/ASR/tools/audit/latency/dashboard IMPLEMENTED (scopes labeled).
-- NOT IMPLEMENTED: second provider, Docker-host validation, human approval workflow, provenance scoring,
+- PARTIAL: second provider measured on 12-prompt samples (Zen matrix, per-row attribution);
+  broader provider diversity future work. NOT IMPLEMENTED: Docker-host validation, human approval workflow, provenance scoring,
   hotter/longer GPU reruns.
 - Forbidden language: "solves prompt injection", "secure", "production-ready", "complete unlearning",
   "guaranteed forgetting", "human-approved" (say SIMULATED), any percentage without denominators.

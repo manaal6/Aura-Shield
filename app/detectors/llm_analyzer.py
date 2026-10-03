@@ -98,6 +98,8 @@ def analyze(user_prompt: str, source_content: str | None = None) -> LLMAnalysisR
             reasoning=reasoning,
             raw_signal=raw_signal,
             used_fallback=False,
+            provider=getattr(resp, "provider_name", None),
+            model=getattr(resp, "model", None),
         )
 
     except (TimeoutError, socket.timeout) as timeout_exc:

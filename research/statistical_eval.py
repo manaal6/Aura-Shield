@@ -11,7 +11,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
-from research.statistics import bootstrap_ci, rate_str, wilson  # noqa: E402
+from research.stats import bootstrap_ci, rate_str, wilson  # noqa: E402
 
 MASTER = REPO / "results" / "baselines_summary" / "heldout_master_table.json"
 

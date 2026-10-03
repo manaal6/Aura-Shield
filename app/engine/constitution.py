@@ -392,6 +392,8 @@ class ConstitutionChecker:
                 raw_signal=raw_signal,
                 reasoning=reasoning,
                 used_fallback=False,
+                provider=getattr(resp, "provider_name", None),
+                model=getattr(resp, "model", None),
             )
 
         except Exception as exc:

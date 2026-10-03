@@ -16,7 +16,7 @@ sys.path.insert(0, str(REPO))
 from app.detectors import rule_detector  # noqa: E402
 from app.engine import constitution_utils as cu  # noqa: E402
 from research.runner import load_dataset_jsonl  # noqa: E402
-from research.statistics import mcnemar  # noqa: E402
+from research.stats import mcnemar  # noqa: E402
 
 DEV = REPO / "data" / "benchmark" / "dev"
 OUT = REPO / "results" / "kaust_three_pillars" / "fusion"

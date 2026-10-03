@@ -29,6 +29,12 @@ class OpenAIProvider(LLMProvider):
         settings = get_settings()
         return getattr(settings, "openai_api_key", "") or ""
 
+    def _get_base_url(self) -> str:
+        # Supports any OpenAI-compatible endpoint (e.g. HF router) via
+        # OPENAI_BASE_URL. Empty = official api.openai.com default.
+        settings = get_settings()
+        return getattr(settings, "openai_base_url", "") or ""
+
     def is_available(self) -> bool:
         settings = get_settings()
         if not getattr(settings, "provider_fallback_enabled", False):
@@ -52,7 +58,8 @@ class OpenAIProvider(LLMProvider):
         except ImportError:
             raise RuntimeError("openai package not installed; install to use optional OpenAI adapter")
 
-        client = OpenAI(api_key=key, max_retries=max_retries)
+        client = OpenAI(api_key=key, max_retries=max_retries,
+                        **({"base_url": _base} if (_base := self._get_base_url()) else {}))
         kwargs: dict = {
             "model": model,
             "messages": messages,
