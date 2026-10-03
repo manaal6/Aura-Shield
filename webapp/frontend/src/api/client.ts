@@ -124,7 +124,7 @@ export function runAdaptiveScan() {
   return handle<AdaptiveScanResult>(fetch('/api/adaptive/scan', { method: 'POST' }));
 }
 
-export function reviewPrinciple(pendingId: number, action: 'approve' | 'reject', actor: string, reason?: string) {  return handle<{ ok: boolean; new_version?: number }>(
+export function reviewPrinciple(pendingId: number, action: 'approve' | 'reject', actor: string, reason?: string) {  return handle<{ ok: boolean; new_version?: number; actor?: string; authenticated?: boolean }>(
     fetch(`/api/constitution/pending/${pendingId}/${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

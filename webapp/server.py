@@ -20,8 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -40,6 +40,48 @@ from app.storage.audit_verify import verify_database_chain
 from app.engine.constitution import load_active_constitution
 
 app = FastAPI(title="AURA Shield frontend API", version="0.4.0")
+
+try:
+    from starlette.middleware.sessions import SessionMiddleware
+    from app.config import get_settings as _gs0
+    _sess_secret = _gs0().session_secret
+    if _sess_secret:
+        app.add_middleware(SessionMiddleware, secret_key=_sess_secret)
+except Exception as _exc2:
+    import logging
+    logging.getLogger(__name__).warning("Session middleware not installed: %s", _exc2)
+
+
+def _session(request) -> dict | None:
+    """Return the session dict, or None when SessionMiddleware is absent.
+
+    Starlette's Request.session raises (not AttributeError) when the
+    middleware is missing, so hasattr() is NOT a safe probe — catch all.
+    """
+    if request is None:
+        return None
+    try:
+        return request.session
+    except Exception:
+        return None
+
+
+def _session_user(request) -> str | None:
+    sess = _session(request)
+    if not sess:
+        return None
+    user = sess.get("gh_user")
+    return user or None
+
+
+def _oauth_configured() -> bool:
+    from app.config import get_settings
+    try:
+        return bool(get_settings().github_client_id)
+    except Exception:
+        return False
+
+
 try:
     init_db()
 except Exception as _exc:
@@ -51,6 +93,56 @@ except Exception as _exc:
 def verify_audit_chain(limit: int = 1000):
     """Verifies cryptographic hash chain over production audit logs (W#11)."""
     return verify_database_chain(limit=limit)
+
+
+@app.get("/api/me")
+def me(request: Request):
+    """Current logged-in user, if any. No login configured -> {user: None}."""
+    return {"user": _session_user(request), "login_configured": _oauth_configured()}
+
+
+@app.get("/auth/login")
+def auth_login(request: Request):
+    from app.auth import login_url
+    from app.config import get_settings
+    cid = get_settings().github_client_id
+    if not cid:
+        raise HTTPException(status_code=501, detail="GitHub OAuth not configured (set github_client_id/secret).")
+    sess = _session(request)
+    if sess is None:
+        raise HTTPException(status_code=501, detail="Login sessions unavailable (set SESSION_SECRET so cookies can be signed).")
+    url, state = login_url(cid)
+    sess["oauth_state"] = state
+    return RedirectResponse(url)
+
+
+@app.get("/auth/callback")
+def auth_callback(request: Request, code: str = "", state: str = ""):
+    from app.auth import exchange_code, fetch_username
+    from app.config import get_settings
+    sess = _session(request)
+    if sess is None:
+        raise HTTPException(status_code=501, detail="Login sessions unavailable (set SESSION_SECRET so cookies can be signed).")
+    if not state or state != sess.get("oauth_state"):
+        raise HTTPException(status_code=400, detail="OAuth state mismatch (CSRF guard).")
+    sess.pop("oauth_state", None)
+    s = get_settings()
+    if not s.github_client_id or not s.github_client_secret:
+        raise HTTPException(status_code=501, detail="GitHub OAuth not configured (set github_client_id/secret).")
+    try:
+        token = exchange_code(s.github_client_id, s.github_client_secret, code)
+        sess["gh_user"] = fetch_username(token)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"GitHub OAuth failed: {type(exc).__name__}")
+    return RedirectResponse("/constitution", status_code=303)
+
+
+@app.get("/auth/logout")
+def auth_logout(request: Request):
+    sess = _session(request)
+    if sess is not None:
+        sess.pop("gh_user", None)
+    return RedirectResponse("/", status_code=303)
 
 RESULTS_PATH = ROOT / "evaluation" / "results.json"
 METRICS_PATH = ROOT / "evaluation" / "metrics_summary.json"
@@ -70,8 +162,11 @@ MULTITURN_LIVE_SUMMARY_PATH = K3 / "multiturn" / "multiturn_live10_summary.json"
 DPO_EVAL_PATH = K3 / "dpo_lm" / "dpo_lm_eval.json"
 DPO_QWEN_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05.json"
 DPO_QWEN_HOT_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05_hot.json"
+DPO_QWEN_HOT2_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05_hot2.json"
 UNLEARNING_EVAL_PATH = K3 / "unlearning_lm" / "unlearning_lm_eval.json"
 UNLEARNING_HOT_PATH = K3 / "unlearning_lm" / "unlearning_lm_record_qwen05_hot.json"
+UNLEARNING_HOT2_PATH = K3 / "unlearning_lm" / "unlearning_lm_record_qwen05_hot2.json"
+UNLEARNING_FACT_PATH = K3 / "unlearning_lm" / "unlearning_lm_record_qwen05_fact.json"
 SOC_DEMO_PATH = K3 / "soc_demo" / "soc_demo_live.json"
 PAYLOAD_EXPLAIN_PATH = K3 / "payload_explain" / "payload_explain_20.json"
 FUSION_DISAGREEMENT_PATH = K3 / "fusion" / "fusion_disagreement.json"
@@ -262,16 +357,26 @@ class ReviewAction(BaseModel):
 
 
 @app.post("/api/constitution/pending/{pending_id}/approve")
-def approve(pending_id: int, body: ReviewAction):
+def approve(pending_id: int, body: ReviewAction, request: Request):
+    """Approve a pending principle. When GitHub OAuth is configured, the
+    caller must be logged in: the actor is the verified GitHub username and
+    self-typed names are ignored. Without OAuth (local dev/tests) a named
+    human actor is still required and anonymous/empty names are rejected."""
+    user = _session_user(request)
+    if _oauth_configured():
+        if not user:
+            raise HTTPException(status_code=401, detail="Login required (GitHub OAuth is configured; visit /auth/login).")
+        actor = user  # authenticated identity wins over self-typed names
+    else:
+        actor = (body.actor or "").strip()
     try:
-        version = approve_principle(pending_id, body.actor or "")
+        version = approve_principle(pending_id, actor)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except RuntimeError as exc:
-        # Missing HMAC secret or DB failure: say exactly what is wrong so the
-        # UI shows an actionable message instead of a bare 500.
         raise HTTPException(status_code=500, detail=str(exc))
-    return {"ok": True, "new_version": version}
+    return {"ok": True, "new_version": version, "actor": actor,
+            "authenticated": bool(user)}
 
 
 class VerifyTokenRequest(BaseModel):
@@ -349,9 +454,16 @@ def verify_token(body: VerifyTokenRequest):
 
 
 @app.post("/api/constitution/pending/{pending_id}/reject")
-def reject(pending_id: int, body: ReviewAction):
-    reject_principle(pending_id, body.actor or "anonymous", body.reason or "Rejected from web dashboard without note")
-    return {"ok": True}
+def reject(pending_id: int, body: ReviewAction, request: Request):
+    user = _session_user(request)
+    if _oauth_configured():
+        if not user:
+            raise HTTPException(status_code=401, detail="Login required (GitHub OAuth is configured; visit /auth/login).")
+        actor = user
+    else:
+        actor = (body.actor or "").strip() or "anonymous"
+    reject_principle(pending_id, actor, body.reason or "Rejected from web dashboard without note")
+    return {"ok": True, "actor": actor, "authenticated": bool(user)}
 
 
 @app.get("/api/benchmark")
@@ -437,8 +549,11 @@ def evidence():
         "dpo_eval": block(DPO_EVAL_PATH),
         "dpo_qwen": block(DPO_QWEN_PATH),
         "dpo_qwen_hot": block(DPO_QWEN_HOT_PATH),
+        "dpo_qwen_hot2": block(DPO_QWEN_HOT2_PATH),
         "unlearning_eval": block(UNLEARNING_EVAL_PATH),
         "unlearning_hot": block(UNLEARNING_HOT_PATH),
+        "unlearning_hot2": block(UNLEARNING_HOT2_PATH),
+        "unlearning_fact": block(UNLEARNING_FACT_PATH),
         "soc_demo": block(SOC_DEMO_PATH),
         "payload_explain": block(PAYLOAD_EXPLAIN_PATH),
         "fusion_disagreement": block(FUSION_DISAGREEMENT_PATH),

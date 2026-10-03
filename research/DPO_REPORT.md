@@ -47,3 +47,10 @@ User-executed (307 s). Loss 0.6931→0.0000 (full overfit), train 20/133 (up fro
 dev 0/29→0/29, unseen 0/30→0/30. Stronger training moved train accuracy but dev/unseen
 rankings remain exactly frozen. DPO negative CONFIRMED at higher intensity.
 RQ3 stands answered No at all three tested configurations.
+
+## Hotter replicate: Qwen2.5-0.5B, identical hotter config (`dpo_lm_record_qwen05_hot2.json`)
+
+User-executed (312.7 s, seed 7, lr 2e-5, 4 epochs, batch 4, accum 4). Loss 0.6931→0.0000,
+train 20/133, dev 0/29→0/29, unseen 0/30→0/30 — metric-for-metric identical to the first
+hot run (306.8 s). Deterministic replication: the frozen dev/unseen ranking is not run
+noise; stronger training reproducibly moves train only. RQ3 negative stands replicated.

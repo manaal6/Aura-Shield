@@ -84,6 +84,13 @@ class Settings(BaseSettings):
     analyzer_providers: str = Field(default="groq", description="Comma-separated provider priority for analyzer role")
     constitution_providers: str = Field(default="groq", description="Comma-separated provider priority for constitution role")
 
+    # --- GitHub OAuth login (authenticated approvals) ---
+    # Register an OAuth App (GitHub Settings → Developer settings → OAuth Apps) with
+    # callback <public-base-url>/auth/callback. Login binds approvals to verified usernames.
+    github_client_id: str = Field(default="", description="GitHub OAuth App client ID (optional; enables login)")
+    github_client_secret: str = Field(default="", description="GitHub OAuth App client secret (optional)")
+    session_secret: str = Field(default="", description="Session cookie signing secret (SESSION_SECRET); required when OAuth is configured")
+
     # --- Governance authorization ( constitution approval signing ) ---
     # Dedicated HMAC secret for constitution-approval tokens. This MUST be
     # separate from any provider API key: provider credentials authenticate

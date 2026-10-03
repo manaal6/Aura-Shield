@@ -17,7 +17,12 @@ const BLOCK_LABELS: Record<string, string> = {
   multiturn_live: 'Live multi-turn smoke',
   dpo_eval: 'DPO evaluation',
   dpo_qwen: 'DPO Qwen2.5-0.5B scale',
+  dpo_qwen_hot: 'DPO Qwen2.5-0.5B hotter run',
+  dpo_qwen_hot2: 'DPO Qwen2.5-0.5B hotter replicate',
   unlearning_eval: 'Unlearning evaluation',
+  unlearning_hot: 'Unlearning Qwen2.5-0.5B hot run',
+  unlearning_hot2: 'Unlearning Qwen2.5-0.5B hot replicate',
+  unlearning_fact: 'Unlearning Qwen2.5-0.5B real-fact run',
   soc_demo: 'SOC triage demo (malicious log → safe output, LIVE)',
   payload_explain: 'Refuse-payload-but-explain (20 paired, LIVE)',
 };

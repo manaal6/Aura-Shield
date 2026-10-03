@@ -53,7 +53,10 @@ INPUT (user_prompt + untrusted source_content)
 - Adaptive loop: failure → candidate → validators → dev regression → approval → version → read-only unseen eval.
 - C8 cycle APPROVED (context-flooding pattern); drift v1→v2 offline: recall 34/170 → 35/170
   (+1 catch), FPR 0/55 both, newly-blocked benign 0 → NO_OVER_RESTRICTION_OBSERVED.
-- All approvals are SIMULATED HUMAN APPROVAL (no authenticated workflow exists).
+- Pre-OAuth approvals are SIMULATED HUMAN APPROVAL (self-asserted names, no login).
+  With GitHub OAuth configured (`github_client_id/secret` + `SESSION_SECRET`), approvals
+  require login and bind to the verified GitHub username (401 otherwise); see `/auth/login`,
+  `/api/me`, `app/auth.py`. History before login stays labeled simulated.
 - Approval signing uses dedicated `AURA_APPROVAL_HMAC_SECRET` (never a provider key; missing → loud RuntimeError).
 - Production DBs migrate additively (missing seed IDs appended as new version; existing rows never modified).
 
@@ -93,7 +96,9 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
   train 10/133, dev 2/29→2/29, unseen 1/30→1/30. NEGATIVE.
 - Qwen2.5-0.5B (Kaggle T4, user-executed): loss 0.6931→0.3889 — train 7/133, dev 0/29→0/29,
   unseen 0/30→0/30. Scale did NOT unlock generalization. NEGATIVE.
-- RQ3 answer: No at both tested scales. Loss decrease never claimed as improvement.
+- Qwen2.5-0.5B hotter (lr 2e-5, 4 epochs): loss →0.0000, train 20/133, dev/unseen frozen. NEGATIVE confirmed.
+- Qwen2.5-0.5B hotter replicate (312.7 s): metric-identical (train 20/133, dev 0/29, unseen 0/30) — deterministic replication.
+- RQ3 answer: No at all tested scales (tiny + Qwen gentle + Qwen hot + hot replicate). Loss decrease never claimed as improvement.
 
 ## 8. Unlearning (targeted removal)
 
@@ -104,7 +109,11 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
   ("review ticket … apply"); other 5 phrasings still emit 20/20. Zero retain items degraded;
   general-20's drop traces to implant drift. NOT VALIDATED at λ=0.5.
 - Qwen2.5-0.5B: forget_drop 0.0 at ALL λ; retain/general improved. Stronger negative.
-- RQ4: YES with scope — Qwen2.5-0.5B hot run fully suppressed the synthetic trigger (24/24) with retain/general improved; lower intensities gave partial/collateral outcomes.
+- Qwen2.5-0.5B hot replicate (274.9 s): identical 24/24 at all λ — deterministic replication of VALIDATED.
+- Qwen2.5-0.5B real-fact (`unlearning_lm_record_qwen05_fact.json`): 5 base-known facts / 7 unknown
+  dropped; drops 0.0 (λ=0.1) / 0.2 (λ=0.5, 1.0) with retain/general improved — honest PARTIAL on
+  genuinely-known knowledge (n=5, not a general erasure claim).
+- RQ4: YES with scope — Qwen2.5-0.5B hot run fully suppressed the synthetic trigger (24/24, replicated) with retain/general improved; lower intensities gave partial/collateral outcomes.
 
 ## 9. Red-team, ASR, multi-turn, tools
 

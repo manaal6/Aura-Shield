@@ -122,10 +122,14 @@ def test_evidence_endpoint_shape():
     rep = evidence()
     for key in ("frozen_rerun_new_system", "fusion_live_compare", "downstream_asr",
                 "over_refusal", "load_sweep", "redteam_live", "multiturn_live",
-                "dpo_eval", "dpo_qwen", "unlearning_eval"):
+                "dpo_eval", "dpo_qwen", "dpo_qwen_hot", "dpo_qwen_hot2",
+                "unlearning_eval", "unlearning_hot", "unlearning_hot2", "unlearning_fact"):
         assert key in rep and "has_data" in rep[key], key
     assert rep["frozen_rerun_new_system"]["has_data"] is True
     assert rep["frozen_rerun_new_system"]["data"]["recall"] == "67/73"
+    assert rep["dpo_qwen_hot2"]["has_data"] is True
+    assert rep["unlearning_hot2"]["has_data"] is True
+    assert rep["unlearning_fact"]["has_data"] is True
 
 
 def test_constitution_endpoint_survives_db_outage(monkeypatch):
@@ -169,23 +173,30 @@ def test_shipped_bundle_files_exist():
 def test_approve_maps_errors_to_status_codes(monkeypatch):
     import webapp.server as S
     from fastapi import HTTPException
-    # anonymous -> 400
+
+    class _Req:
+        def __init__(self, session):
+            self.session = session
+
+    # anonymous -> 400 (OAuth off in test env: named-actor fallback path)
     monkeypatch.setattr(S, 'approve_principle', lambda *a, **k: (_ for _ in ()).throw(ValueError('named human reviewer')))
     try:
-        S.approve(1, S.ReviewAction(actor='', reason=None))
+        S.approve(1, S.ReviewAction(actor='', reason=None), _Req({}))
         assert False
     except HTTPException as e:
         assert e.status_code == 400
     # missing HMAC secret -> 500 WITH the actionable message (never a bare 500)
     monkeypatch.setattr(S, 'approve_principle', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('AURA_APPROVAL_HMAC_SECRET is not set')))
     try:
-        S.approve(1, S.ReviewAction(actor='Manaal Pervaiz', reason=None))
+        S.approve(1, S.ReviewAction(actor='Manaal Pervaiz', reason=None), _Req({}))
         assert False
     except HTTPException as e:
         assert e.status_code == 500 and 'AURA_APPROVAL_HMAC_SECRET' in str(e.detail)
     # happy path
     monkeypatch.setattr(S, 'approve_principle', lambda *a, **k: 4)
-    assert S.approve(1, S.ReviewAction(actor='Manaal Pervaiz', reason=None)) == {'ok': True, 'new_version': 4}
+    out = S.approve(1, S.ReviewAction(actor='Manaal Pervaiz', reason=None), _Req({}))
+    assert out["ok"] is True and out["new_version"] == 4
+    assert out["actor"] == "Manaal Pervaiz" and out["authenticated"] is False
 
 
 def test_c11_double_rename_and_approve_uniqueness():

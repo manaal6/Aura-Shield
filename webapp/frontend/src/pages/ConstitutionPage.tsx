@@ -43,19 +43,20 @@ function ScanButton({ onDone }: { onDone: (msg: string, isError?: boolean) => vo
   );
 }
 
-function PendingCard({ p, onDone }: { p: PendingPrinciple; onDone: (msg: string, isError?: boolean) => void }) {
+function PendingCard({ p, user, onDone }: { p: PendingPrinciple; user: string | null; onDone: (msg: string, isError?: boolean) => void }) {
   const [actor, setActor] = useState('');
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
 
   async function act(action: 'approve' | 'reject') {
-    if (!actor.trim()) {
-      onDone('Enter your name as the reviewing actor first.', true);
+    const effectiveActor = user ?? actor.trim();
+    if (!effectiveActor) {
+      onDone('Enter your name as the reviewing actor first (or log in with GitHub).', true);
       return;
     }
     setBusy(true);
     try {
-      const res = await reviewPrinciple(p.id, action, actor.trim(), reason.trim() || undefined);
+      const res = await reviewPrinciple(p.id, action, effectiveActor, reason.trim() || undefined);
       onDone(action === 'approve'
         ? `Approved — constitution is now v${res.new_version}.`
         : 'Rejected.');
@@ -75,8 +76,8 @@ function PendingCard({ p, onDone }: { p: PendingPrinciple; onDone: (msg: string,
       </p>
       <div className="grid-2">
         <div>
-          <label htmlFor={`actor-${p.id}`}>Reviewer (required)</label>
-          <input id={`actor-${p.id}`} type="text" value={actor} onChange={(e) => setActor(e.target.value)} placeholder="your name" />
+          <label htmlFor={`actor-${p.id}`}>Reviewer (required{user ? ` — acting as ${user}` : ''})</label>
+          <input id={`actor-${p.id}`} type="text" value={user ?? actor} disabled={!!user} onChange={(e) => setActor(e.target.value)} placeholder="your name" />
         </div>
         <div>
           <label htmlFor={`reason-${p.id}`}>Rejection note (used on reject)</label>
@@ -95,6 +96,8 @@ function ConstitutionPage() {
   const [data, setData] = useState<ConstitutionData | null>(null);
   const [notice, setNotice] = useState<{ msg: string; isError: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<string | null>(null);
+  const [loginConfigured, setLoginConfigured] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -109,6 +112,15 @@ function ConstitutionPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    fetch('/api/me')
+      .then((r) => (r.ok ? r.json() : { user: null }))
+      .then((d: { user?: string | null; login_configured?: boolean }) => {
+        setUser(d.user ?? null);
+        setLoginConfigured(!!d.login_configured);
+      })
+      .catch(() => undefined);
+  }, []);
 
   function done(msg: string, isError = false) {
     setNotice({ msg, isError });
@@ -121,6 +133,15 @@ function ConstitutionPage() {
   return (
     <div>
       <h2>Constitution</h2>
+      {loginConfigured ? (
+        user ? (
+          <p className="muted">Logged in as <span className="mono">{user}</span> — approvals are signed to this identity. <a href="/auth/logout">Log out</a></p>
+        ) : (
+          <p className="muted"><a className="btn" href="/auth/login">Login with GitHub</a> Approvals require login (authenticated identity is recorded, not a typed name).</p>
+        )
+      ) : (
+        <p className="muted">Login not configured on this server (set GitHub OAuth env vars to enable authenticated approvals); reviewer names are self-typed.</p>
+      )}
       {(data as { db_status?: string }).db_status &&
         (data as { db_status?: string }).db_status !== 'live' && (
           <p className="error">
@@ -164,7 +185,7 @@ function ConstitutionPage() {
         {data.pending.length === 0 ? (
           <p className="muted">No principles awaiting review.</p>
         ) : (
-          data.pending.map((p) => <PendingCard key={p.id} p={p} onDone={done} />)
+          data.pending.map((p) => <PendingCard key={p.id} p={p} user={user} onDone={done} />)
         )}
         <ScanButton onDone={done} />
       </section>

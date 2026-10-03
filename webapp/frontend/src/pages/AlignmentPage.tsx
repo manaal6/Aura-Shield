@@ -38,6 +38,10 @@ export function DpoPanel({ data }: { data: NonNullable<ReturnType<typeof useEvid
           <p><strong>Hotter run</strong> (lr 2e-5, 4 epochs, loss → 0.0000, train 20/133): dev and unseen
             rankings still exactly frozen (0/29, 0/30). Negative CONFIRMED at higher intensity.</p>
         )}
+        {(data as Record<string, { has_data: boolean; data?: Record<string, string> }>).dpo_qwen_hot2?.has_data && (
+          <p><strong>Hotter replicate</strong> (identical config, 312.7 s): same frozen outcome (train 20/133,
+            dev 0/29, unseen 0/30) — deterministic replication of the negative.</p>
+        )}
       </div>
     </div>
   );
@@ -45,12 +49,18 @@ export function DpoPanel({ data }: { data: NonNullable<ReturnType<typeof useEvid
 
 export function UnlearningPanel({ data }: { data: NonNullable<ReturnType<typeof useEvidence>['data']> }) {
   const hot = (data as Record<string, { has_data: boolean }>).unlearning_hot;
+  const hot2 = (data as Record<string, { has_data: boolean }>).unlearning_hot2;
+  const fact = (data as Record<string, { has_data: boolean; data?: Record<string, unknown> }>).unlearning_fact;
   return (
     <div className="panel">
       <h3>Unlearning: PARTIAL (toy) / NEGATIVE (0.5B gentle) / VALIDATED (0.5B hot)</h3>
       <UnlearningTable data={data} />
       <p className="muted">Suppression is template-specific (one phrasing family), not trigger-general — at gentle
-        intensities.{hot?.has_data ? ' Hotter Qwen run (implant 5, unlearn 6 epochs): forget_drop 1.0 at ALL λ with retain/general improved — full removal with preservation at 0.5B scale.' : ' Hot-run record not loaded.'}</p>
+        intensities.{hot?.has_data ? ' Hotter Qwen run (implant 5, unlearn 6 epochs): forget_drop 1.0 at ALL λ with retain/general improved — full removal with preservation at 0.5B scale.' : ' Hot-run record not loaded.'}{hot2?.has_data ? ' Hot replicate (274.9 s) repeats 24/24 suppression — deterministic.' : ''}</p>
+      {fact?.has_data && (
+        <p>Real-fact run (base-known facts only, 5 forget / 12 retain): forget_drop 0.0 at λ=0.1,
+          0.2 at λ=0.5/1.0 (4/5 held) with retain/general improved — honest partial on genuinely-known knowledge.</p>
+      )}
     </div>
   );
 }

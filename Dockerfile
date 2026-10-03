@@ -7,6 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 8501
+# Serve the deployed console (FastAPI + React bundle), matching render.yaml.
+# The Streamlit lab (dashboard/) remains local-only via `streamlit run dashboard/streamlit_app.py`.
+EXPOSE 8000
 
-CMD ["streamlit", "run", "dashboard/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["uvicorn", "webapp.server:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -64,6 +64,12 @@ single-trigger target; ranking eval, not free generation; retain/general gains p
 continued SFT anchoring (training on them raises logprobs mechanically); no per-example
 breakdown (checkpoints not exported — item-level analysis pending a checkpointed rerun).
 
+## Hot replicate: identical hotter config (`unlearning_lm_record_qwen05_hot2.json`)
+
+User-executed (274.9 s, seed 11, CUDA). Implant: forget→1.0 (retain −65.52, general −17.52).
+Sweep: forget_drop **1.0 at ALL λ** (24/24 suppressed at λ=0.1, 0.5, and 1.0); retain/general
+improved identically to the first hot run. Deterministic replication of the VALIDATED outcome.
+
 ## Real-fact protocol (answers the reviewer directly)
 
 New: `data/fact_forget.jsonl` (12 real facts with plausible distractors) +
@@ -76,6 +82,22 @@ implant→sweep→evaluate protocol. For Kaggle:
 --dpo-epochs 0` — wait, DPO still runs; to run unlearning only, interrupt after the
 unlearning record prints (DPO runs first, ~3 min, harmless), or set `--dpo-epochs 1`.
 Selftested on CPU (tiny-gpt2, 4-item subsets, end-to-end green).
+
+## Real-fact run: Qwen2.5-0.5B (`unlearning_lm_record_qwen05_fact.json`)
+
+User-executed (72.0 s, seed 11, CUDA, `--fact-mode --unlearn-epochs 6 --implant-epochs 5`).
+Base-knowledge gate: 12 candidate facts probed against the base model (correct > distractor);
+only 5 demonstrably-known entered the forget set, 7 unknown dropped with IDs
+(`fact-forget-01, -02, -05, -06, -07, -08, -09`); retain 12 neighboring facts.
+Implant: forget→1.0 (retain −3.18, general −15.04).
+Sweep: λ=0.1 forget 1.0→1.0 (drop 0.0); λ=0.5 1.0→0.8 (drop 0.2); λ=1.0 1.0→0.8 (drop 0.2);
+retain improved (−3.18 → −1.04/−1.17/−0.97), general improved (−15.04 → −7.98/−8.34/−10.04).
+
+Verdict: honest PARTIAL on genuinely-known knowledge — weaker than the synthetic-trigger
+24/24 because the forget set is real facts the model only weakly holds (5 items) rather than
+a freshly implanted association. No collateral damage (retain/general improved at all λ).
+Scope note: n=5 forget is small; the run answers "can the protocol remove something the model
+really knew" with "partially (4/5 at λ≥0.5), with preservation" — not a general fact-erasure claim.
 
 ## Verdict (updated)
 
