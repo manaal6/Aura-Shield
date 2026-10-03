@@ -204,6 +204,78 @@ def seed_constitution_if_empty() -> int:
                     logger.info("Constitution rename migration: %s -> %s at v%s", old_id, new_id, rv2)
                     ids_now.discard(old_id)
                     ids_now.add(new_id)
+            # Third disambiguation (2026-10-02): v10 approval reused the C14 label
+            # (C14-no-privileged-syntax-analysis) alongside v9
+            # C14-chemical-facilitation-context. Rename v10 row to C15, then
+            # consolidate chemicals: expand C12 to cover fictional framing and
+            # deprecate the absorbed C14 row (history preserved, never deleted).
+            # Idempotent. C5 vs C11 intentionally NOT merged (persona framing vs
+            # delimiter markup are distinct mechanisms — documented in docs).
+            if "C14-no-privileged-syntax-analysis" in ids_now and "C15-no-privileged-syntax-analysis" not in ids_now:
+                cur.execute("SELECT COALESCE(MAX(version), 0) FROM constitution")
+                rv3 = int(cur.fetchone()[0]) + 1
+                cur.execute(
+                    "UPDATE constitution SET principle_id = %s, version = %s WHERE principle_id = %s",
+                    ("C15-no-privileged-syntax-analysis", rv3, "C14-no-privileged-syntax-analysis"),
+                )
+                cur.execute(
+                    """
+                    INSERT INTO constitution_changelog (version, action, principle_id,
+                        principle_text, triggered_by, actor, reason)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        rv3, "renamed", "C15-no-privileged-syntax-analysis", None, None, "system",
+                        "Disambiguation: C14-no-privileged-syntax-analysis renamed to C15 "
+                        "(collided with C14-chemical-facilitation-context).",
+                    ),
+                )
+                conn.commit()
+                invalidate_constitution_cache()
+                logger.info("Constitution rename migration: C14-privileged-syntax -> C15 at v%s", rv3)
+                ids_now.discard("C14-no-privileged-syntax-analysis")
+                ids_now.add("C15-no-privileged-syntax-analysis")
+            if "C14-chemical-facilitation-context" in ids_now:
+                cur.execute(
+                    "SELECT principle_text, status FROM constitution WHERE principle_id = %s",
+                    ("C14-chemical-facilitation-context",),
+                )
+                chem_row = cur.fetchone()
+                if chem_row and chem_row[1] != "deprecated":
+                    cur.execute(
+                        "SELECT principle_text FROM constitution WHERE principle_id = %s",
+                        ("C12-no-chemical-facilitation",),
+                    )
+                    c12_row = cur.fetchone()
+                    clause = (" This prohibition explicitly includes instructions, recipes, processes, "
+                              "or guidance framed as fictional, creative, educational, or theatrical content.")
+                    if c12_row and clause not in (c12_row[0] or ""):
+                        cur.execute("SELECT COALESCE(MAX(version), 0) FROM constitution")
+                        rv4 = int(cur.fetchone()[0]) + 1
+                        now4 = datetime.now(timezone.utc)
+                        cur.execute(
+                            "UPDATE constitution SET principle_text = %s, version = %s WHERE principle_id = %s",
+                            (c12_row[0] + clause, rv4, "C12-no-chemical-facilitation"),
+                        )
+                        cur.execute(
+                            "UPDATE constitution SET status = %s, version = %s WHERE principle_id = %s",
+                            ("deprecated", rv4, "C14-chemical-facilitation-context"),
+                        )
+                        cur.execute(
+                            """
+                            INSERT INTO constitution_changelog (version, action, principle_id,
+                                principle_text, triggered_by, actor, reason)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                            """,
+                            (
+                                rv4, "consolidated", "C12-no-chemical-facilitation", None, None, "system",
+                                "Absorbed C14-chemical-facilitation-context (deprecated, not deleted) "
+                                "into C12 with explicit fictional-framing clause, per reviewer remediation.",
+                            ),
+                        )
+                        conn.commit()
+                        invalidate_constitution_cache()
+                        logger.info("Constitution consolidation: C14-chemical absorbed into C12 at v%s", rv4)
             cur.execute("SELECT MAX(version) FROM constitution WHERE status = 'active'")
             return int(cur.fetchone()[0] or 1)
 

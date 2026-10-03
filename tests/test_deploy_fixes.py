@@ -241,3 +241,28 @@ def test_approve_rejects_duplicate_active_id(monkeypatch):
     import pytest
     with pytest.raises(ValueError, match="already active"):
         A.approve_principle(7, "Manaal Pervaiz")
+
+
+def test_reviewers_endpoint_shape(monkeypatch):
+    import app.adaptive_loop as A
+    import webapp.server as S
+    monkeypatch.setattr(A, "load_changelog", lambda: (_ for _ in ()).throw(RuntimeError("db down")))
+    rep = S.reviewers()
+    assert rep == {"reviewers": [], "db_status": "unavailable"}
+    monkeypatch.setattr(A, "load_changelog", lambda: [
+        {"actor": "Manaal Pervaiz", "action": "added"},
+        {"actor": "Manaal Pervaiz", "action": "added"},
+        {"actor": "system", "action": "seeded"},
+    ])
+    rep = S.reviewers()
+    assert rep["distinct_humans"] == 1
+    assert {"actor": "Manaal Pervaiz", "approvals": 2} in rep["reviewers"]
+
+
+def test_restricted_executor_never_shells():
+    from research.tool_exec_live import run_restricted
+    import sys
+    assert run_restricted(["rm", "-rf", "/"], authorized=True)["ran"] is False
+    assert run_restricted([sys.executable, "-c", "print('ok')"], authorized=False)["ran"] is False
+    r = run_restricted([sys.executable, "-c", "print('ok')"], authorized=True)
+    assert r["ran"] is True and r["returncode"] == 0

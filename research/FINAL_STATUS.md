@@ -15,18 +15,21 @@ Single final eval = committed `results/baselines_summary/heldout_master_table.js
 | Benign robustness | 28 prompts | 62 prompts, 0 held offline | `benign/benign_eval.json` | IMPROVED | offline only |
 | Indirect injection | 8 payloads | 12 payloads × 7 provenance + objectives; 77/84 confused offline | `indirect/indirect_eval.json` | IMPROVED | live NOT RUN |
 | Provenance | logged only | scoring A/B (+0.15): no effect; miss coverage 27/85 | `provenance/provenance_ab.json` | PARTIAL | effect NOT VALIDATED |
-| Downstream ASR | 0/6 (n=6) | scaled to 14, 4 objectives, LIVE downstream 0/13 | `asr/canary_asr.json`, `ASR_REPORT.md` | IMPROVED | 0/14 in this controlled evaluation; text-only downstream |
+| Downstream ASR | 0/6 (n=6) | scaled to 21 attempts, 4 objectives, LIVE downstream 0/21 | `asr/canary_asr.json`, `ASR_REPORT.md` | IMPROVED | 0/21 in this controlled evaluation; text-only downstream |
 | Tool authorization | chain + 6 cases | spoofing tests, 10 contract tests | `test_toolsec_contract.py`, `test_phase16_20.py` | FIXED | stub execution only |
 | Sandbox | stub-only | Docker-isolated execution (`app/tools/sandbox.py`: net-none, 128m, read-only rootfs) + fail-closed DENY when Docker absent + stub restricted to low-danger | sandbox.py, executor.py, `test_critical_fixes_abc.py` | PARTIAL | container path unvalidated on this host (no Docker daemon); stub behavior tested |
 | Analyzer isolation | contract + matrix | + injection-in-output/JSON/tool-directive tests | `test_phase16_20.py` | FIXED | live malformed rate unmeasured |
 | Fail-safe | 6 tests | + timeout/rate-limit/key-failure → REVIEW | `test_phase16_20.py` | FIXED | live outage behavior untested |
 | Audit integrity | log + changelog | hash-chained log + verify + tamper tests + secret refusal | `audit_chain.py`, `test_phase16_20.py` (5) | FIXED | Postgres log itself not chained |
 | Latency | P50/95/99 offline | + mean + failure/fallback accounting | `latency/latency.json` | FIXED | live re-measure blocked |
-| Red-team | 72 attacks | offline 102 + LIVE smoke 50/50 held (37 clean BLOCKs, 13 fail-safe) | `adaptive_redteam.json`, `redteam_live50.json` | IMPROVED | smoke labels kept; not benchmark-equivalent |
-| Multi-turn | 4 convos | offline 6 + LIVE smoke 8/8 held, benign 1/2 (fallback flag) | `multiturn_live10.json` | IMPROVED | mechanism evidence only |
+| Red-team | 72 attacks | offline 102 + LIVE smoke 50/50 + LIVE n=100: 100/100 held | `adaptive_redteam.json`, `redteam_live50.json`, `redteam_live100.json` | IMPROVED | smoke labels kept; not benchmark-equivalent |
+| Multi-turn | 4 convos | offline 6 + LIVE 10 (8/8) + LIVE 20 (15/16; homework-help miss pinned, no fallback) | `multiturn_live10.json`, `multiturn_live20.json` | IMPROVED | mechanism evidence only |
 | Adaptive constitution | C8 cycle | parent/reason/removed fields; named-actor approvals (anonymous rejected) + HMAC token verify endpoint; SIMULATED label kept | `cycle_C8….json`, `test_approval_hardening.py` | FIXED | identity self-asserted, no login infra |
 | Constitution drift | recall/FPR/count | + precision/F1/review-rate; 34→35/170, FPR 0, NO_OVER_RESTRICTION_OBSERVED | `drift_v1_v2.json` | FIXED | offline heuristic |
 | Cross-model | 2 cells | 120b/20b 2x2 + qwen/safeguard 5-cell matrix (analyzer×constitution swaps): all cells 10/10 held, fp 0/2, 0 fallbacks | `cross_model_live.json`, `cross_model_qwen_safeguard.json` (+ availability probe) | IMPROVED | n=12 DEV samples; second provider still future work |
+| DPO dissection executed | hypotheses only | β-sweep rejects H1 (dev frozen at β 0.1/0.5/1.0); stark ablation rejects H2 (dev 0/6 frozen); H3 stands | `beta_sweep.json`, `stark_ablation.json` | IMPROVED | capacity explanation untested (needs 7B) |
+| Tool execution (real) | stub/text-only | restricted subprocess harness: 10/10 injections blocked, 0 breaches, 3/3 authorized run | `tool_exec_restricted.json` | IMPROVED | harmless-commands scope only |
+| Reviewers | single-human assumed | changelog shows 4 distinct humans (Aliya, Manaal Pervaiz, Muhammad Musa + simulated); `/api/reviewers` surfaces counts | live changelog | IMPROVED | identities self-asserted, no login |
 | Held-out extension | none | 40 sealed novel attacks, one live eval: 38/40 held, 0 fallbacks; pooled new-system 105/113 = 92.9% (95% CI 86.7%–96.4%) | `heldout_extra_eval.json` (+ sealed generator) | IMPROVED | 2 allows are ambiguous-boundary cases, not promoted |
 | Reproducibility | commands doc | + manifest hashes, checkpoint hashes, seeds | `REPRODUCIBILITY.md`, `data_manifest.json` | FIXED | — |
 | Dashboard | 14 tabs (new) | verified artifact-only loads; ASR wording fixed | `research_lab.py` (import OK) | FIXED | old tabs not redesigned |

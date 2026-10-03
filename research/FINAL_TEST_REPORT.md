@@ -1,6 +1,6 @@
 # Final Test Report (Phase 27, updated)
 
-Date: 2026-10-02. Command: `python -m pytest tests/ -q`. Result: **193 passed, 0 failed, 0 skipped** (offline).
+Date: 2026-10-02. Command: `python -m pytest tests/ -q`. Result: **196 passed, 0 failed, 0 skipped** (31 files, offline; collection count double-verified).
 
 ## Composition
 

@@ -1,0 +1,11 @@
+{
+  "model": "sshleifer/tiny-gpt2",
+  "n_train": 20,
+  "n_dev": 6,
+  "epochs": 10,
+  "train_before": "8/20",
+  "train_after": "10/20",
+  "dev_before": "0/6",
+  "dev_after": "0/6",
+  "seconds": 21.3
+}

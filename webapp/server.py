@@ -281,6 +281,25 @@ class VerifyTokenRequest(BaseModel):
     timestamp: str
 
 
+@app.get("/api/reviewers")
+def reviewers():
+    """Distinct human reviewers from the changelog (proves multi-human participation
+    once a second person acts; today typically one). DB-down -> empty with status."""
+    try:
+        from app.adaptive_loop import load_changelog
+        log = load_changelog()
+    except Exception as exc:
+        import logging as _logging
+        _logging.getLogger(__name__).warning("Reviewers DB unavailable: %s", exc)
+        return {"reviewers": [], "db_status": "unavailable"}
+    import collections
+    counts: dict[str, int] = collections.Counter(
+        str(c.get("actor") or "?") for c in log if c.get("action") in ("added", "approve", "approved"))
+    return {"reviewers": [{"actor": a, "approvals": n} for a, n in sorted(counts.items())],
+            "distinct_humans": sum(1 for a in counts if a.lower() not in ("system", "?", "simulated_human_auditor")),
+            "db_status": "live"}
+
+
 # Last adaptive-scan run (epoch seconds). Rate-limits the scan endpoint:
 # min interval between runs. The scan only DRAFTS (pending_review) — it can
 # never activate a principle; activation always needs a named human approval.

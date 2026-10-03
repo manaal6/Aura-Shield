@@ -33,5 +33,17 @@ moves dev/unseen. Untested (needs GPU grant) — stated, not implied.
 3. Margin-vs-rank curve per checkpoint: H1 predicts margins grow while rank stays 0 until a threshold.
 4. 7B replication on Kaggle/GPU grant: H3's critical test.
 
+## Executed (2026-10-02, CPU, tiny-gpt2)
+
+- Exp 1 DONE (`dpo_lm/beta_sweep.json`): dev 2/29 and unseen 1/30 at β ∈ {0.1, 0.5, 1.0}
+  (loss scales 7.5/37.1/74.5 as expected). H1 REJECTED as sole cause — KL pressure is
+  not what freezes rankings.
+- Exp 2 DONE (`dpo_lm/stark_ablation.json`): 20 stark train / 6 dev, 10 epochs —
+  train 8/20→10/20 (noise-level), dev 0/6→0/6 (frozen). H2 REJECTED — even maximally
+  stark, short pairs do not flip rankings.
+- Remaining: H3 (capacity floor) stands as the only uneliminated hypothesis; Exp 3–4
+  are its tests. Status of RQ3 unchanged (negative), but the negative is now
+  *diagnosed*: not the KL weight, not pair subtlety — representational room.
+
 Status: H1+H2 consistent with all data; H3 untested. None of this upgrades the headline:
 DPO did not change preferences at any tested scale/intensity.

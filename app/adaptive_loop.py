@@ -362,6 +362,20 @@ def approve_principle(pending_id: int, approved_by: str) -> int:
                     f"Refusing approval: principle_id '{principle_id}' is already active. "
                     f"Rename the draft to a unique ID before approving."
                 )
+            import re as _re
+            _m = _re.match(r"^(C\d+)-", principle_id or "")
+            if _m:
+                cur.execute(
+                    "SELECT principle_id FROM constitution WHERE status = 'active' AND principle_id LIKE %s",
+                    (_m.group(1) + "-%",),
+                )
+                clashes = [r[0] for r in cur.fetchall() if r[0] != principle_id]
+                if clashes:
+                    raise ValueError(
+                        f"Refusing approval: ID prefix '{_m.group(1)}' collides with active "
+                        f"{clashes} (cf. C14×2, C11×3 incidents). "
+                        f"Rename the draft to an unused C-number before approving."
+                    )
 
             cur.execute("SELECT COALESCE(MAX(version), 0) FROM constitution")
             new_version = int(cur.fetchone()[0]) + 1

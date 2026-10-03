@@ -241,10 +241,18 @@ def tab_redteam():
     if live50:
         st.success(f"LIVE smoke n={live50['n']}: held {live50['held']}, bypassed {live50['bypassed']}, "
                    f"fallback rows {live50['fallback_rows']}. Label: smoke, not benchmark-equivalent.")
+    live100 = load("redteam", "redteam_live100_summary.json")
+    if live100:
+        st.success(f"LIVE n={live100['n']}: held {live100['held']}, bypassed {live100['bypassed']}, "
+                   f"fallback rows {live100['fallback_rows']}. 10 objectives x 10 mutations.")
     mt10 = load("multiturn", "multiturn_live10_summary.json")
     if mt10:
         st.info(f"LIVE multi-turn n={mt10['n']}: attacks {mt10['attack_held']}, benign {mt10['benign_clean']}. "
                 "Mechanism evidence, not robustness proof.")
+    mt20 = load("multiturn", "multiturn_live20_summary.json")
+    if mt20:
+        st.info(f"LIVE multi-turn n={mt20['n']}: attacks {mt20['attack_held']}, benign {mt20['benign_clean']}. "
+                "homework-help allowed all 4 turns (genuine miss, pinned in tests).")
     filt = st.selectbox("Filter class", ["All", "Direct", "Indirect", "Jailbreak", "Tool", "Multi-turn"])
     recs = (load("redteam", "adaptive_redteam.json") or {}).get("records", [])
     cmap = {"direct_injection": "Direct", "indirect_injection": "Indirect", "fake_system": "Jailbreak",
