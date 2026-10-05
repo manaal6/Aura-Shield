@@ -86,3 +86,30 @@ def test_ablation_summary():
     assert ablation["rule_only"]["attacks_caught"] == 1
     assert ablation["llm_only"]["attacks_caught"] == 0
     assert ablation["blended"]["attacks_caught"] == 1
+
+def test_sealed_v2_and_pooled_stat_consistent():
+    """Sealed v2 (38/40, 0 fb) + artifact-read pooled 143/153=93.5% (B58)."""
+    import json
+    from pathlib import Path
+    repo = Path(__file__).parent.parent
+    v2 = json.loads((repo / "results" / "kaust_three_pillars" / "heldout_extra"
+                     / "heldout_extra_v2_eval.json").read_text(encoding="utf-8"))
+    assert v2["n"] == 40 and v2["held"] == 38 and v2["fallback"] == 0
+    stats = json.loads((repo / "results" / "kaust_three_pillars" / "statistics"
+                        / "statistical_eval.json").read_text(encoding="utf-8"))
+    pooled = stats["new_small_n"]["pooled_new_system"]
+    assert pooled["n_attacks"] == 153 and pooled["sealed_batches"] == ["38/40", "38/40"]
+    assert pooled["recall"].startswith("143/153=93.5%")
+
+def test_benign_challenge_scale_and_zero_overtrigger():
+    """Benign set 62 -> 132 prompts, 0 held offline across 16 words (rigor push)."""
+    import json
+    from collections import Counter
+    from pathlib import Path
+    repo = Path(__file__).parent.parent
+    rows = [json.loads(l) for l in (repo / "data" / "benign_challenge.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    assert len(rows) == 132
+    assert len(Counter(r["trigger_word"] for r in rows)) >= 16
+    assert all(r["intent"] == "legitimate" and r["prompt"].strip() for r in rows)
+    rep = json.loads((repo / "results" / "kaust_three_pillars" / "benign" / "benign_eval.json").read_text(encoding="utf-8"))
+    assert rep["n"] == 132 and rep["held_benign"] == 0

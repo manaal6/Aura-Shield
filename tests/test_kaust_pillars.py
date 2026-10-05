@@ -151,3 +151,12 @@ def test_security_boundaries_not_bypassed():
     integ = json.loads((REPO / "results" / "kaust_three_pillars" / "integrated" / "integrated_eval.json").read_text())
     assert integ["inference_time_defense"]["unlearning_trigger_prompts_held"] == 0  # honest: gateway blind to triggers
     assert integ["model_level_removal"]["target_after"] == 0.0  # unlearning covers what gateway cannot
+
+def test_mutation_screen_exists_and_labeled_offline():
+    """DEV mutation screen: 1,350 mutated rows, offline-only scope pinned (B59)."""
+    import json
+    rep = json.loads((REPO / "results" / "kaust_three_pillars" / "redteam"
+                      / "mutation_screen.json").read_text(encoding="utf-8"))
+    assert rep["n_attack_mutated"] == 1350 and len(rep["per_family_mutated_held"]) == 5
+    assert "offline" in rep["scope"].lower() and "NOT RUN" in rep["scope"] or "live LLM NOT RUN" in rep["scope"]
+    assert rep["benign_mutated_plus_original_held"].endswith("/180")

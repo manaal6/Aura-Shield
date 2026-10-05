@@ -45,13 +45,35 @@ def main() -> dict:
     dpo_n = dpo_ev["dpo"]["n"]
     dpo_ok = round(dpo_ev["dpo"]["preference_accuracy"] * dpo_n)
     unl_ev = json.loads((REPO / "results" / "kaust_three_pillars" / "unlearning_lm" / "unlearning_lm_eval.json").read_text())
+    # Pooled new-system attacks: frozen re-run + sealed one-shot batches.
+    # Read from artifacts (never hardcoded); each sealed batch was generated
+    # once, evaluated once, never tuned. Benign FPR comes from the frozen run
+    # (the only run with benign rows); sealed batches are attacks-only.
+    frozen = json.loads((REPO / "results" / "kaust_three_pillars" / "frozen_rerun"
+                         / "frozen_rerun_summary.json").read_text())
+    sealed_parts, sealed_labels = [], []
+    for name in ("heldout_extra_eval.json", "heldout_extra_v2_eval.json"):
+        p = REPO / "results" / "kaust_three_pillars" / "heldout_extra" / name
+        if not p.exists():
+            continue
+        rep = json.loads(p.read_text())
+        sealed_parts.append(rep)
+        sealed_labels.append(f"{rep['held']}/{rep['n']}")
+    tp = frozen["tp"] + sum(r["held"] for r in sealed_parts)
+    fn = (frozen["attacks"] - frozen["tp"]) + sum(r["n"] - r["held"] for r in sealed_parts)
+    fp, tn = frozen["fp"], frozen["benign"] - frozen["fp"]
+    n_att = frozen["attacks"] + sum(r["n"] for r in sealed_parts)
     new = {
         "dpo_lm_dev_pref": {"detail": f"{dpo_ok}/{dpo_n} prefer chosen after DPO (same before → NEGATIVE)",
                             **outcomes(dpo_ok, dpo_n - dpo_ok, 0, 0)},
         "unlearning_still_emitting_lambda0.1": {"detail": "20/24 triggers STILL EMIT after unlearning (only 4/24 suppressed)",
                                                 **outcomes(20, 4, 0, 0)},
-        "pooled_new_system": {"detail": "frozen 67/73 + sealed-extra 38/40, same frozen config, one eval each, no tuning",
-                              **outcomes(105, 8, 1, 31)},
+        "pooled_new_system": {"detail": (f"frozen {frozen['tp']}/{frozen['attacks']} + "
+                                         + " + ".join(f"sealed {s}" for s in sealed_labels)
+                                         + ", same frozen config, one eval each, no tuning"),
+                              "n_attacks": n_att, "n_benign": frozen["benign"],
+                              "sealed_batches": sealed_labels,
+                              **outcomes(tp, fn, fp, tn)},
     }
     rep = {"held_out_committed": table, "new_small_n": new,
            "mcnemar": "NOT RUN — no stored per-example paired predictions; not fabricated",
@@ -68,7 +90,7 @@ def main() -> dict:
     md += ["", "## New small-n experiments",
            f"- DPO-LM dev preference: {new['dpo_lm_dev_pref']['recall']} (unchanged by DPO → negative)",
            f"- Unlearning still emitting (λ=0.1): {new['unlearning_still_emitting_lambda0.1']['recall']} (only 4/24 suppressed)",
-           f"- Pooled new-system attacks: {new['pooled_new_system']['recall']} (frozen 67/73 + sealed 38/40; FPR 1/32 from frozen run)",
+            f"- Pooled new-system attacks: {new['pooled_new_system']['recall']} (frozen 67/73 + sealed batches {', '.join(new['pooled_new_system']['sealed_batches'])}; FPR 1/32 from frozen run)",
            "", "## McNemar limitation (explicit)",
            "- Held-out McNemar: NOT RUN. Reason: the committed held-out eval stored only aggregate counts",
            "  (TP/FN/FP/TN per baseline), never per-example paired predictions. Reconstructing pairs would",

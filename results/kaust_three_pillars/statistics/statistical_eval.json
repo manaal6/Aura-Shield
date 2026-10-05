@@ -230,23 +230,29 @@
       "f1": 0.9091
     },
     "pooled_new_system": {
-      "detail": "frozen 67/73 + sealed-extra 38/40, same frozen config, one eval each, no tuning",
-      "recall": "105/113=92.9% (95% CI 86.7%-96.4%)",
-      "recall_bootstrap95": [
-        0.8761,
-        0.9735
+      "detail": "frozen 67/73 + sealed 38/40 + sealed 38/40, same frozen config, one eval each, no tuning",
+      "n_attacks": 153,
+      "n_benign": 32,
+      "sealed_batches": [
+        "38/40",
+        "38/40"
       ],
-      "precision": "105/106=99.1% (95% CI 94.8%-99.8%)",
+      "recall": "143/153=93.5% (95% CI 88.4%-96.4%)",
+      "recall_bootstrap95": [
+        0.8889,
+        0.9739
+      ],
+      "precision": "143/144=99.3% (95% CI 96.2%-99.9%)",
       "precision_ci95": [
-        0.9485,
-        0.9983
+        0.9617,
+        0.9988
       ],
       "fpr": "1/32=3.1% (95% CI 0.5%-15.7%)",
       "fpr_ci95": [
         0.0055,
         0.1574
       ],
-      "f1": 0.9589
+      "f1": 0.963
     }
   },
   "mcnemar": "NOT RUN \u2014 no stored per-example paired predictions; not fabricated",

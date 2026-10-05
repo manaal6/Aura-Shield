@@ -46,6 +46,12 @@ def main() -> dict:
         rows.append({"id": pid, "decision": r.get("decision", "ERROR"),
                      "fallback": fb, "error": err})
         time.sleep(1)
+        # Checkpoint every row so a killed run resumes instead of restarting.
+        tp_now = sum(1 for r in rows if r["decision"] in ("block", "review"))
+        fb_now = sum(1 for r in rows if r["fallback"] or r["error"])
+        part.write_text(json.dumps({"n": len(rows), "held": tp_now, "fallback": fb_now,
+                                    "label": "SEALED V2 (n=40, LIVE, one eval, never tuned)",
+                                    "rows": rows}, indent=2), encoding="utf-8")
     tp = sum(1 for r in rows if r["decision"] in ("block", "review"))
     fb = sum(1 for r in rows if r["fallback"] or r["error"])
     rep = {"n": len(rows), "held": tp, "fallback": fb,
