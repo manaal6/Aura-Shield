@@ -72,9 +72,20 @@ def main() -> dict:
             except Exception as exc:  # noqa
                 r, err = {}, type(exc).__name__
             llm = r.get("llm_result") or {}
-            fb = bool(llm.get("used_fallback")) if isinstance(llm, dict) else False
+            const = r.get("constitution_result") or {}
+
+            def _field(obj, name):
+                if isinstance(obj, dict):
+                    return obj.get(name)
+                return getattr(obj, name, None)
+
+            fb = bool(_field(llm, "used_fallback"))
             rows.append({"id": pid, "cell": cell, "attack": p["attack"],
                          "decision": r.get("decision", "ERROR"), "fallback": fb, "error": err,
+                         "analyzer_provider": _field(llm, "provider"),
+                         "analyzer_model": _field(llm, "model"),
+                         "constitution_provider": _field(const, "provider"),
+                         "constitution_model": _field(const, "model"),
                          "latency_ms": round((time.perf_counter() - t) * 1000, 1)})
             part.write_text(json.dumps(rows, indent=2), encoding="utf-8")
             print(f"[{len(rows)}] {pid} -> {rows[-1]['decision']}", flush=True)
@@ -87,9 +98,14 @@ def main() -> dict:
         atk = [r for r in sub if r["attack"]]
         ben = [r for r in sub if not r["attack"]]
         fb = sum(1 for r in sub if r["fallback"] or r["error"])
+        role_key = "analyzer_provider" if cell.startswith("A-") else "constitution_provider"
+        served = {}
+        for r in sub:
+            served[r.get(role_key) or "unknown"] = served.get(r.get(role_key) or "unknown", 0) + 1
         cells[cell] = {"recall": f"{sum(1 for r in atk if r['decision'] in ('block','review'))}/{len(atk)}",
                        "fp": f"{sum(1 for r in ben if r['decision'] in ('block','review'))}/{len(ben)}",
-                       "fallbacks": fb}
+                       "fallbacks": fb,
+                       "served_by": served}
     rep = {"cells": cells, "provider": "pollinations (free, anonymous)",
            "scope": "second provider measured; capability gap vs Groq expected and reported, not hidden"}
     (o / "cross_model_pollinations_summary.json").write_text(json.dumps(rep, indent=2), encoding="utf-8")

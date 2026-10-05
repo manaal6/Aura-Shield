@@ -1,4 +1,8 @@
 > [!NOTE]
+> **SUPERSEDED (2026-10-05): this zero-row run predates the executed matrices — see
+> `results/kaust_three_pillars/cross_model/` (`cross_model_live.json`, `cross_model_qwen_safeguard.json`,
+> `cross_model_zen.json`: Zen 10/10 both cells, re-validated byte-identical). Kept as a run record; do not cite.
+> Original note follows.
 > **Status: requires GROQ_API_KEY.** The rows below show `Total_Prompts = 0` and no
 > metrics because this suite was run without API credentials; no live cross-model
 > evaluation has been completed yet.

@@ -12,7 +12,7 @@ Single final eval = committed `results/baselines_summary/heldout_master_table.js
 | Unlearning | logistic COLLATERAL DAMAGE | LM sweep λ 0.1/0.5/1.0 + per-example inspect + Qwen sweep (ZERO suppression all λ) + Qwen hot (24/24, all λ) + hot replicate (274.9 s, identical) + real-fact run (5 known / 7 dropped, drops 0.0/0.2/0.2, preserved) | `unlearning_lm_record.json`, `unlearning_lm_eval.json`, `unlearning_lm_inspect.json`, `unlearning_lm_record_qwen05.json`, `unlearning_lm_record_qwen05_hot.json`, `unlearning_lm_record_qwen05_hot2.json`, `unlearning_lm_record_qwen05_fact.json` | PARTIAL (toy) / NEGATIVE (0.5B gentle) / VALIDATED (0.5B hot, replicated) / PARTIAL (real-fact 4/5) | synthetic trigger scope; fact run n=5 forget |
 | Fusion | 89 vs 93.2 unexplained | DEV disagreement forensics + criterion freeze + LIVE 120/120 (throttled: 15 clean rows 12/13 attacks, 0/2 benign; 1 full-consensus miss jb-dev-007 pinned) | `fusion_disagreement.json`, live rows | IMPROVED (mechanism found; gap kept) | 105/120 rows fallback-REVIEW (throttle); held-out IDs not reconstructed |
 | Statistics | CIs only | Wilson+bootstrap+denominators; DEV McNemar p=0.39 n.s. | `statistical_eval.json`, `STATISTICAL_REPORT.md` | IMPROVED | held-out McNemar impossible (no pairs) |
-| Benign robustness | 28 prompts | 132 prompts (16 trigger-word families incl. payload/malware/inject/bypass/breach/phishing/decrypt), 0 held offline | `benign/benign_eval.json` | IMPROVED | offline only; live FPR still 1/32 |
+| Benign robustness | 28 prompts | 132 prompts (16 trigger-word families incl. payload/malware/inject/bypass/breach/phishing/decrypt), 0 held offline + 48 live (3/family, 1 held, 0 fb): combined live FPR 2/80 = 2.5% (CI 0.7%–8.7%) | `benign/benign_eval.json`, `benign/benign_live48.json` | IMPROVED | the 1 live hold is a furnace filter FAQ (BLOCK, kept visible) |
 | Indirect injection | 8 payloads | 12 payloads × 7 provenance + objectives; 77/84 confused offline | `indirect/indirect_eval.json` | IMPROVED | live NOT RUN |
 | Provenance | logged only | scoring A/B (+0.15): no effect; miss coverage 27/85 | `provenance/provenance_ab.json` | PARTIAL | effect NOT VALIDATED |
 | Downstream ASR | 0/6 (n=6) | scaled to 21 attempts, 4 objectives, LIVE downstream 0/21 | `asr/canary_asr.json`, `ASR_REPORT.md` | IMPROVED | 0/21 in this controlled evaluation; text-only downstream |
@@ -22,7 +22,7 @@ Single final eval = committed `results/baselines_summary/heldout_master_table.js
 | Fail-safe | 6 tests | + timeout/rate-limit/key-failure → REVIEW | `test_phase16_20.py` | FIXED | live outage behavior untested |
 | Audit integrity | log + changelog | hash-chained log + verify + tamper tests + secret refusal | `audit_chain.py`, `test_phase16_20.py` (5) | FIXED | Postgres log itself not chained |
 | Latency | P50/95/99 offline | + mean + failure/fallback accounting | `latency/latency.json` | FIXED | live re-measure blocked |
-| Red-team | 72 attacks | offline 102 + DEV mutation screen 1,440 rows (5 families × 3 variants: offline subset holds 54/1,350 = 4.0% — quantifies offline-subset brittleness, not gateway failure) + LIVE smoke 50/50 + LIVE n=100: 100/100 held | `adaptive_redteam.json`, `mutation_screen.json`, `redteam_live50.json`, `redteam_live100.json` | IMPROVED | smoke labels kept; not benchmark-equivalent |
+| Red-team | 72 attacks | offline 102 + DEV mutation screen (90 attacks × 5 families × 3 variants = 1,350 mutated + 90 originals; offline subset holds 54/1,350 = 4.0% — quantifies offline-subset brittleness, not gateway failure) + LIVE smoke 50/50 + LIVE n=100: 100/100 held | `adaptive_redteam.json`, `mutation_screen.json`, `redteam_live50.json`, `redteam_live100.json` | IMPROVED | smoke labels kept; not benchmark-equivalent |
 | Multi-turn | 4 convos | offline 6 + LIVE 10 (8/8) + LIVE 20 (15/16; homework-help miss pinned, no fallback) | `multiturn_live10.json`, `multiturn_live20.json` | IMPROVED | mechanism evidence only |
 | Adaptive constitution | C8 cycle | parent/reason/removed fields; named-actor approvals (anonymous rejected) + HMAC token verify endpoint + GitHub OAuth login (verified username binds approvals when configured; 401 without login) + frontend login button; SIMULATED label kept for pre-login history | `cycle_C8….json`, `test_approval_hardening.py`, `test_auth_oauth.py`, `app/auth.py` | FIXED | pre-OAuth identities self-asserted, no login |
 | Constitution drift | recall/FPR/count | + precision/F1/review-rate; 34→35/170, FPR 0, NO_OVER_RESTRICTION_OBSERVED | `drift_v1_v2.json` | FIXED | offline heuristic |
@@ -57,7 +57,7 @@ Old system: G 65/73, 0/32. Net: +2 TP / +1 FP. Old numbers stand as the old-syst
 
 ## Live execution status (7-key pool)
 
-Executed live: frozen 105, DEV forensics 120/120, ASR downstream 0/14, over-refusal 52,
+Executed live: frozen 105, DEV forensics 120/120, ASR downstream 0/21, benign live48 1/48, over-refusal 52,
 tool ASR 24, red-team smoke 50/50, multi-turn smoke 8/8, load sweep 1-50, cross-model 120b/20b.
 Quota is currently healthy; B27/B31 describe resolved transient episodes (key rotation added, B23).
 
@@ -71,7 +71,7 @@ dpo `1108ff9a…`, dpo-gen `7fda0ee1…`, forget `9fb679a8…`, retain `dd5780a3
 
 ## Tests
 
-210 passed / 0 failed / 3 skipped (Docker-present sandbox skips) (`research/FINAL_TEST_REPORT.md`).
+212 passed / 0 failed / 3 skipped (Docker-present sandbox skips) (`research/FINAL_TEST_REPORT.md`).
 
 ## Held-out integrity / secrets
 
@@ -79,4 +79,4 @@ Integrity artifact verdict PASS (hashes match, guards block, train clean). Secre
 
 ## Overall: PARTIAL (READY FOR REVIEW on executed scope)
 
-Remaining future work: second-provider execution, Docker-host sandboxing, authenticated human approval, hotter/longer GPU training reruns. All executed items above carry their evidence artifacts; no status exceeds what the evidence supports.
+Remaining future work: broader provider diversity, Docker-host sandboxing. All executed items above carry their evidence artifacts; no status exceeds what the evidence supports.

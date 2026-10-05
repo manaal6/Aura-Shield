@@ -124,7 +124,7 @@ def test_evidence_endpoint_shape():
                 "over_refusal", "load_sweep", "redteam_live", "multiturn_live",
                 "dpo_eval", "dpo_qwen", "dpo_qwen_hot", "dpo_qwen_hot2",
                 "unlearning_eval", "unlearning_hot", "unlearning_hot2", "unlearning_fact",
-                "mutation_screen", "benign"):
+                "mutation_screen", "benign", "benign_live", "multiturn_live20"):
         assert key in rep and "has_data" in rep[key], key
     assert rep["frozen_rerun_new_system"]["has_data"] is True
     assert rep["frozen_rerun_new_system"]["data"]["recall"] == "67/73"

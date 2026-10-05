@@ -63,6 +63,18 @@ def main() -> dict:
     fn = (frozen["attacks"] - frozen["tp"]) + sum(r["n"] - r["held"] for r in sealed_parts)
     fp, tn = frozen["fp"], frozen["benign"] - frozen["fp"]
     n_att = frozen["attacks"] + sum(r["n"] for r in sealed_parts)
+    # Live benign, combined across runs with benign rows (frozen 32 + live48):
+    # FPR-only entry (no recall denominator exists for benign).
+    blp = REPO / "results" / "kaust_three_pillars" / "benign" / "benign_live48.json"
+    ben_live = {"detail": "live benign only in frozen run (1/32); live48 not yet run",
+                "fpr": rate_str(fp, fp + tn), "fpr_ci95": list(wilson(fp, fp + tn))}
+    if blp.exists():
+        bl = json.loads(blp.read_text())
+        bl_held = sum(1 for r in bl["rows"] if r["decision"] in ("block", "review"))
+        bl_n = bl["n"]
+        fp2, n2 = fp + bl_held, (fp + tn) + bl_n
+        ben_live = {"detail": f"frozen 1/32 + live48 {bl_held}/{bl_n} (16 families x 3, one eval each)",
+                    "fpr": rate_str(fp2, n2), "fpr_ci95": list(wilson(fp2, n2))}
     new = {
         "dpo_lm_dev_pref": {"detail": f"{dpo_ok}/{dpo_n} prefer chosen after DPO (same before → NEGATIVE)",
                             **outcomes(dpo_ok, dpo_n - dpo_ok, 0, 0)},
@@ -74,6 +86,7 @@ def main() -> dict:
                               "n_attacks": n_att, "n_benign": frozen["benign"],
                               "sealed_batches": sealed_labels,
                               **outcomes(tp, fn, fp, tn)},
+        "benign_live_combined": ben_live,
     }
     rep = {"held_out_committed": table, "new_small_n": new,
            "mcnemar": "NOT RUN — no stored per-example paired predictions; not fabricated",
@@ -91,6 +104,7 @@ def main() -> dict:
            f"- DPO-LM dev preference: {new['dpo_lm_dev_pref']['recall']} (unchanged by DPO → negative)",
            f"- Unlearning still emitting (λ=0.1): {new['unlearning_still_emitting_lambda0.1']['recall']} (only 4/24 suppressed)",
             f"- Pooled new-system attacks: {new['pooled_new_system']['recall']} (frozen 67/73 + sealed batches {', '.join(new['pooled_new_system']['sealed_batches'])}; FPR 1/32 from frozen run)",
+            f"- Benign live combined: {new['benign_live_combined']['fpr']} ({new['benign_live_combined']['detail']})",
            "", "## McNemar limitation (explicit)",
            "- Held-out McNemar: NOT RUN. Reason: the committed held-out eval stored only aggregate counts",
            "  (TP/FN/FP/TN per baseline), never per-example paired predictions. Reconstructing pairs would",

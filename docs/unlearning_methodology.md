@@ -5,7 +5,8 @@ collapse 0.27→0.01). It is kept as the NEGATIVE BASELINE (COLLATERAL DAMAGE), 
 
 Current status: LM-level sweep has since RUN on tiny-gpt2 (forget/retain/general + λ∈{0.1,0.5,1.0}):
 PARTIAL at λ=0.1/1.0 (4/24 suppressed — one template family only — retain/general preserved),
-NOT VALIDATED at λ=0.5. Historical logistic text below is the baseline record.
+NOT VALIDATED at λ=0.5; then on Qwen2.5-0.5B: ZERO suppression at gentle intensity, VALIDATED 24/24
+at hotter intensity (replicated), and PARTIAL 4/5 in real-fact mode. Historical logistic text below is the baseline record.
 
 ## Defined forgetting target
 

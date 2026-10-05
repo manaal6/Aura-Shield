@@ -9,7 +9,8 @@ function RedTeamPage() {
   const mut = (data as Record<string, { has_data: boolean; data?: Record<string, unknown> }>).mutation_screen;
   const mutData = (mut?.data ?? {}) as { attack_mutated_held_overall?: string; per_family_mutated_held?: Record<string, string>; benign_mutated_plus_original_held?: string };
   const asr = (data.downstream_asr.data ?? {}) as Record<string, string | number>;
-  const mt = { held: '8/8', benign: '1/2' };
+  const mt10 = (data.multiturn_live.data ?? {}) as Record<string, string>;
+  const mt20 = ((data as Record<string, { has_data: boolean; data?: Record<string, string> }>).multiturn_live20?.data ?? {}) as Record<string, string>;
 
   return (
     <div>
@@ -29,7 +30,7 @@ function RedTeamPage() {
         </div>
       )}
 
-      <h3>DEV mutation screen (offline, 1,440 rows)</h3>
+      <h3>DEV mutation screen (offline, 1,350 mutated + 90 originals)</h3>
       {!mut?.has_data ? <Missing label="Mutation screen" /> : (
         <div className="panel">
           <Cards items={[
@@ -42,11 +43,13 @@ function RedTeamPage() {
             the live LLM still catches most of these — gateway claim untouched, lower bound only.</p>
         </div>
       )}
-
-      <h3>Multi-turn smoke (latching)</h3>      <div className="panel">
+      <h3>Multi-turn smoke (latching, live10 + live20)</h3>
+      <div className="panel">
         <Cards items={[
-          { k: 'attacks held', v: mt.held },
-          { k: 'benign clean', v: mt.benign },
+          { k: 'live10 attacks held', v: String(mt10.attack_held ?? '—') },
+          { k: 'live10 benign clean', v: String(mt10.benign_clean ?? '—') },
+          { k: 'live20 attacks held', v: String(mt20.attack_held ?? '—') },
+          { k: 'live20 benign clean', v: String(mt20.benign_clean ?? '—') },
         ]} />
         <p className="muted">Mechanism evidence (latch works), NOT robustness proof. Tool-auth across turns unmodeled.</p>
       </div>

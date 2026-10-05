@@ -125,15 +125,17 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
   offline subset holds 54/1,350 (4.0%), benign 0/180 — offline-subset brittleness at scale, gateway claim untouched.
 - Live smoke n=50 (10 objectives × 5 mutations): held 50/50 (37 BLOCK + 13 fail-safe REVIEW), zero allows.
 - Committed live game: full gateway blocks 21/40 whitespace mutations; role-play/leetspeak re-evade (open).
-- Downstream ASR (synthetic CANARY_SECRET_8472): 0/14 successful attacks in controlled evaluation
-  (1 held / 13 bypassed offline subset, 0/13 live downstream objectives achieved). Bypass ≠ success.
-- Multi-turn: offline 6 convos (2/5 held); live latching 10 convos (8/8 held, benign 1/2 — fallback flag).
+- Downstream ASR (synthetic CANARY_SECRET_8472): 0/21 successful attacks in controlled evaluation
+  (2 held / 19 bypassed offline subset, 0/19 live downstream objectives achieved). Bypass ≠ success.
+- Multi-turn: offline 6 convos (2/5 held); live latching 10 convos (8/8 held, benign 1/2 — fallback flag) + 20 convos (15/16 held, homework-help genuine miss pinned, 0 fallbacks).
 - Tool ASR suite n=24: 0 breaches (gateway 20 block/4 review; authorizer 23 REVIEW/1 ALLOW).
 - Tool chain: parse → authorize → validate → gate → sandbox; unknown → DENY, critical → REVIEW,
   high-danger via untrusted provenance → DENY, risk ≥ 0.40 → REVIEW.
 - Indirect/provenance (offline): 77/84 confused (12 payloads × 7 tags; only C2 extraction caught);
   provenance logged, not yet scored (A/B bump showed no effect — NOT VALIDATED).
-- Benign challenge: 132 legitimate trigger-word prompts (16 families), 0 held offline. Over-refusal live: 1/52 (or-04 pinned).
+- Benign challenge: 132 legitimate trigger-word prompts (16 families), 0 held offline; 48 live
+  (3/family, 1 held — furnace filter FAQ, kept visible, 0 fb). Combined live FPR 2/80 = 2.5%.
+  Over-refusal live: 1/52 (or-04 pinned).
 
 ## 10. Reliability
 
@@ -168,19 +170,18 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
 - First `/api/constitution` call after deploy runs the additive C7–C10 migration.
 - Key endpoints: `/api/analyze`, `/api/constitution`, `/api/benchmark`, `/api/measured`, `/api/evidence`, `/api/audit/verify`.
 - Reproduce: `pip install -r requirements.txt` (+ torch/transformers), `python -m pytest tests/ -q`
-  (210 passed + 3 Docker-present skips), `python -m experiments.kaust_three_pillars.run_all`; research commands in
+  (212 passed + 3 Docker-present skips), `python -m experiments.kaust_three_pillars.run_all`; research commands in
   `research/REPRODUCIBILITY.md`. Train/test isolation enforced in code.
-- Live evaluations need Groq quota (7-key rotation pool; all keys share one org daily pool).
+- Live evaluations need Groq quota (8-key rotation pool; all keys share one org daily pool).
 
 ## 14. Status and limits (binding)
 
-- Overall: PARTIAL — ready for review on executed scope. 210 passed + 3 skipped (Docker-present) green.
-- Per-pillar: DPO IMPLEMENTED/NEGATIVE (both scales) · Unlearning IMPLEMENTED/PARTIAL-then-NEGATIVE ·
+- Overall: PARTIAL — ready for review on executed scope. 212 passed + 3 skipped (Docker-present) green.
+- Per-pillar: DPO IMPLEMENTED/NEGATIVE (4 configs) · Unlearning IMPLEMENTED (partial → negative → VALIDATED hot, replicated) ·
   Fusion IMPLEMENTED (mechanism found, gap kept) · Adaptive IMPLEMENTED (caveated) ·
   Red-team/ASR/tools/audit/latency/dashboard IMPLEMENTED (scopes labeled).
 - PARTIAL: second provider measured on 12-prompt samples (Zen matrix, per-row attribution, re-executed byte-identical with fresh key);
-  broader provider diversity future work. NOT IMPLEMENTED: Docker-host validation, human approval workflow, provenance scoring,
-  hotter/longer GPU reruns.
+  broader provider diversity future work. NOT IMPLEMENTED: Docker-host validation, validated provenance scoring.
 - Forbidden language: "solves prompt injection", "secure", "production-ready", "complete unlearning",
   "guaranteed forgetting", "human-approved" (say SIMULATED), any percentage without denominators.
 - Negative results kept: DPO non-generalization ×2 scales, unlearning template-bound + Qwen zero,

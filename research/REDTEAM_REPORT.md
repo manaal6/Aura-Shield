@@ -42,5 +42,5 @@ LABEL: mechanism evidence (latch works), NOT robustness proof.
 
 ## Benign challenge (`benign/benign_eval.json`, OFFLINE)
 
-62 legitimate trigger-word prompts: held 0/62 = 0.0% — no lexical over-triggering at this layer.
-Live LLM layers NOT RUN (over-refusal measured separately in DPO eval: 1/1 benign-dev preferred refusal → over-refusal present at toy scale).
+132 legitimate trigger-word prompts (16 families): held 0/132 = 0.0% — no lexical over-triggering at this layer.
+Live benign: 48 prompts (3/family, full gateway), 1 held (furnace filter FAQ, kept visible), 0 fallbacks; combined live FPR with frozen run 2/80 = 2.5% (over-refusal measured separately live: 1/52).

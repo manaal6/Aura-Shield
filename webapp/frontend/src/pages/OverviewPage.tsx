@@ -95,8 +95,8 @@ function OverviewPage() {
           <li>Fusion dilutes its best layer (68/73 vs 65/73); max fusion recovers it on DEV (90/90).</li>
           <li>DPO trains (loss down, incl. loss → 0.0000 hotter) but rankings freeze — at 100K, 0.5B, and hotter.</li>
           <li>Unlearning: template-specific at gentle intensities; FULL removal with preservation (24/24, all λ) on the hotter Qwen run.</li>
-          <li>Pooled new-system attacks: 143/153 = 93.5% (frozen 67/73 + 2× sealed 38/40, one eval each, 0 fallbacks).</li>
-          <li>Benign challenge: 0/132 held offline across 16 trigger-word families (live FPR 1/32).</li>
+          <li>Pooled new-system attacks: 143/153 = 93.5% (95% CI 88.4%–96.4%; frozen 67/73 + sealed 38/40 + 38/40, one eval each; frozen run carries 3 fallback rows, counted not predicted).</li>
+          <li>Benign challenge: 0/132 held offline across 16 trigger-word families; live 1/48 held (furnace FAQ); combined live FPR 2/80 = 2.5%.</li>
           <li>SOC path live: malicious log → triage → safe output demonstrated (3/5 held, 2/2 safe).</li>
           <li>Detector bypass ≠ downstream success (ASR measured separately with canaries).</li>
           <li>Malware loop closed: payload requests held 10/10, benign explainers safe 10/10.</li>
@@ -107,10 +107,10 @@ function OverviewPage() {
         <ul className="mono" style={{ fontSize: '0.8rem' }}>
           <li>RQ1 fusion &gt; single signals? — No (overlapping CIs; pooled n=153 attacks).</li>
           <li>RQ2 adaptive updates help w/o FP? — Yes, with caveats (65→68/73, FPR 0).</li>
-          <li>RQ3 DPO improves preferences? — No (both scales).</li>
+          <li>RQ3 DPO improves preferences? — No (4 configs: tiny + Qwen gentle/hot/hot-replicate).</li>
           <li>RQ4 targeted unlearning with preservation? — Yes, with scope (hot Qwen run; partial/negative at lower intensities).</li>
           <li>RQ5 provenance controls? — Logged, not yet scored.</li>
-          <li>RQ6 detections → lower ASR? — Measured separately (0/14 controlled).</li>
+          <li>RQ6 detections → lower ASR? — Measured separately (0/21 controlled).</li>
           <li>RQ7 latency/security/utility? — P50–P99 + load sweep in Evaluation → Reliability.</li>
         </ul>
       </Collapsible>
@@ -127,7 +127,7 @@ function OverviewPage() {
 
       <div className="panel">
         <h3>Overall status: PARTIAL (ready for review on executed scope)</h3>
-        <p className="muted">210 passed + 3 skipped (Docker-present skips). Every number traces to a persisted artifact.
+        <p className="muted">212 passed + 3 skipped (Docker-present skips). Every number traces to a persisted artifact.
           Negative results kept. Nothing here claims production readiness.</p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 # DPO Negative-Result Dissection (paper-shaped asset)
 
-Observation (3 configs): DPO loss falls (0.68→0.20 tiny; 0.69→0.39 Qwen; →0.0000 hotter),
+Observation (4 configs): DPO loss falls (0.68→0.20 tiny; 0.69→0.39 Qwen; →0.0000 hotter + metric-identical hot replicate),
 policy hash changes, reference frozen — yet absolute preference rankings freeze
 (train 10/133→20/133 moves slightly; dev 2/29 and unseen 1/30 EXACTLY frozen throughout).
 
@@ -45,5 +45,5 @@ moves dev/unseen. Untested (needs GPU grant) — stated, not implied.
   are its tests. Status of RQ3 unchanged (negative), but the negative is now
   *diagnosed*: not the KL weight, not pair subtlety — representational room.
 
-Status: H1+H2 consistent with all data; H3 untested. None of this upgrades the headline:
+Status: H1 rejected (β-sweep: dev frozen at β 0.1/0.5/1.0), H2 rejected (stark ablation: dev 0/6 frozen), H3 stands (representational room). None of this upgrades the headline:
 DPO did not change preferences at any tested scale/intensity.

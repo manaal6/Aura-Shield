@@ -253,6 +253,14 @@
         0.1574
       ],
       "f1": 0.963
+    },
+    "benign_live_combined": {
+      "detail": "frozen 1/32 + live48 1/48 (16 families x 3, one eval each)",
+      "fpr": "2/80=2.5% (95% CI 0.7%-8.7%)",
+      "fpr_ci95": [
+        0.0069,
+        0.0866
+      ]
     }
   },
   "mcnemar": "NOT RUN \u2014 no stored per-example paired predictions; not fabricated",

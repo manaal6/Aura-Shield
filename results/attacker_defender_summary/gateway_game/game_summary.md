@@ -25,7 +25,7 @@ Bypass rate increased from 47.5% → 94.7%: attacker mutations accumulated effec
 
 ## What This Demonstrates
 
-Iterative mutation of 40 seed attacks over 3 rounds against the rule-based detector. The game measures how many attack variants survive each round of deterministic filtering, and which mutation strategies are most effective at evading the current rule set.
+Iterative mutation of 40 seed attacks over 3 rounds against the full blended gateway (G_full_blended header above governs; "rule-based" in older text is a label error). The game measures how many attack variants survive each round of deterministic filtering, and which mutation strategies are most effective at evading the current rule set.
 
 ## What This Does NOT Demonstrate
 

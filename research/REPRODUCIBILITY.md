@@ -15,7 +15,7 @@
 
 ```bash
 pip install -r requirements.txt          # + torch, transformers, huggingface_hub (CPU)
-python -m pytest tests/ -q              # 210 passed + 3 Docker-present skips, offline (live-API scripts excluded: canary_asr, fusion_forensics)
+python -m pytest tests/ -q              # 212 passed + 3 Docker-present skips, offline (live-API scripts excluded: canary_asr, fusion_forensics)
 python -m training.dpo.expand_dataset   # idempotent; 29 -> 59 pairs (v1)
 python -m training.dpo.expand_dataset_v3  # 59 -> 102 (IDs, rationale, threat types; archives v1)
 python -m training.dpo.expand_dataset_v4  # 102 -> 150

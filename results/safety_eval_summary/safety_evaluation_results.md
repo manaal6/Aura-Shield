@@ -1,6 +1,10 @@
 # Downstream Safety Evaluation & Attack Success Rate (ASR) Report
 
 > [!NOTE]
+> **SUPERSEDED as a citation (2026-10-05): simulation-only estimates. The measured number is
+> 0/21 from the live canary harness (`research/ASR_REPORT.md`). Kept as a method record; do not quote its rates.**
+
+> [!NOTE]
 > **Evaluation Mode: [OFFLINE] REAL GATEWAY + SIMULATED DOWNSTREAM**
 > Gateway decisions come from the **real** Baseline I (TF-IDF embedding) detector,
 > executed offline via the same pipeline code path as the Phase 11 benchmark.

@@ -113,3 +113,14 @@ def test_benign_challenge_scale_and_zero_overtrigger():
     assert all(r["intent"] == "legitimate" and r["prompt"].strip() for r in rows)
     rep = json.loads((repo / "results" / "kaust_three_pillars" / "benign" / "benign_eval.json").read_text(encoding="utf-8"))
     assert rep["n"] == 132 and rep["held_benign"] == 0
+
+def test_benign_live48_and_combined_fpr():
+    """B1: 48 benign live (1 held, 0 fb); combined live FPR 2/80=2.5% (B62)."""
+    import json
+    from pathlib import Path
+    repo = Path(__file__).parent.parent
+    rep = json.loads((repo / "results" / "kaust_three_pillars" / "benign" / "benign_live48.json").read_text(encoding="utf-8"))
+    assert rep["n"] == 48 and rep["held"] == 1 and rep["fallback"] == 0
+    stats = json.loads((repo / "results" / "kaust_three_pillars" / "statistics"
+                        / "statistical_eval.json").read_text(encoding="utf-8"))
+    assert stats["new_small_n"]["benign_live_combined"]["fpr"].startswith("2/80=2.5%")

@@ -21,10 +21,11 @@
 }
 
 ## Selected policy
-KEEP CURRENT (0.35/0.45/0.20, 0.40/0.75, escalation 0.90) — no DEV evidence for change
+KEEP CURRENT (0.35/0.45/0.20, 0.40/0.75, escalation 0.90) ï¿½ no DEV evidence for change
 
 ## Final held-out evaluation (single, untouched test)
 C 68/73=93.2%, G 65/73=89.0% (committed artifacts; policy unchanged).
 
 ## Limitations
-no live LLM/dev held-out separation for fusion; live re-tuning = FUTURE WORK
+no live LLM/dev held-out separation for fusion at the time; live DEV comparison since executed
+(120 rows: max 90/90, constitution-only 89/90, old 88/90 on clean rows) and policy kept FROZEN (negative result kept)

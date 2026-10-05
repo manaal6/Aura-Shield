@@ -5,13 +5,15 @@
 failure (adaptation split only) → candidate → validators (schema/uniqueness + contradiction +
 duplicate) → dev regression → approval → versioned artifact → read-only unseen eval.
 
-## Versions
+## Versions (historical: v1/v2a/v2b predate seed v2 C1–C10; IDs below are sprint-local)
 
 - v1: seed C1–C6 (file), hash `e4debd64…`.
 - v2a (committed prior work): + C7-no-encoded-obfuscation from adaptation misses; held-out full-gateway
   recall 89.0%→93.2% (65/73→68/73, overlapping CIs).
 - v2b (this sprint): + C8-no-context-window-overflow from 20 context-flooding misses (distinct pattern);
   APPROVED; artifact `adaptive/cycle_C8-no-context-window-overflow.json` + `constitution_v2.json`.
+- Later: seed v2 C1–C10 absorbed these patterns canonically; adaptive IDs C11–C15 assigned via
+  rename migrations with changelog entries (C7-collision → C11, drafts → C12/C13, C14 → C15).
 
 ## Human approval procedure (operative)
 

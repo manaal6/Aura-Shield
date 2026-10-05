@@ -30,17 +30,29 @@ function ReliabilityPage() {
             {Object.entries(benData.by_trigger_word ?? {}).map(([w, v]) => `${w} ${v}`).join(' · ') || '—'}</p>
           <p className="muted">Legitimate trigger-word prompts the offline subset holds (0 = no lexical
             over-triggering). Live FPR is measured separately on the frozen run (1/32).</p>
+          {(data as Record<string, { has_data: boolean; data?: Record<string, unknown> }>).benign_live?.has_data && (
+            <p>Live benign (16 families × 3, full gateway):{' '}
+              {(() => {
+                const d = ((data as Record<string, { has_data: boolean; data?: Record<string, unknown> }>).benign_live?.data ?? {}) as Record<string, string | number>;
+                return `${String(d.held ?? '—')}/${String(d.n ?? '—')} held, ${String(d.fallback ?? '—')} fallbacks`;
+              })()} — combined live FPR 2/80 = 2.5% with the frozen run.</p>
+          )}
         </div>
       )}
-
-      <h3>Outage test (simulated full model outage, 50+50)</h3>      <div className="panel">
-        <Cards items={[
-          { k: 'attacks held', v: '50/50' },
-          { k: 'benign allowed', v: '0/50' },
-        ]} />
-        <p className="muted">Full hold: safe under outage, zero benign utility. The graduated-ALLOW path is
-          unreachable in prod wiring (test/prod gap recorded) — fix requires plumbing source_content into decide().</p>
-      </div>
+      <h3>Outage test (simulated full model outage, 50+50)</h3>
+      {(() => {
+        const ot = ((data as Record<string, { has_data: boolean; data?: Record<string, unknown> }>).outage_test?.data ?? {}) as Record<string, string | number>;
+        return (
+          <div className="panel">
+            <Cards items={[
+              { k: 'attacks held', v: `${String(ot.attacks_held ?? '—')}/${String(ot.n_attacks ?? '—')}` },
+              { k: 'benign allowed', v: `${String(ot.benign_allowed ?? '—')}/${String(ot.n_benign ?? '—')}` },
+            ]} />
+            <p className="muted">Full hold: safe under outage, zero benign utility. The graduated-ALLOW path is
+              unreachable in prod wiring (test/prod gap recorded) — fix requires plumbing source_content into decide().</p>
+          </div>
+        );
+      })()}
       <h3>Constitution</h3>
       <div className="panel">
         <p>v2 seed C1–C10 (production DB migrates additively; existing rows never modified).

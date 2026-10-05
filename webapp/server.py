@@ -168,6 +168,7 @@ OVERREFUSAL_PATH = K3 / "overrefusal" / "over_refusal_52.json"
 LOAD_SWEEP_PATH = K3 / "latency" / "load_sweep.json"
 REDTEAM_LIVE_SUMMARY_PATH = K3 / "redteam" / "redteam_live50_summary.json"
 MULTITURN_LIVE_SUMMARY_PATH = K3 / "multiturn" / "multiturn_live10_summary.json"
+MULTITURN_LIVE20_PATH = K3 / "multiturn" / "multiturn_live20_summary.json"
 DPO_EVAL_PATH = K3 / "dpo_lm" / "dpo_lm_eval.json"
 DPO_QWEN_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05.json"
 DPO_QWEN_HOT_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05_hot.json"
@@ -183,6 +184,7 @@ ADAPTIVE_CYCLE_PATH = K3 / "adaptive" / "cycle_C8-no-context-window-overflow.jso
 REDTEAM_MATRIX_PATH = K3 / "redteam" / "redteam_matrix.json"
 MUTATION_SCREEN_PATH = K3 / "redteam" / "mutation_screen.json"
 BENIGN_PATH = K3 / "benign" / "benign_eval.json"
+BENIGN_LIVE_PATH = K3 / "benign" / "benign_live48.json"
 MULTITURN_EVAL_PATH = K3 / "multiturn" / "multiturn_eval.json"
 LATENCY_DETAIL_PATH = K3 / "latency" / "latency.json"
 OUTAGE_PATH = K3 / "outage" / "outage_test.json"
@@ -557,6 +559,7 @@ def evidence():
         "load_sweep": block(LOAD_SWEEP_PATH),
         "redteam_live": block(REDTEAM_LIVE_SUMMARY_PATH),
         "multiturn_live": block(MULTITURN_LIVE_SUMMARY_PATH),
+        "multiturn_live20": block(MULTITURN_LIVE20_PATH),
         "dpo_eval": block(DPO_EVAL_PATH),
         "dpo_qwen": block(DPO_QWEN_PATH),
         "dpo_qwen_hot": block(DPO_QWEN_HOT_PATH),
@@ -572,6 +575,7 @@ def evidence():
         "redteam_matrix": block(REDTEAM_MATRIX_PATH),
         "mutation_screen": block(MUTATION_SCREEN_PATH),
         "benign": block(BENIGN_PATH),
+        "benign_live": block(BENIGN_LIVE_PATH),
         "multiturn_eval": block(MULTITURN_EVAL_PATH),
         "latency_detail": block(LATENCY_DETAIL_PATH),
         "outage_test": block(OUTAGE_PATH),
