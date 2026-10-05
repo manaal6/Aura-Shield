@@ -157,3 +157,49 @@ def test_hot2_and_fact_records_exist_and_validate():
     assert fact["base_knowledge"]["n_known"] == 5
     assert fact["sweep"]["0.1"]["forget_drop"] == 0.0
     assert fact["sweep"]["1.0"]["forget_drop"] == 0.2
+
+
+def test_callback_replayed_url_says_relogin_not_mismatch():
+    import webapp.server as S
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as exc:
+        S.auth_callback(_Req({}), code="code123", state="whatever")
+    assert exc.value.status_code == 400
+    assert "Start again from /auth/login" in str(exc.value.detail)
+
+
+def test_callback_wrong_state_is_csrf_400():
+    import webapp.server as S
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as exc:
+        S.auth_callback(_Req({"oauth_state": "aaa"}), code="code123", state="bbb")
+    assert exc.value.status_code == 400 and "mismatch" in str(exc.value.detail)
+
+
+def test_callback_exchange_failure_keeps_state_for_retry(monkeypatch):
+    import app.auth as A
+    import webapp.server as S
+    from app.config import get_settings
+    from fastapi import HTTPException
+    monkeypatch.setattr(get_settings(), "github_client_id", "cid123")
+    monkeypatch.setattr(get_settings(), "github_client_secret", "sec123")
+    monkeypatch.setattr(A, "exchange_code", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+    sess = {"oauth_state": "s1"}
+    with pytest.raises(HTTPException) as exc:
+        S.auth_callback(_Req(sess), code="code123", state="s1")
+    assert exc.value.status_code == 502
+    assert sess["oauth_state"] == "s1"  # retryable, not consumed
+
+
+def test_callback_happy_path_sets_user_and_pops_state(monkeypatch):
+    import app.auth as A
+    import webapp.server as S
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "github_client_id", "cid123")
+    monkeypatch.setattr(get_settings(), "github_client_secret", "sec123")
+    monkeypatch.setattr(A, "exchange_code", lambda *a, **k: "tok")
+    monkeypatch.setattr(A, "fetch_username", lambda tok: "octocat")
+    sess = {"oauth_state": "s1"}
+    resp = S.auth_callback(_Req(sess), code="code123", state="s1")
+    assert sess == {"gh_user": "octocat"}
+    assert resp.status_code == 303

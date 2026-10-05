@@ -123,9 +123,13 @@ def auth_callback(request: Request, code: str = "", state: str = ""):
     sess = _session(request)
     if sess is None:
         raise HTTPException(status_code=501, detail="Login sessions unavailable (set SESSION_SECRET so cookies can be signed).")
-    if not state or state != sess.get("oauth_state"):
-        raise HTTPException(status_code=400, detail="OAuth state mismatch (CSRF guard).")
-    sess.pop("oauth_state", None)
+    expected = sess.get("oauth_state")
+    if not expected:
+        # No login was started in this session (or a previous callback already
+        # consumed it): the fix is a fresh login, not a retry of this URL.
+        raise HTTPException(status_code=400, detail="No OAuth login in progress (session expired or callback URL replayed). Start again from /auth/login in a single tab.")
+    if not state or state != expected:
+        raise HTTPException(status_code=400, detail="OAuth state mismatch (CSRF guard): this callback belongs to a different login attempt. Start again from /auth/login in a single tab.")
     s = get_settings()
     if not s.github_client_id or not s.github_client_secret:
         raise HTTPException(status_code=501, detail="GitHub OAuth not configured (set github_client_id/secret).")
@@ -133,7 +137,12 @@ def auth_callback(request: Request, code: str = "", state: str = ""):
         token = exchange_code(s.github_client_id, s.github_client_secret, code)
         sess["gh_user"] = fetch_username(token)
     except Exception as exc:
+        # Keep oauth_state so the same callback URL can be retried once
+        # (GitHub codes are single-use; a retry after a transient network
+        # error needs a fresh code, i.e. a fresh login — but a missing state
+        # must never be the misleading error for an exchange failure).
         raise HTTPException(status_code=502, detail=f"GitHub OAuth failed: {type(exc).__name__}")
+    sess.pop("oauth_state", None)
     return RedirectResponse("/constitution", status_code=303)
 
 

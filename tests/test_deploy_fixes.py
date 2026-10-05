@@ -172,7 +172,10 @@ def test_shipped_bundle_files_exist():
 
 def test_approve_maps_errors_to_status_codes(monkeypatch):
     import webapp.server as S
+    from app.config import get_settings
     from fastapi import HTTPException
+    # Hermetic: force the OAuth-off path regardless of local .env contents.
+    monkeypatch.setattr(get_settings(), "github_client_id", "")
 
     class _Req:
         def __init__(self, session):
