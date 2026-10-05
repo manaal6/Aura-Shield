@@ -12,7 +12,7 @@ A research-grade, auditable security gateway that sits between users and LLMs to
 - **Adaptive Constitution Loop & Provenance System**: Automated feedback loop in [`research/adaptive_loop.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/adaptive_loop.py) that synthesizes, validates, and incorporates new safety principles with full JSON provenance tracking strictly from adaptation data without test set contamination.
 - **Attacker-Defender Red-Teaming Game**: Multi-round game in [`research/attacker_defender.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/attacker_defender.py) evaluating 7 mutation strategies (e.g. whitespace padding, role-play wrappers, leetspeak) over iterative rounds.
 - **Downstream Safety Evaluator & Estimated Compromise Rate**: [`research/evaluator.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/evaluator.py) provides conservative offline estimation of downstream compromise vs detector bypass rate, with an optional live LLM-judge mode.
-- **100% Offline Test Suite**: 186 unit tests passing cleanly with zero external network or LLM API requirements.
+- **100% Offline Test Suite**: 210 tests passing (3 Docker-present sandbox skips) with zero external network or LLM API requirements.
 
 ---
 
@@ -108,7 +108,7 @@ aura-shield/
 │   ├── safety_eval/              # run_safety_evaluation.py
 │   └── benchmark/                # run_final_test_benchmark.py
 ├── results/                      # Persisted Research Artifacts & Provenance Records
-├── tests/                        # 186 Unit Tests (100% passing)
+├── tests/                        # 210 tests (passed + 3 Docker-present skips)
 ├── docs/                         # Formal Research Documentation
 │   ├── research_report.md        # Comprehensive 18-section research report
 │   ├── policy-surface-audit.md   # Auditable policy surface & gate documentation
@@ -131,7 +131,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-### 2. Run the Full Test Suite (186 Unit Tests)
+### 2. Run the Full Test Suite (210 tests)
 ```bash
 python -m pytest tests/ -v
 ```
@@ -234,7 +234,7 @@ Beyond the benchmark above, the repo now contains a full research pipeline
 
 | Experiment | Mode | Requires API? |
 | :--- | :--- | :--- |
-| Unit test suite (93 tests) | Real code, fully offline | No |
+| Unit test suite (210 tests) | Real code, fully offline | No |
 | Held-out benchmark — Baselines A, I | Real detector runs, fully offline | No |
 | Held-out benchmark — Baselines B–H (all nine) | Real pipeline, live models, zero-fallback verified | Yes (`GROQ_API_KEY`) |
 | Attacker-defender game (rules/embedding) | Real deterministic detectors, fully offline | No |

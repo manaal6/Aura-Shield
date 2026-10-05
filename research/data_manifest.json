@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "created": "2026-10-03",
+  "created": "2026-10-05",
   "policy": "NEVER train/adapt on final held-out test; enforced by guard_training_path + split guards + tests",
   "datasets": [
     {
@@ -10,7 +10,7 @@
       "path": "data/benchmark/dev",
       "samples": 120,
       "sha256_16": "11d3c75df76a68af",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "benchmark-authored",
       "usage": "evaluation-only",
       "attacks": 90,
@@ -23,7 +23,7 @@
       "path": "data/benchmark/adaptation",
       "samples": 105,
       "sha256_16": "a388ce3843622011",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "benchmark-authored",
       "usage": "adaptation-only",
       "attacks": 80,
@@ -36,7 +36,7 @@
       "path": "data/benchmark/test",
       "samples": 105,
       "sha256_16": "a29db8c2a21cefc9",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "benchmark-authored",
       "usage": "final-evaluation-only",
       "attacks": 73,
@@ -49,7 +49,7 @@
       "path": "data/sealed/heldout_extra.jsonl",
       "samples": 40,
       "sha256_16": "9c0b034b5e8766d0",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "benchmark-authored",
       "usage": "single-evaluation-only",
       "attacks": 40,
@@ -57,16 +57,29 @@
     },
     {
       "dataset": "heldout-extra-v2-sealed",
-      "purpose": "second sealed batch, UNEVALUATED (eval needs live quota \u2014 gated)",
+      "purpose": "second sealed batch, evaluated once 2026-10-05 (38/40, 0 fb), never tuned",
       "split": "heldout_extra_v2",
       "path": "data/sealed/heldout_extra_v2.jsonl",
       "samples": 40,
       "sha256_16": "018c28bead1d9567",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "benchmark-authored",
-      "usage": "single-evaluation-only (pending)",
+      "usage": "single-evaluation-only (evaluated)",
       "attacks": 40,
       "benign": 0
+    },
+    {
+      "dataset": "benign-challenge",
+      "purpose": "legitimate trigger-word prompts; offline over-trigger screen (0 held)",
+      "split": "benign",
+      "path": "data/benign_challenge.jsonl",
+      "samples": 132,
+      "sha256_16": "f3febf80dbfa233e",
+      "creation_date": "2026-10-05",
+      "source": "benchmark-authored",
+      "usage": "evaluation-only",
+      "legitimate": 132,
+      "trigger_families": 16
     },
     {
       "dataset": "dpo-preferences",
@@ -75,7 +88,7 @@
       "path": "data/dpo_preferences.jsonl",
       "samples": 162,
       "sha256_16": "1108ff9ace659a8b",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "controlled-synthetic-kaust",
       "usage": "training(dev-excluded)/evaluation",
       "train": 133,
@@ -88,7 +101,7 @@
       "path": "data/unlearning_forget.jsonl",
       "samples": 24,
       "sha256_16": "9fb679a830f78290",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "controlled-synthetic-kaust",
       "usage": "training(forget-only)/evaluation"
     },
@@ -99,7 +112,7 @@
       "path": "data/unlearning_retain.jsonl",
       "samples": 32,
       "sha256_16": "dd5780a31d5acf56",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "controlled-synthetic-kaust",
       "usage": "training(forget-only)/evaluation"
     },
@@ -110,7 +123,7 @@
       "path": "data/unlearning_general.jsonl",
       "samples": 24,
       "sha256_16": "062ce226beb2fea9",
-      "creation_date": "2026-10-03",
+      "creation_date": "2026-10-05",
       "source": "controlled-synthetic-kaust",
       "usage": "training(forget-only)/evaluation"
     }

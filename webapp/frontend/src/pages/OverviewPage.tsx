@@ -95,15 +95,17 @@ function OverviewPage() {
           <li>Fusion dilutes its best layer (68/73 vs 65/73); max fusion recovers it on DEV (90/90).</li>
           <li>DPO trains (loss down, incl. loss → 0.0000 hotter) but rankings freeze — at 100K, 0.5B, and hotter.</li>
           <li>Unlearning: template-specific at gentle intensities; FULL removal with preservation (24/24, all λ) on the hotter Qwen run.</li>
-          <li>Detector bypass ≠ downstream success (ASR measured separately with canaries).</li>
+          <li>Pooled new-system attacks: 143/153 = 93.5% (frozen 67/73 + 2× sealed 38/40, one eval each, 0 fallbacks).</li>
+          <li>Benign challenge: 0/132 held offline across 16 trigger-word families (live FPR 1/32).</li>
           <li>SOC path live: malicious log → triage → safe output demonstrated (3/5 held, 2/2 safe).</li>
+          <li>Detector bypass ≠ downstream success (ASR measured separately with canaries).</li>
           <li>Malware loop closed: payload requests held 10/10, benign explainers safe 10/10.</li>
         </ul>
       </Collapsible>
 
       <Collapsible title="Open research questions">
         <ul className="mono" style={{ fontSize: '0.8rem' }}>
-          <li>RQ1 fusion &gt; single signals? — No (overlapping CIs, n=73).</li>
+          <li>RQ1 fusion &gt; single signals? — No (overlapping CIs; pooled n=153 attacks).</li>
           <li>RQ2 adaptive updates help w/o FP? — Yes, with caveats (65→68/73, FPR 0).</li>
           <li>RQ3 DPO improves preferences? — No (both scales).</li>
           <li>RQ4 targeted unlearning with preservation? — Yes, with scope (hot Qwen run; partial/negative at lower intensities).</li>
@@ -117,15 +119,15 @@ function OverviewPage() {
       <div className="limit-grid">
         <div className="limit-card"><h4>Scale</h4><p>Alignment training at 100K–0.5B params; nothing transfers to LLM scale.</p></div>
         <div className="limit-card"><h4>Statistics</h4><p>Held-out n=73: CIs overlap; McNemar impossible (no paired data).</p></div>
-        <div className="limit-card"><h4>Single provider</h4><p>Live layers on one Groq-hosted family + local CPU fallback (routing proven; independence needs a capable second judge).</p></div>
-        <div className="limit-card"><h4>Approvals</h4><p>Past records SIMULATED. New approvals: named, HMAC-signed, verifiable — no login infrastructure.</p></div>
+        <div className="limit-card"><h4>Single provider</h4><p>Live layers primarily Groq-hosted; second-provider cells measured on Zen (10/10 both cells, per-row attribution) + local CPU fallback.</p></div>
+        <div className="limit-card"><h4>Approvals</h4><p>Pre-OAuth records SIMULATED. With GitHub OAuth configured, approvals require login and bind to verified usernames (see Security → Constitution).</p></div>
         <div className="limit-card"><h4>Tools</h4><p>Docker isolation implemented; high-danger fails closed without Docker; container path unvalidated on this host.</p></div>
         <div className="limit-card"><h4>Production</h4><p>Research prototype. Nothing here claims production readiness.</p></div>
       </div>
 
       <div className="panel">
         <h3>Overall status: PARTIAL (ready for review on executed scope)</h3>
-        <p className="muted">193/193 tests green. Every number traces to a persisted artifact.
+        <p className="muted">210 passed + 3 skipped (Docker-present skips). Every number traces to a persisted artifact.
           Negative results kept. Nothing here claims production readiness.</p>
       </div>
     </div>

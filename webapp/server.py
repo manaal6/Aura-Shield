@@ -181,6 +181,8 @@ PAYLOAD_EXPLAIN_PATH = K3 / "payload_explain" / "payload_explain_20.json"
 FUSION_DISAGREEMENT_PATH = K3 / "fusion" / "fusion_disagreement.json"
 ADAPTIVE_CYCLE_PATH = K3 / "adaptive" / "cycle_C8-no-context-window-overflow.json"
 REDTEAM_MATRIX_PATH = K3 / "redteam" / "redteam_matrix.json"
+MUTATION_SCREEN_PATH = K3 / "redteam" / "mutation_screen.json"
+BENIGN_PATH = K3 / "benign" / "benign_eval.json"
 MULTITURN_EVAL_PATH = K3 / "multiturn" / "multiturn_eval.json"
 LATENCY_DETAIL_PATH = K3 / "latency" / "latency.json"
 OUTAGE_PATH = K3 / "outage" / "outage_test.json"
@@ -568,6 +570,8 @@ def evidence():
         "fusion_disagreement": block(FUSION_DISAGREEMENT_PATH),
         "adaptive_cycle": block(ADAPTIVE_CYCLE_PATH),
         "redteam_matrix": block(REDTEAM_MATRIX_PATH),
+        "mutation_screen": block(MUTATION_SCREEN_PATH),
+        "benign": block(BENIGN_PATH),
         "multiturn_eval": block(MULTITURN_EVAL_PATH),
         "latency_detail": block(LATENCY_DETAIL_PATH),
         "outage_test": block(OUTAGE_PATH),

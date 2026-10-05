@@ -1,6 +1,6 @@
 # Final Test Report (Phase 27, updated)
 
-Date: 2026-10-02. Command: `python -m pytest tests/ -q`. Result: **196 passed, 0 failed, 0 skipped** (31 files, offline; collection count double-verified).
+Date: 2026-10-05. Command: `python -m pytest tests/ -q`. Result: **210 passed, 0 failed, 3 skipped** (Docker-present sandbox skips: fail-closed path N/A when Docker exists).
 
 ## Composition
 
@@ -12,6 +12,8 @@ Date: 2026-10-02. Command: `python -m pytest tests/ -q`. Result: **196 passed, 0
   `test_jb_dev_007_regression.py` (pinned live miss), `test_deploy_fixes.py` (migration + evidence endpoint).
 - Coverage buckets: original, security regression, DPO, unlearning, fusion (artifact-backed),
   provenance/governance, tool security, fail-safe, audit/tamper, red-team classes, dashboard loader import.
+- Rigor push (2026-10-03/05): `test_auth_oauth.py` (OAuth flow + login-gated approvals + record schemas),
+  sealed-v2/pooled pin, benign 132/0 pin, mutation-screen shape pin, Zen attribution pin (24 rows).
 
 ## Policy on failures
 

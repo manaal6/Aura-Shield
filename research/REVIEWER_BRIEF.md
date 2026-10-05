@@ -1,11 +1,11 @@
 # Reviewer Brief (KAUST VSRP, CyberSaR) — two sentences per hard question
 
-- Single provider? All live layers run on one Groq-hosted family plus a local CPU fallback that proves routing, not judgment. Correlated failure across providers is untested — assume it until a second capable judge is measured.
-- n=73? CIs overlap, so RQ1 is unanswered either way; McNemar is impossible without paired predictions. Claims stay narrow by design, not by modesty.
-- Synthetic unlearning? CRIMSON-trigger toy at small scale; the hot 0.5B run fully removed it with utility improved, but nothing here touches knowledge the model really holds.
-- Simulated approvals? Past C7/C8 records keep that label forever. New approvals are named, HMAC-signed, verifiable — identity self-asserted, no login.
+- Single provider? Live layers primarily one Groq-hosted family, but a second provider IS measured: Zen 2-cell matrix (analyzer/constitution swaps), 10/10 both cells, 0 FP, 0 fallbacks, per-row served_by=zen — re-executed byte-identical with a fresh key. n=12 per matrix, so independence evidence is narrow but real.
+- n=73? Frozen n=73 keeps RQ1 unanswered (overlapping CIs; McNemar impossible without paired predictions). Extended evidence: 2× sealed 40-attack batches at 38/40 each, pooled 143/153 = 93.5% (CI 88.4%–96.4%). Claims stay narrow by design, not by modesty.
+- Synthetic unlearning? CRIMSON-trigger toy at small scale; the hot 0.5B run fully removed it with utility improved (replicated). Real knowledge IS touched once: fact-mode run on 5 demonstrably-known facts, partial 4/5 at λ≥0.5 with preservation — small-n, not a general erasure claim.
+- Simulated approvals? Past C7/C8 records keep that label forever. New approvals are named, HMAC-signed, verifiable — and with GitHub OAuth configured, login-bound to verified usernames (401 without login).
 - C11 rename? Old adaptive C7 collided with seed C7; the older row became C11 with a changelog entry. Frozen artifacts keep the old ID as recorded history.
-- DPO negative? Loss falls at 3 configs while rankings freeze exactly; dissection lists 3 hypotheses with cheapest-first distinguishing experiments.
+- DPO negative? Loss falls at 4 configs (tiny + Qwen gentle/hot/hot-replicate) while rankings freeze exactly; dissection lists 3 hypotheses with cheapest-first distinguishing experiments.
 - Malware loop? Payload requests held 10/10 live; benign explainers allowed 10/10, safe 10/10, full explanations 3/10 (downstream terse, not refusing).
 
 ## Demo checklist (deployed URL, hard-refresh first)

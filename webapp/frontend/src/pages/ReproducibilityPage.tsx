@@ -23,6 +23,9 @@ const COMMANDS = [
   'python -m experiments.kaust_three_pillars.run_all',
   'python -m research.fusion_forensics direct_injection.jsonl',
   'python -m research.canary_asr',
+  'python -m research.benign_eval',
+  'python -m research.mutation_screen',
+  'python -m research.eval_sealed_v2',
   'streamlit run dashboard/streamlit_app.py',
 ];
 
@@ -45,7 +48,7 @@ function ReproducibilityPage() {
       <h3>Terminal execution protocol</h3>
       <div className="panel">
         <ol className="step-list">
-          <li>Install dependencies and verify the offline suite (191 tests, ~2 min, no network).</li>
+          <li>Install dependencies and verify the offline suite (210 passed + 3 Docker-present skips, ~3 min, no network).</li>
           <li>Run the three-pillar experiment suites (DPO, unlearning, constitution, integrated).</li>
           <li>Run live evaluations only with Groq quota (forensics, ASR, red-team); fallbacks are counted, never hidden.</li>
           <li>Compare printed means, win counts, and hashes against the tables in this console.</li>

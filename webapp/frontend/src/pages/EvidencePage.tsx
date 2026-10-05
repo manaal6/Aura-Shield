@@ -23,6 +23,8 @@ const BLOCK_LABELS: Record<string, string> = {
   unlearning_hot: 'Unlearning Qwen2.5-0.5B hot run',
   unlearning_hot2: 'Unlearning Qwen2.5-0.5B hot replicate',
   unlearning_fact: 'Unlearning Qwen2.5-0.5B real-fact run',
+  mutation_screen: 'DEV mutation screen (1,440 rows, offline)',
+  benign: 'Benign challenge (trigger-word prompts, offline)',
   soc_demo: 'SOC triage demo (malicious log → safe output, LIVE)',
   payload_explain: 'Refuse-payload-but-explain (20 paired, LIVE)',
 };

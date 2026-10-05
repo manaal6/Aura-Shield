@@ -45,7 +45,7 @@ def test_dpo_train_loader_excludes_dev_and_test():
 def test_manifest_exists_and_covers_splits():
     m = json.loads((REPO / "research" / "data_manifest.json").read_text())
     splits = {d["split"] for d in m["datasets"]}
-    for need in ("dev", "adaptation", "test", "train+dev", "forget", "retain", "general"):
+    for need in ("dev", "adaptation", "test", "train+dev", "forget", "retain", "general", "benign"):
         assert need in splits, f"manifest missing {need}"
     for d in m["datasets"]:
         assert d["samples"] > 0 and len(d["sha256_16"]) == 16

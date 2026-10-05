@@ -11,9 +11,10 @@ function AdaptivePage() {
   return (
     <div>
       <h2>Adaptive constitution — v1 → v2 → v3</h2>
-      <p className="muted"><strong>Past approvals: SIMULATED HUMAN APPROVAL</strong> (C7, C8 cycles — historical fact).
+      <p className="muted"><strong>Pre-OAuth approvals: SIMULATED HUMAN APPROVAL</strong> (C7, C8 cycles — historical fact).
         New approvals: named human + HMAC-signed token + offline verification (<span className="mono">Security → Constitution → verify</span>).
-        Identity is self-asserted (no login); anonymous/empty actors are rejected. The generator never approves its own principle.</p>
+        With GitHub OAuth configured, approvals require login and bind to the verified username (see the login button
+        on <span className="mono">Security → Constitution</span>); otherwise identity is self-typed and anonymous/empty actors are rejected. The generator never approves its own principle.</p>
       {!has ? <Missing label="Adaptive cycle" /> : (
         <div className="panel">
           <Cards items={[

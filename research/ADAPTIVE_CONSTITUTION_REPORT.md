@@ -26,8 +26,9 @@ historical fact and is never rewritten. For NEW approvals, a genuine human proce
 5. Anyone can verify later: `POST /api/constitution/verify` (constant-time compare),
    or `verify_approval_token()` offline.
 
-What this is: named, signed, verifiable human accountability. What it is not: authenticated
-identity (no login infrastructure — names are self-asserted, enforced non-empty by code).
+What this is: named, signed, verifiable human accountability. What it is not (without OAuth):
+authenticated identity — names are self-asserted, enforced non-empty by code. With GitHub OAuth
+configured, approvals require login and bind to the verified username (`app/auth.py`, 401 otherwise).
 
 ## Drift (`adaptive/drift_v1_v2.json`)
 

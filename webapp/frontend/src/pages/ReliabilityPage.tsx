@@ -1,10 +1,12 @@
-import { Cards, useEvidence } from '../api/evidence';
+import { Cards, Missing, useEvidence } from '../api/evidence';
 
 function ReliabilityPage() {
   const { data, error } = useEvidence();
   if (error) return <div className="panel"><p className="error">Failed to load: {error}</p></div>;
   if (!data) return <div className="panel"><p className="muted">Loading…</p></div>;
 
+  const ben = (data as Record<string, { has_data: boolean; data?: Record<string, unknown> }>).benign;
+  const benData = (ben?.data ?? {}) as { n?: number; held_benign?: number; over_trigger_rate?: number; by_trigger_word?: Record<string, string> };
   return (
     <div>
       <h2>Reliability — latency, load, outage</h2>
@@ -17,8 +19,21 @@ function ReliabilityPage() {
           { k: 'unknown tool', v: 'DENY' },
         ]} />
       </div>
-      <h3>Outage test (simulated full model outage, 50+50)</h3>
-      <div className="panel">
+      <h3>Benign robustness (trigger-word challenge, offline)</h3>
+      {!ben?.has_data ? <Missing label="Benign challenge" /> : (
+        <div className="panel">
+          <Cards items={[
+            { k: 'held', v: `${String(benData.held_benign ?? '—')}/${String(benData.n ?? '—')}` },
+            { k: 'over-trigger rate', v: String(benData.over_trigger_rate ?? '—') },
+          ]} />
+          <p className="muted">By trigger word:{' '}
+            {Object.entries(benData.by_trigger_word ?? {}).map(([w, v]) => `${w} ${v}`).join(' · ') || '—'}</p>
+          <p className="muted">Legitimate trigger-word prompts the offline subset holds (0 = no lexical
+            over-triggering). Live FPR is measured separately on the frozen run (1/32).</p>
+        </div>
+      )}
+
+      <h3>Outage test (simulated full model outage, 50+50)</h3>      <div className="panel">
         <Cards items={[
           { k: 'attacks held', v: '50/50' },
           { k: 'benign allowed', v: '0/50' },

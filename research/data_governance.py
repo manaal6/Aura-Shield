@@ -90,9 +90,12 @@ def build_manifest() -> dict:
     add("heldout-extra-sealed", "one-shot new-system evidence (generated once, evaluated once, never tuned)",
         "heldout_extra", "data/sealed/heldout_extra.jsonl", "single-evaluation-only",
         {"attacks": 40, "benign": 0})
-    add("heldout-extra-v2-sealed", "second sealed batch, UNEVALUATED (eval needs live quota — gated)",
-        "heldout_extra_v2", "data/sealed/heldout_extra_v2.jsonl", "single-evaluation-only (pending)",
+    add("heldout-extra-v2-sealed", "second sealed batch, evaluated once 2026-10-05 (38/40, 0 fb), never tuned",
+        "heldout_extra_v2", "data/sealed/heldout_extra_v2.jsonl", "single-evaluation-only (evaluated)",
         {"attacks": 40, "benign": 0})
+    add("benign-challenge", "legitimate trigger-word prompts; offline over-trigger screen (0 held)",
+        "benign", "data/benign_challenge.jsonl", "evaluation-only",
+        {"legitimate": 132, "trigger_families": 16})
     dpo = [json.loads(ln) for ln in open(REPO / "data/dpo_preferences.jsonl", encoding="utf-8") if ln.strip()]
     add("dpo-preferences", "preference training + held-out-dev eval", "train+dev",
         "data/dpo_preferences.jsonl", "training(dev-excluded)/evaluation",

@@ -126,7 +126,7 @@ benign challenge 62, test 105 (final/reporting only). Hashes in `research/data_m
 
 ```bash
 pip install -r requirements.txt  # + torch (CPU) for pillar-3 smoke tests
-python -m pytest tests/ -q                                   # 178 tests (see research/FINAL_TEST_REPORT.md)
+python -m pytest tests/ -q                                   # 210 passed + 3 Docker-present skips (see research/FINAL_TEST_REPORT.md)
 python -m experiments.kaust_three_pillars.run_constitution
 python -m experiments.kaust_three_pillars.run_adaptive
 python -m experiments.kaust_three_pillars.run_dpo

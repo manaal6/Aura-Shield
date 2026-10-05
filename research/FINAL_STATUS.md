@@ -67,11 +67,11 @@ tiny-gpt2 (102,714). DPO ckpt hash `117f1472…` (run 2). Unlearning `unlearned_
 
 ## Dataset hashes
 
-dpo `1108ff9a…`, dpo-gen `7fda0ee1…`, forget `9fb679a8…`, retain `dd5780a3…` (32), general `062ce226…`, benign 62, test set matches frozen baseline (integrity PASS).
+dpo `1108ff9a…`, dpo-gen `7fda0ee1…`, forget `9fb679a8…`, retain `dd5780a3…` (32), general `062ce226…`, benign-challenge `f3febf80…` (132), test set matches frozen baseline (integrity PASS).
 
 ## Tests
 
-150 passed / 0 failed / 0 skipped (`research/FINAL_TEST_REPORT.md`).
+210 passed / 0 failed / 3 skipped (Docker-present sandbox skips) (`research/FINAL_TEST_REPORT.md`).
 
 ## Held-out integrity / secrets
 
