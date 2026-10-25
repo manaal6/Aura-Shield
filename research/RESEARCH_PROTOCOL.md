@@ -12,6 +12,8 @@
 | dpo train (133) / dev (29) + 30 unseen | train/dev/eval-only | train split trains; dev evaluates; unseen eval-only | `training/dpo_lm/dataset.py` + split tests |
 | unlearning forget (24) / retain (32) / general (24) | forget/retain/general | forget drives removal; retain/general anchor + evaluate | disjointness test |
 | redteam | dev/final | offline matrix + committed live game | fixed budget |
+| heldout sealed ×2 (40+40) | sealed | one-shot new-system evidence (generated once, evaluated once, never tuned) | `research/data_governance.py` manifest + eval-once scripts |
+| held-out v2 attacks (153) + benign (100) | heldout_v2 | one-shot fresh batch (generated once score-blind, evaluated once 2026-10-07, never tuned) | manifest + `research/eval_heldout_v2.py` (per-row checkpoint) |
 
 Manifest: `research/data_manifest.json` (hashes, counts, usage).
 

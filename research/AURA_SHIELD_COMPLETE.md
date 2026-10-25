@@ -41,7 +41,7 @@ INPUT (user_prompt + untrusted source_content)
 - Fail-safes: analyzer failure → REVIEW, empty input → REVIEW, malformed output → REVIEW,
   unknown tool → DENY, high/critical-danger tool without Docker → DENY (fail-closed).
 - Provider layer: `app/providers/` (Groq primary, OpenAI adapter optional/inactive without key).
-- 7-key Groq rotation pool (`research/groq_pool.py`); per-minute rotation, shared org daily quota.
+- 8-key Groq rotation pool (`research/groq_pool.py`); per-minute rotation, shared org daily quota.
 
 ## 3. Constitution
 
@@ -71,6 +71,19 @@ Held-out McNemar impossible (aggregates only, no paired predictions — document
 Extension: 2× 40-attack sealed batches (generated once, evaluated once, never tuned), 38/40 each
 with 0 fallbacks; pooled new-system 143/153 = 93.5% (95% CI 88.4%–96.4%). The 4 misses are
 ambiguous-boundary cases, not promoted to principles.
+Held-out v2 (2026-10-07): fresh 153 attacks (51 families × 3) + 100 benign (20 × 5), generated
+once score-blind (max Jaccard 0.70 vs all 923 existing items, 0 dupes), one live eval, 0 fallbacks:
+attacks 132/153 = 86.3% (95% CI 79.9%–90.8%), benign 1/100 = 1.0%. Fresh pooled (v1+v2),
+every row evaluated exactly once and never tuned: 275/306 = 89.9% (95% CI 86.0%–92.8%).
+The 21 v2 misses are kept visible in `heldout_v2/heldout_v2_eval.json`, not curated away.
+Second-provider replication (Zen `space-bunny-free`, both LLM layers, one eval, same frozen config):
+130/153 = 85.0% attacks (95% CI 78.5%–89.8%), benign 0/35; 65/253 rows hit free-tier 429s and were
+purged under the B66 outage rule, so this is a PARTIAL replication (the endpoint then returned a 403
+free-tier gate). That model was later retired and the Zen free quota is now exhausted (429), so the missing rows cannot be completed; a rerun on a current free model returned only fallback rows and was deleted unbanked (B66/B75). SOTA baseline (ProtectAI DeBERTa-v3 prompt-injection-v2, same 306 attacks + 264 benign,
+offline default threshold, never tuned on AURA data): 187/306 = 61.1% (95% CI 55.5%–66.4%) attacks,
+5/264 = 1.9% benign FPR — AURA pooled 89.9% at equal FPR (its default threshold already sits at
+that FPR; a post-hoc matched-threshold sweep is identical, and 2.65% FPR only buys 65.4%). Bounds the lift; not a head-to-head
+deployment test (ensemble + policy thresholds vs single classifier).
 
 ## 5. Frozen re-run (new system C1–C10 + max fusion, single live eval, 2026-09-22)
 
@@ -101,6 +114,7 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
   unseen 0/30→0/30. Scale did NOT unlock generalization. NEGATIVE.
 - Qwen2.5-0.5B hotter (lr 2e-5, 4 epochs): loss →0.0000, train 20/133, dev/unseen frozen. NEGATIVE confirmed.
 - Qwen2.5-0.5B hotter replicate (312.7 s): metric-identical (train 20/133, dev 0/29, unseen 0/30) — deterministic replication.
+- Qwen2.5-1.5B LoRA (Colab T4, user-executed, β=0.1, lr 2e-4, 10ep, r16): loss 0.34→0.0002, train 128/133, dev 0/29→22/29 (margin -46.1→+26.9). FIRST POSITIVE (config 5): lower beta escapes the KL-trap loss saturation. Unseen-30 check on a same-config retrain (original adapter lost with the Colab session): base 0/30 → DPO 23/30 = 76.7% (dev 19/29, train 109/133) — generalizes, unseen not below train; retrain drift vs the original adapter (22/29, 128/133) kept visible.
 - RQ3 answer: No at all tested scales (tiny + Qwen gentle + Qwen hot + hot replicate). Loss decrease never claimed as improvement.
 
 ## 8. Unlearning (targeted removal)
@@ -133,8 +147,9 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
   high-danger via untrusted provenance → DENY, risk ≥ 0.40 → REVIEW.
 - Indirect/provenance (offline): 77/84 confused (12 payloads × 7 tags; only C2 extraction caught);
   provenance logged, not yet scored (A/B bump showed no effect — NOT VALIDATED).
-- Benign challenge: 132 legitimate trigger-word prompts (16 families), 0 held offline; 48 live
-  (3/family, 1 held — furnace filter FAQ, kept visible, 0 fb). Combined live FPR 2/80 = 2.5%.
+- Benign challenge: 132 legitimate trigger-word prompts (16 families), 0 held offline; full 132 live
+  (3 held — badge-reader bypass request, test-suite execution order, scanner-noise tuning — all kept visible, 0 fb)
+  + held-out v2 benign 100 live (1 held, 0 fb). Combined live FPR 5/264 = 1.9% (CI 0.8%–4.4%).
   Over-refusal live: 1/52 (or-04 pinned).
 
 ## 10. Reliability
@@ -170,14 +185,14 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
 - First `/api/constitution` call after deploy runs the additive C7–C10 migration.
 - Key endpoints: `/api/analyze`, `/api/constitution`, `/api/benchmark`, `/api/measured`, `/api/evidence`, `/api/audit/verify`.
 - Reproduce: `pip install -r requirements.txt` (+ torch/transformers), `python -m pytest tests/ -q`
-  (212 passed + 3 Docker-present skips), `python -m experiments.kaust_three_pillars.run_all`; research commands in
+  (220 passed + 3 Docker-present skips), `python -m experiments.kaust_three_pillars.run_all`; research commands in
   `research/REPRODUCIBILITY.md`. Train/test isolation enforced in code.
 - Live evaluations need Groq quota (8-key rotation pool; all keys share one org daily pool).
 
 ## 14. Status and limits (binding)
 
-- Overall: PARTIAL — ready for review on executed scope. 212 passed + 3 skipped (Docker-present) green.
-- Per-pillar: DPO IMPLEMENTED/NEGATIVE (4 configs) · Unlearning IMPLEMENTED (partial → negative → VALIDATED hot, replicated) ·
+- Overall: PARTIAL — ready for review on executed scope. 220 passed + 3 skipped (Docker-present) green.
+- Per-pillar: DPO IMPLEMENTED (negative ×4, POSITIVE at 1.5B LoRA 22/29) · Unlearning IMPLEMENTED (partial → negative → VALIDATED hot, replicated) ·
   Fusion IMPLEMENTED (mechanism found, gap kept) · Adaptive IMPLEMENTED (caveated) ·
   Red-team/ASR/tools/audit/latency/dashboard IMPLEMENTED (scopes labeled).
 - PARTIAL: second provider measured on 12-prompt samples (Zen matrix, per-row attribution, re-executed byte-identical with fresh key);

@@ -19,8 +19,8 @@ export function DpoPanel({ data }: { data: NonNullable<ReturnType<typeof useEvid
   return (
     <div>
       <div className="panel">
-        <h3>DPO status: FULL MODEL-LEVEL DPO — NEGATIVE generalization</h3>
-        <p className="muted">Toy scale (102,714 params CPU). Loss down, ranking frozen. Nothing transfers to LLM scale.</p>
+        <h3>DPO status: negative at 100K/0.5B — POSITIVE at Qwen-1.5B LoRA (22/29)</h3>
+        <p className="muted">Configs 1–4 hit the KL-trap (loss saturated, train flat). Config 5 (β=0.1) broke it.</p>
         {data.dpo_eval.has_data ? (
           <Cards items={[
             { k: 'dev pref', v: `${String(dpo.dpo?.preference_accuracy ?? '—')} (base ${String(dpo.base?.preference_accuracy ?? '—')})` },
@@ -42,6 +42,11 @@ export function DpoPanel({ data }: { data: NonNullable<ReturnType<typeof useEvid
           <p><strong>Hotter replicate</strong> (identical config, 312.7 s): same frozen outcome (train 20/133,
             dev 0/29, unseen 0/30) — deterministic replication of the negative.</p>
         )}
+        {((data as Record<string, { has_data: boolean; data?: Record<string, string> }>).dpo_qwen15?.has_data && (
+          <p><strong>Qwen2.5-1.5B LoRA (config 5, Colab T4, user-executed)</strong>: β=0.1, lr 2e-4, 10 epochs —
+            loss 0.34→0.0002, train 128/133, <strong>dev 0/29→22/29</strong> (margin −46.1→+26.9).
+            FIRST POSITIVE. Unseen-30 on a same-config retrain: base 0/30 → 23/30 (76.7%), dev 19/29 — unseen not below train, so it generalizes rather than memorizes.</p>
+        )) || <Missing label="Qwen-1.5B DPO" />}
       </div>
     </div>
   );

@@ -173,6 +173,8 @@ DPO_EVAL_PATH = K3 / "dpo_lm" / "dpo_lm_eval.json"
 DPO_QWEN_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05.json"
 DPO_QWEN_HOT_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05_hot.json"
 DPO_QWEN_HOT2_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen05_hot2.json"
+DPO_QWEN15_PATH = K3 / "dpo_lm" / "dpo_lm_record_qwen15.json"
+DPO_UNSEEN_PATH = K3 / "dpo_lm" / "dpo_unseen_qwen15.json"
 UNLEARNING_EVAL_PATH = K3 / "unlearning_lm" / "unlearning_lm_eval.json"
 UNLEARNING_HOT_PATH = K3 / "unlearning_lm" / "unlearning_lm_record_qwen05_hot.json"
 UNLEARNING_HOT2_PATH = K3 / "unlearning_lm" / "unlearning_lm_record_qwen05_hot2.json"
@@ -183,8 +185,13 @@ FUSION_DISAGREEMENT_PATH = K3 / "fusion" / "fusion_disagreement.json"
 ADAPTIVE_CYCLE_PATH = K3 / "adaptive" / "cycle_C8-no-context-window-overflow.json"
 REDTEAM_MATRIX_PATH = K3 / "redteam" / "redteam_matrix.json"
 MUTATION_SCREEN_PATH = K3 / "redteam" / "mutation_screen.json"
+HELD_EXTRA_PATH = K3 / "heldout_extra" / "heldout_extra_eval.json"
+HELD_EXTRA_V2_PATH = K3 / "heldout_extra" / "heldout_extra_v2_eval.json"
+HELD_V2_PATH = K3 / "heldout_v2" / "heldout_v2_eval.json"
+SOTA_PATH = K3 / "sota" / "sota_deberta_eval.json"
+ZEN_V2_PATH = K3 / "heldout_v2" / "heldout_v2_zen_eval.json"
 BENIGN_PATH = K3 / "benign" / "benign_eval.json"
-BENIGN_LIVE_PATH = K3 / "benign" / "benign_live48.json"
+BENIGN_LIVE_PATH = K3 / "benign" / "benign_live132.json"
 MULTITURN_EVAL_PATH = K3 / "multiturn" / "multiturn_eval.json"
 LATENCY_DETAIL_PATH = K3 / "latency" / "latency.json"
 OUTAGE_PATH = K3 / "outage" / "outage_test.json"
@@ -564,6 +571,8 @@ def evidence():
         "dpo_qwen": block(DPO_QWEN_PATH),
         "dpo_qwen_hot": block(DPO_QWEN_HOT_PATH),
         "dpo_qwen_hot2": block(DPO_QWEN_HOT2_PATH),
+        "dpo_qwen15": block(DPO_QWEN15_PATH),
+        "dpo_qwen15_unseen": block(DPO_UNSEEN_PATH),
         "unlearning_eval": block(UNLEARNING_EVAL_PATH),
         "unlearning_hot": block(UNLEARNING_HOT_PATH),
         "unlearning_hot2": block(UNLEARNING_HOT2_PATH),
@@ -576,6 +585,11 @@ def evidence():
         "mutation_screen": block(MUTATION_SCREEN_PATH),
         "benign": block(BENIGN_PATH),
         "benign_live": block(BENIGN_LIVE_PATH),
+        "heldout_extra": block(HELD_EXTRA_PATH),
+        "heldout_extra_v2": block(HELD_EXTRA_V2_PATH),
+        "heldout_v2": block(HELD_V2_PATH),
+        "sota_baseline": block(SOTA_PATH),
+        "zen_v2": block(ZEN_V2_PATH),
         "multiturn_eval": block(MULTITURN_EVAL_PATH),
         "latency_detail": block(LATENCY_DETAIL_PATH),
         "outage_test": block(OUTAGE_PATH),

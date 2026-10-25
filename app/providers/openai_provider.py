@@ -27,13 +27,28 @@ class OpenAIProvider(LLMProvider):
         if self._explicit_key:
             return self._explicit_key
         settings = get_settings()
-        return getattr(settings, "openai_api_key", "") or ""
+        # A real OpenAI key wins over the Zen slot; Zen is the free fallback.
+        return getattr(settings, "openai_api_key", "") or getattr(settings, "opencode_zen_key", "") or ""
 
     def _get_base_url(self) -> str:
         # Supports any OpenAI-compatible endpoint (e.g. HF router) via
-        # OPENAI_BASE_URL. Empty = official api.openai.com default.
+        # OPENAI_BASE_URL. Empty = official api.openai.com default, unless
+        # only an OpenCode Zen key is configured, in which case Zen's
+        # OpenAI-compatible endpoint is used.
         settings = get_settings()
-        return getattr(settings, "openai_base_url", "") or ""
+        explicit = getattr(settings, "openai_base_url", "") or ""
+        if explicit:
+            return explicit
+        if getattr(settings, "opencode_zen_key", "") and not getattr(settings, "openai_api_key", ""):
+            return getattr(settings, "opencode_zen_base_url", "") or ""
+        return ""
+
+    def resolve_model(self, requested: str) -> str:
+        """Map a Groq-specific model id onto the configured fallback provider."""
+        settings = get_settings()
+        if getattr(settings, "opencode_zen_key", "") and not getattr(settings, "openai_api_key", ""):
+            return getattr(settings, "opencode_zen_model", "") or getattr(settings, "openai_model", "")
+        return getattr(settings, "openai_model", "") or requested
 
     def is_available(self) -> bool:
         settings = get_settings()

@@ -81,11 +81,16 @@ AURA Shield has been successfully transformed from a prompt-injection proof-of-c
 ### Phase 12: Final Research Report & Artifact Finalization
 - Completely drafted the 18-section research report [`docs/research_report.md`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/docs/research_report.md) with empirical findings, tables, limitations, and full reproducibility documentation.
 
+### Post-sprint extensions (executed, current evidence)
+- KAUST three pillars: model-level DPO (negative, 4 configs), LM unlearning (hot run VALIDATED 24/24, replicated), gateway frozen re-run (67/73, 1/32).
+- One-shot sealed evidence: 2× 40-attack sealed batches 38/40 each (pooled 143/153 = 93.5%); pre-declared held-out v2 (fresh 153 attacks + 100 benign, evaluated once 2026-10-07): 132/153 = 86.3% attacks, 1/100 benign; fresh pooled 275/306 = 89.9% (CI 86.0%–92.8%); combined live benign FPR 5/264 = 1.9%.
+- Tracked in [`research/BUG_AND_REGRESSION_LEDGER.md`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/BUG_AND_REGRESSION_LEDGER.md) (B1–B68) and [`research/FINAL_STATUS.md`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/FINAL_STATUS.md).
+
 ---
 
 ## 3. Test Suite Verification
-All 148 unit tests pass cleanly:
+All 215 tests pass cleanly (3 Docker-present sandbox skips):
 ```bash
 python -m pytest tests/ -v
-============================= 90 passed in 8.61s ==============================
+============================= 220 passed, 3 skipped in ~2m ==============================
 ```

@@ -69,7 +69,8 @@ class ProviderRouter:
                 # If provider is secondary and model is a groq-specific string, map to fallback model if applicable
                 req_model = model
                 if p_name == "openai" and "gpt-oss" in model:
-                    req_model = getattr(settings, "openai_model", "gpt-4o-mini")
+                    resolve = getattr(prov, "resolve_model", None)
+                    req_model = resolve(model) if callable(resolve) else getattr(settings, "openai_model", "gpt-4o-mini")
 
                 return prov.chat_completion(
                     model=req_model,

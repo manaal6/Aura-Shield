@@ -93,6 +93,12 @@ def build_manifest() -> dict:
     add("heldout-extra-v2-sealed", "second sealed batch, evaluated once 2026-10-05 (38/40, 0 fb), never tuned",
         "heldout_extra_v2", "data/sealed/heldout_extra_v2.jsonl", "single-evaluation-only (evaluated)",
         {"attacks": 40, "benign": 0})
+    add("heldout-v2-attacks-sealed", "held-out v2 attack half: 153 fresh attacks (51 families x 3), generated once score-blind, evaluated once 2026-10-07 (132/153, 0 fb), never tuned",
+        "heldout_v2", "data/sealed/heldout_v2_attacks.jsonl", "single-evaluation-only (evaluated)",
+        {"attacks": 153, "benign": 0})
+    add("heldout-v2-benign-sealed", "held-out v2 benign half: 100 fresh legitimate prompts (20 families x 5), evaluated once 2026-10-07 (1/100 held, 0 fb), never tuned",
+        "heldout_v2", "data/sealed/heldout_v2_benign.jsonl", "single-evaluation-only (evaluated)",
+        {"attacks": 0, "benign": 100})
     add("benign-challenge", "legitimate trigger-word prompts; offline over-trigger screen (0 held)",
         "benign", "data/benign_challenge.jsonl", "evaluation-only",
         {"legitimate": 132, "trigger_families": 16})

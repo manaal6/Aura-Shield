@@ -71,3 +71,36 @@ def test_provider_router_raises_when_all_fail(monkeypatch):
 
     with pytest.raises(RuntimeError):
         router.execute_chat("analyzer", "test-model", [{"role": "user", "content": "hi"}])
+
+
+def test_openai_provider_routes_to_opencode_zen(monkeypatch):
+    """With only OPENCODE_ZEN_KEY configured, the 'openai' slot targets Zen."""
+    from app.config import get_settings
+    from app.providers.openai_provider import OpenAIProvider
+    settings = get_settings()
+    monkeypatch.setattr(settings, "openai_api_key", "")
+    monkeypatch.setattr(settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "opencode_zen_key", "test-zen-key-not-real")
+    monkeypatch.setattr(settings, "opencode_zen_base_url", "https://zen.example/v1")
+    monkeypatch.setattr(settings, "opencode_zen_model", "space-bunny-free")
+
+    p = OpenAIProvider()
+    assert p._get_api_key() == "test-zen-key-not-real"
+    assert p._get_base_url() == "https://zen.example/v1"
+    assert p.resolve_model("openai/gpt-oss-120b") == "space-bunny-free"
+
+
+def test_openai_provider_prefers_explicit_openai_credentials(monkeypatch):
+    """A real OpenAI key/base URL wins over the Zen fallback slot."""
+    from app.config import get_settings
+    from app.providers.openai_provider import OpenAIProvider
+    settings = get_settings()
+    monkeypatch.setattr(settings, "openai_api_key", "sk-real-openai")
+    monkeypatch.setattr(settings, "openai_base_url", "https://api.example/v1")
+    monkeypatch.setattr(settings, "openai_model", "gpt-4o-mini")
+    monkeypatch.setattr(settings, "opencode_zen_key", "test-zen-key-not-real")
+
+    p = OpenAIProvider()
+    assert p._get_api_key() == "sk-real-openai"
+    assert p._get_base_url() == "https://api.example/v1"
+    assert p.resolve_model("openai/gpt-oss-120b") == "gpt-4o-mini"

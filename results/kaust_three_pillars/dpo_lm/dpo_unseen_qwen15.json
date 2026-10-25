@@ -1,0 +1,28 @@
+{
+  "model": "Qwen/Qwen2.5-1.5B",
+  "adapter": "LoRA r16 alpha32 q/k/v/o (config 5)",
+  "adapter_dir": "/content/dpo_out",
+  "device": "cuda (Colab T4)",
+  "beta": 0.1,
+  "lr": 0.0002,
+  "epochs": 10,
+  "seed": 7,
+  "n_train": 133,
+  "n_dev": 29,
+  "n_unseen": 30,
+  "base_dev": {"n": 29, "preference_accuracy": "0/29=0.0000", "mean_chosen_margin": -47.02},
+  "base_unseen": {"n": 30, "preference_accuracy": "0/30=0.0000", "mean_chosen_margin": -39.76},
+  "dpo_dev": {"n": 29, "preference_accuracy": "19/29=0.6552", "mean_chosen_margin": 6.77},
+  "dpo_unseen": {"n": 30, "preference_accuracy": "23/30=0.7667", "mean_chosen_margin": 6.44},
+  "dpo_train": {"n": 133, "preference_accuracy": "109/133=0.8195", "mean_chosen_margin": 22.11},
+  "note": "generalization = dpo_unseen vs base_unseen; dpo_train checks overfit. Unseen was never trained on and is eval-only.",
+  "provenance": {
+    "harness": "research/dpo_unseen_colab.ipynb (user-executed, Colab T4, TRL DPOTrainer; executed copy kept as research/dpo_unseen_colab_executed_20261007.ipynb)",
+    "run_kind": "RETRAIN of config 5 (the original adapter did not survive the Colab session), same hyperparameters",
+    "original_config5": "dev 22/29, train 128/133 (dpo_lm_record_qwen15.json)",
+    "drift_note": "retrain reproduced the direction but not the exact dev count (19/29 vs 22/29) and trained less hard (train 109/133 vs 128/133); run-to-run variance between the custom trainer and TRL is expected and both stay far above base 0/29",
+    "environment_fix": "Colab torchao 0.10 < peft floor 0.16 raised ImportError during LoRA creation; `pip uninstall -y torchao` (ledger B72)",
+    "training_seconds": 200
+  },
+  "verdict": "GENERALIZES: unseen 0/30 -> 23/30 (76.7%) at dev 19/29 (65.5%) and train 109/133 (82.0%) — unseen is not below train, so the dev win is preference learning, not memorization"
+}

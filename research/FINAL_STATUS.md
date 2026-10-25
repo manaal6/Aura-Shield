@@ -6,13 +6,16 @@ Single final eval = committed `results/baselines_summary/heldout_master_table.js
 
 | Weakness | Before | Action | Evidence | Status | Remaining limitation |
 |---|---|---|---|---|---|
-| DPO | objective-PoC only (logistic) | genuine tiny-gpt2 DPO + Qwen2.5-0.5B Kaggle run (494M, loss 0.69→0.39, hash proof) + hotter run (loss→0.0, train 20/133, dev frozen) + hotter replicate (312.7 s, metric-identical) | `dpo_lm_record.json`, `dpo_lm_record_qwen05.json`, `dpo_lm_record_qwen05_hot.json`, `dpo_lm_record_qwen05_hot2.json` | FIXED (training real; outcome negative at ALL scales incl. replicated hot) | dev 2/29→2/29 (tiny), 0/29→0/29 (Qwen, gentle + hot + hot-replicate); no transfer claim |
+| DPO | objective-PoC only (logistic) | genuine tiny-gpt2 DPO + Qwen2.5-0.5B Kaggle run (494M, loss 0.69→0.39, hash proof) + hotter run (loss→0.0, train 20/133, dev frozen) + hotter replicate (312.7 s, metric-identical) | `dpo_lm_record.json`, `dpo_lm_record_qwen05.json`, `dpo_lm_record_qwen05_hot.json`, `dpo_lm_record_qwen05_hot2.json`, `dpo_lm_record_qwen15.json` | FIXED (training real; negative at 4 configs, POSITIVE at Qwen-1.5B LoRA β=0.1: dev 22/29) | dev 2/29→2/29 (tiny), 0/29→0/29 (Qwen, gentle + hot + hot-replicate); 1.5B LoRA transfers to dev (22/29) |
 | DPO dataset | 59 pairs, no IDs | 162 pairs + IDs/rationale/threat, 0 dupes | `dpo_dataset_stats.json`, `DPO_DATASET_REPORT.md` | FIXED | categories uneven (2–13 each) |
 | DPO generalization | none | 30 unseen items, eval-only, disjoint | `dpo_generalization.jsonl` (hash `7fda0ee1…`), eval 1/30→1/30 | FIXED (negative) | tiny-model floor effect |
+| DPO generalization (1.5B) | tiny-model floor 1/30→1/30 | unseen-30 check on a same-config Qwen-1.5B LoRA retrain (original adapter lost with the Colab session) | `dpo_unseen_qwen15.json`, `research/dpo_unseen_colab_executed_20261007.ipynb` | FIXED (generalizes: base 0/30 → 23/30 = 76.7%; dev 19/29; train 109/133 — unseen not below train) | retrain, not the original adapter (dev 19/29 vs 22/29 drift); n=30, CI 59.1–88.2% |
 | Unlearning | logistic COLLATERAL DAMAGE | LM sweep λ 0.1/0.5/1.0 + per-example inspect + Qwen sweep (ZERO suppression all λ) + Qwen hot (24/24, all λ) + hot replicate (274.9 s, identical) + real-fact run (5 known / 7 dropped, drops 0.0/0.2/0.2, preserved) | `unlearning_lm_record.json`, `unlearning_lm_eval.json`, `unlearning_lm_inspect.json`, `unlearning_lm_record_qwen05.json`, `unlearning_lm_record_qwen05_hot.json`, `unlearning_lm_record_qwen05_hot2.json`, `unlearning_lm_record_qwen05_fact.json` | PARTIAL (toy) / NEGATIVE (0.5B gentle) / VALIDATED (0.5B hot, replicated) / PARTIAL (real-fact 4/5) | synthetic trigger scope; fact run n=5 forget |
 | Fusion | 89 vs 93.2 unexplained | DEV disagreement forensics + criterion freeze + LIVE 120/120 (throttled: 15 clean rows 12/13 attacks, 0/2 benign; 1 full-consensus miss jb-dev-007 pinned) | `fusion_disagreement.json`, live rows | IMPROVED (mechanism found; gap kept) | 105/120 rows fallback-REVIEW (throttle); held-out IDs not reconstructed |
 | Statistics | CIs only | Wilson+bootstrap+denominators; DEV McNemar p=0.39 n.s. | `statistical_eval.json`, `STATISTICAL_REPORT.md` | IMPROVED | held-out McNemar impossible (no pairs) |
-| Benign robustness | 28 prompts | 132 prompts (16 trigger-word families incl. payload/malware/inject/bypass/breach/phishing/decrypt), 0 held offline + 48 live (3/family, 1 held, 0 fb): combined live FPR 2/80 = 2.5% (CI 0.7%–8.7%) | `benign/benign_eval.json`, `benign/benign_live48.json` | IMPROVED | the 1 live hold is a furnace filter FAQ (BLOCK, kept visible) |
+| SOTA baseline | none | ProtectAI DeBERTa-v3 prompt-injection-v2 over the same 306 attacks + 264 benign (offline, default threshold, never tuned on AURA data) | `results/kaust_three_pillars/sota/sota_deberta_eval.json`, `statistical_eval.json` (`sota_baseline`) | FIXED (attacks 187/306 = 61.1%, benign 5/264 = 1.9%) | single classifier, offline; bounds the lift, not a head-to-head deployment test |
+| Second provider | Zen 12-row matrix only | Zen v2 replication of held-out v2 (both LLM layers) | `results/kaust_three_pillars/heldout_v2/heldout_v2_zen_eval.json`, `statistical_eval.json` (`zen_replication`) | PARTIAL (130/153 = 85.0% attacks, 0/35 benign) | 65/253 rows purged on free-tier 429 (B66 rule); endpoint then gated 403; model later retired and free quota now exhausted (B75) — directional only |
+| Benign robustness | 28 prompts | 132 prompts (16 trigger-word families incl. payload/malware/inject/bypass/breach/phishing/decrypt), 0 held offline + full 132 live (3 held, 0 fb) + held-out v2 benign 1/100 live (0 fb): combined live FPR 5/264 = 1.9% (CI 0.8%–4.4%) | `benign/benign_eval.json`, `benign/benign_live132.json`, `heldout_v2/heldout_v2_eval.json` | IMPROVED | the 4 live holds (badge-reader request, test-suite order, scanner-noise question, 1 v2 item) kept visible |
 | Indirect injection | 8 payloads | 12 payloads × 7 provenance + objectives; 77/84 confused offline | `indirect/indirect_eval.json` | IMPROVED | live NOT RUN |
 | Provenance | logged only | scoring A/B (+0.15): no effect; miss coverage 27/85 | `provenance/provenance_ab.json` | PARTIAL | effect NOT VALIDATED |
 | Downstream ASR | 0/6 (n=6) | scaled to 21 attempts, 4 objectives, LIVE downstream 0/21 | `asr/canary_asr.json`, `ASR_REPORT.md` | IMPROVED | 0/21 in this controlled evaluation; text-only downstream |
@@ -30,7 +33,7 @@ Single final eval = committed `results/baselines_summary/heldout_master_table.js
 | DPO dissection executed | hypotheses only | β-sweep rejects H1 (dev frozen at β 0.1/0.5/1.0); stark ablation rejects H2 (dev 0/6 frozen); H3 stands | `beta_sweep.json`, `stark_ablation.json` | IMPROVED | capacity explanation untested (needs 7B) |
 | Tool execution (real) | stub/text-only | restricted subprocess harness: 10/10 injections blocked, 0 breaches, 3/3 authorized run | `tool_exec_restricted.json` | IMPROVED | harmless-commands scope only |
 | Reviewers | single-human assumed | changelog shows 4 distinct humans (Aliya, Manaal Pervaiz, Muhammad Musa + simulated); `/api/reviewers` surfaces counts | live changelog | IMPROVED | pre-OAuth identities self-asserted; post-OAuth approvals carry verified GitHub logins |
-| Held-out extension | none | 2× 40 sealed novel attacks, one live eval each: 38/40 + 38/40 (0 fallbacks both), pooled new-system 143/153 = 93.5% (95% CI 88.4%–96.4%) | `heldout_extra_eval.json`, `heldout_extra_v2_eval.json` (+ sealed generators) | IMPROVED | 4 allows are ambiguous-boundary cases, not promoted |
+| Held-out extension | none | 2× 40 sealed novel attacks, one live eval each: 38/40 + 38/40 (0 fallbacks both), pooled v1 143/153 = 93.5% (95% CI 88.4%–96.4%); held-out v2 (fresh 153 attacks + 100 benign, generated once score-blind, one live eval, 0 fb): 132/153 attacks = 86.3% (CI 79.9%–90.8%), benign 1/100; fresh pooled (v1+v2) 275/306 = 89.9% (CI 86.0%–92.8%) | `heldout_extra_eval.json`, `heldout_extra_v2_eval.json`, `heldout_v2/heldout_v2_eval.json` (+ sealed generators) | IMPROVED | 4 v1 allows ambiguous-boundary, not promoted; 21 v2 misses kept visible; never tuned |
 | Reproducibility | commands doc | + manifest hashes, checkpoint hashes, seeds | `REPRODUCIBILITY.md`, `data_manifest.json` | FIXED | — |
 | Dashboard | 14 tabs (new) | verified artifact-only loads; ASR wording fixed | `research_lab.py` (import OK) | FIXED | old tabs not redesigned |
 
@@ -55,11 +58,13 @@ Old system: G 65/73, 0/32. Net: +2 TP / +1 FP. Old numbers stand as the old-syst
 - K Thresholds labeled implemented-not-optimized in `app/config.py`.
 - Kaggle export: `research/KAGGLE_EXPORT.md` (notebook cells + paste-back protocol).
 
-## Live execution status (7-key pool)
+## Live execution status (8-key pool)
 
-Executed live: frozen 105, DEV forensics 120/120, ASR downstream 0/21, benign live48 1/48, over-refusal 52,
-tool ASR 24, red-team smoke 50/50, multi-turn smoke 8/8, load sweep 1-50, cross-model 120b/20b.
-Quota is currently healthy; B27/B31 describe resolved transient episodes (key rotation added, B23).
+Executed live: frozen 105, DEV forensics 120/120, ASR downstream 0/21, benign live132 3/132
+(48-row staged run superseded), over-refusal 52, tool ASR 24, red-team smoke 50/50 + 100/100,
+multi-turn 10 (8/8) + 20 (15/16), load sweep 1-50, cross-model 120b/20b + qwen/safeguard +
+Zen-attributed 24/24, sealed batches 2× 38/40, held-out v2 253/253 (132/153 attacks, 1/100 benign).
+Quota outages B27/B31/B66 resolved via 8-key rotation (key rotation added B23).
 
 ## Model/checkpoints
 
@@ -71,7 +76,7 @@ dpo `1108ff9a…`, dpo-gen `7fda0ee1…`, forget `9fb679a8…`, retain `dd5780a3
 
 ## Tests
 
-212 passed / 0 failed / 3 skipped (Docker-present sandbox skips) (`research/FINAL_TEST_REPORT.md`).
+220 passed / 0 failed / 3 skipped (Docker-present sandbox skips) (`research/FINAL_TEST_REPORT.md`).
 
 ## Held-out integrity / secrets
 

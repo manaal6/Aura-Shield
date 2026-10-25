@@ -48,7 +48,7 @@ aura-shield/
 │   ├── safety_eval/              # run_safety_evaluation.py
 │   └── benchmark/                # run_final_test_benchmark.py
 ├── results/                      # Persisted Research Artifacts & Provenance Records
-├── tests/                        # 148 Unit Tests across 21 test files (100% passing)
+├── tests/                        # 215 tests (3 Docker-present skips), fully offline
 ├── docs/                         # Research Reports & Formal Specifications
 │   ├── research_report.md        # 18-section research report
 │   ├── policy-surface-audit.md   # Audited policy surface reference
@@ -56,7 +56,7 @@ aura-shield/
 │   ├── research-roadmap.md       # Completed 12-phase transformation roadmap
 │   ├── current-architecture.md   # This document
 │   └── technical-report.md       # Technical specification
-├── dashboard/                    # Streamlit Interactive Dashboard
+├── dashboard/                    # Streamlit lab (local-only experiments)
 ├── webapp/                       # FastAPI Server + React Frontend
 ├── constitution.json             # Versioned safety principles seed file (v1)
 └── main.py                       # CLI interface
@@ -129,7 +129,7 @@ All parameters are managed in a single `Settings` class:
 4. **Embedding Classifier (`embedding_classifier.py`)**: Baseline I character/word n-gram TF-IDF vectorizer computing cosine similarity against known attack clusters.
 
 ### C. Constitution Checker (`app/engine/constitution.py`)
-Evaluates input against 6 active principles (seeded from `constitution.json`, persisted in Postgres `constitution` table). Generates per-principle verdicts.
+Evaluates input against the active principles (seed v2 C1–C10, persisted in Postgres `constitution` table; adaptive additions at C11–C15). Generates per-principle verdicts.
 
 ### D. Research Package (`research/`)
 - **`schemas.py`**: Pydantic schemas (`PromptRecord`, `DetectionResult`, `PolicyDecision`, `ExperimentSpec`, `PerPromptResult`, `ExperimentResult`).
@@ -142,22 +142,26 @@ Evaluates input against 6 active principles (seeded from `constitution.json`, pe
 
 ## 4. Test Suite
 
-The system includes 148 unit tests across 21 test files:
-- `tests/test_rule_detector.py` (5 tests)
-- `tests/test_risk_engine.py` (3 tests)
-- `tests/test_policy_engine.py` (7 tests)
-- `tests/test_constitution_and_adaptive.py` (6 tests)
-- `tests/test_policy_surface_audit.py` (4 tests)
-- `tests/test_benchmark_dataset.py` (2 tests)
-- `tests/test_baselines.py` (3 tests)
-- `tests/test_cross_model.py` (4 tests)
-- `tests/test_soc_workflow.py` (2 tests)
-- `tests/test_research_schemas.py` (5 tests)
-- `tests/test_research_metrics.py` (5 tests)
-- `tests/test_research_runner.py` (6 tests)
-- `tests/test_adaptive_loop.py` (12 tests)
-- `tests/test_attacker_defender.py` (14 tests)
-- `tests/test_safety_evaluator.py` (9 tests)
-- `tests/test_final_test_benchmark.py` (3 tests)
+The system includes 223 collected tests across all 32 `tests/*.py` files —
+220 pass + 3 skip (Docker-present sandbox skips):
 
-All 148 unit tests pass cleanly offline with zero external network calls.
+| File | Tests | File | Tests |
+|---|---|---|---|
+| `test_adaptive_loop.py` | 12 | `test_approval_hardening.py` | 3 |
+| `test_attacker_defender.py` | 14 | `test_audit_chain_db.py` | 3 |
+| `test_auth_oauth.py` | 14 | `test_baselines.py` | 3 |
+| `test_benchmark_dataset.py` | 2 | `test_constitution_and_adaptive.py` | 8 |
+| `test_critical_fixes_abc.py` | 6 | `test_cross_model.py` | 5 |
+| `test_deploy_fixes.py` | 12 | `test_failsafe_audit.py` | 6 |
+| `test_final_test_benchmark.py` | 3 | `test_governance_phases.py` | 9 |
+| `test_hflocal_provider.py` | 2 | `test_homework_help_regression.py` | 1 |
+| `test_jb_dev_007_regression.py` | 2 | `test_kaust_pillars.py` | 18 |
+| `test_phase16_20.py` | 13 | `test_policy_engine.py` | 10 |
+| `test_policy_surface_audit.py` | 4 | `test_provenance.py` | 4 |
+| `test_provider_router.py` | 5 | `test_research_metrics.py` | 14 |
+| `test_research_runner.py` | 6 | `test_research_schemas.py` | 5 |
+| `test_risk_engine.py` | 4 | `test_rule_detector.py` | 5 |
+| `test_safety_evaluator.py` | 12 | `test_soc_workflow.py` | 2 |
+| `test_tool_executor.py` | 6 | `test_toolsec_contract.py` | 10 |
+
+All tests pass cleanly offline with zero external network calls (3 skip when Docker is present).

@@ -93,10 +93,12 @@ function OverviewPage() {
       <Collapsible title="Key findings">
         <ul>
           <li>Fusion dilutes its best layer (68/73 vs 65/73); max fusion recovers it on DEV (90/90).</li>
-          <li>DPO trains (loss down, incl. loss → 0.0000 hotter) but rankings freeze — at 100K, 0.5B, and hotter.</li>
+          <li>DPO: negative at 4 configs (loss down, rankings frozen — the KL-trap: loss saturated while train stayed flat), then POSITIVE at Qwen-1.5B LoRA (β=0.1): dev 0/29→22/29, train 128/133.</li>
           <li>Unlearning: template-specific at gentle intensities; FULL removal with preservation (24/24, all λ) on the hotter Qwen run.</li>
           <li>Pooled new-system attacks: 143/153 = 93.5% (95% CI 88.4%–96.4%; frozen 67/73 + sealed 38/40 + 38/40, one eval each; frozen run carries 3 fallback rows, counted not predicted).</li>
-          <li>Benign challenge: 0/132 held offline across 16 trigger-word families; live 1/48 held (furnace FAQ); combined live FPR 2/80 = 2.5%.</li>
+          <li>Held-out v2 (fresh 153 attacks + 100 benign, generated once score-blind, evaluated once, 0 fallbacks): attacks 132/153 = 86.3% (95% CI 79.9%–90.8%), benign FPR 1/100 = 1.0%; pooled fresh attacks (v1+v2) 275/306 = 89.9% (95% CI 86.0%–92.8%).</li>
+          <li>Benign challenge: 0/132 held offline across 16 trigger-word families; live 3/132 held (badge-reader request, test-suite order, scanner-noise question) + v2 1/100; combined live FPR 5/264 = 1.9%.</li>
+          <li>SOTA baseline (ProtectAI DeBERTa-v3 injection v2, same 306 attacks / 264 benign, offline): attacks 187/306 = 61.1%, benign 5/264 = 1.9% — AURA pooled 89.9% at equal FPR (bounds the lift; not a head-to-head deployment test). Second provider (Zen) partial replication: 130/153 = 85.0%, benign 0/35, 65 rows purged under the outage rule.</li>
           <li>SOC path live: malicious log → triage → safe output demonstrated (3/5 held, 2/2 safe).</li>
           <li>Detector bypass ≠ downstream success (ASR measured separately with canaries).</li>
           <li>Malware loop closed: payload requests held 10/10, benign explainers safe 10/10.</li>
@@ -105,9 +107,9 @@ function OverviewPage() {
 
       <Collapsible title="Open research questions">
         <ul className="mono" style={{ fontSize: '0.8rem' }}>
-          <li>RQ1 fusion &gt; single signals? — No (overlapping CIs; pooled n=153 attacks).</li>
+          <li>RQ1 fusion &gt; single signals? — No (overlapping CIs; fresh pooled n=306 attacks at 89.9%, C vs G still unresolved at n=73).</li>
           <li>RQ2 adaptive updates help w/o FP? — Yes, with caveats (65→68/73, FPR 0).</li>
-          <li>RQ3 DPO improves preferences? — No (4 configs: tiny + Qwen gentle/hot/hot-replicate).</li>
+          <li>RQ3 DPO improves preferences? — Yes at 1.5B (22/29 dev; negative at 100K/0.5B across 4 configs).</li>
           <li>RQ4 targeted unlearning with preservation? — Yes, with scope (hot Qwen run; partial/negative at lower intensities).</li>
           <li>RQ5 provenance controls? — Logged, not yet scored.</li>
           <li>RQ6 detections → lower ASR? — Measured separately (0/21 controlled).</li>
@@ -118,7 +120,7 @@ function OverviewPage() {
       <div className="kicker">Scope &amp; limitations</div>
       <div className="limit-grid">
         <div className="limit-card"><h4>Scale</h4><p>Alignment training at 100K–0.5B params; nothing transfers to LLM scale.</p></div>
-        <div className="limit-card"><h4>Statistics</h4><p>Held-out n=73: CIs overlap; McNemar impossible (no paired data).</p></div>
+        <div className="limit-card"><h4>Statistics</h4><p>Held-out n=73: CIs overlap; McNemar impossible (no paired data). Fresh pooled n=306: 89.9% (CI 86.0%–92.8%).</p></div>
         <div className="limit-card"><h4>Single provider</h4><p>Live layers primarily Groq-hosted; second-provider cells measured on Zen (10/10 both cells, per-row attribution) + local CPU fallback.</p></div>
         <div className="limit-card"><h4>Approvals</h4><p>Pre-OAuth records SIMULATED. With GitHub OAuth configured, approvals require login and bind to verified usernames (see Security → Constitution).</p></div>
         <div className="limit-card"><h4>Tools</h4><p>Docker isolation implemented; high-danger fails closed without Docker; container path unvalidated on this host.</p></div>
@@ -127,7 +129,7 @@ function OverviewPage() {
 
       <div className="panel">
         <h3>Overall status: PARTIAL (ready for review on executed scope)</h3>
-        <p className="muted">212 passed + 3 skipped (Docker-present skips). Every number traces to a persisted artifact.
+        <p className="muted">220 passed + 3 skipped (Docker-present skips). Every number traces to a persisted artifact.
           Negative results kept. Nothing here claims production readiness.</p>
       </div>
     </div>

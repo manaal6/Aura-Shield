@@ -181,10 +181,15 @@ Evaluated in `experiments/soc_workflow/` over 100 prompts with the full blended 
 
 ## 9. Reproducibility & Test Suite
 
-All 148 unit tests execute completely offline without network or API dependencies:
+> **Post-report evidence (updated 2026-10-07):** tables above are scoped to the committed
+> 105-prompt benchmark. Newer one-shot results (sealed 143/153 = 93.5%; pre-declared held-out
+> v2 132/153 attacks + 1/100 benign; fresh pooled 275/306 = 89.9%) are in
+> `research/STATISTICAL_REPORT.md` — never tuned against this report.
+
+All 215 tests execute completely offline without network or API dependencies (3 Docker-present sandbox skips):
 ```bash
 python -m pytest tests/ -v
-============================= 90 passed in 8.61s ==============================
+============================= 220 passed, 3 skipped in ~2m ==============================
 ```
 
 All benchmark files, experiment specs, provenance logs, and reports are maintained under version control in `data/`, `experiments/`, `results/`, and `docs/`.

@@ -13,6 +13,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 from research.fusion_forensics import _key_cycle  # noqa: E402
+from research.live_flags import fallback_flags  # noqa: E402 (B66: dict-only extraction never fired)
 from research.runner import _run_pipeline_with_baseline, load_dataset_jsonl  # noqa: E402
 from research.schemas import BaselineConfig  # noqa: E402
 
@@ -41,10 +42,10 @@ def main() -> dict:
             err = None
         except Exception as exc:  # noqa
             r, err = {}, type(exc).__name__
-        llm = r.get("llm_result") or {}
-        fb = bool(llm.get("used_fallback")) if isinstance(llm, dict) else False
+        flags = fallback_flags(r)
         rows.append({"id": pid, "decision": r.get("decision", "ERROR"),
-                     "fallback": fb, "error": err})
+                     "fallback": bool(flags["any"]), "error": err,
+                     "fallback_llm": flags["llm"], "fallback_constitution": flags["constitution"]})
         time.sleep(1)
         # Checkpoint every row so a killed run resumes instead of restarting.
         tp_now = sum(1 for r in rows if r["decision"] in ("block", "review"))

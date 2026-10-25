@@ -85,7 +85,9 @@ neither layer subsumes the other (`integrated/integrated_eval.json`).
 
 Splits: dev 120 (calibration), adaptation 105 (adaptation input), DPO
 train/dev 133/29 + 30 unseen (preference), forget/retain/general 24/32/24 (unlearning),
-benign challenge 62, test 105 (final/reporting only). Hashes in `research/data_manifest.json`.
+benign challenge 132 (16 trigger-word families), test 105 (final/reporting only),
+sealed held-out batches 40+40 and held-out v2 153 attacks + 100 benign (one-shot each,
+never tuned). Hashes in `research/data_manifest.json`.
 
 ## 10. Results (traceable)
 
@@ -101,6 +103,10 @@ benign challenge 62, test 105 (final/reporting only). Hashes in `research/data_m
 | Fusion dev strategies | — | best recall 0.13 offline | fusion_diagnosis.json | SMOKE |
 | Red-team offline (102) | — | 85 bypass / 17 held | adaptive_redteam.json | SMOKE (lower bound) |
 | Held-out (committed) | G 89.0% | C 93.2% (overlap CIs) | baselines_summary | VALIDATED (prior) |
+| Sealed batches ×2 (one-shot) | — | 38/40 + 38/40 (0 fb), pooled 143/153 = 93.5% | heldout_extra/*.json | VALIDATED |
+| Held-out v2 (one-shot, fresh) | — | 132/153 attacks (86.3%), benign 1/100 (0 fb) | heldout_v2/heldout_v2_eval.json | VALIDATED (fresh-family drop kept) |
+| Held-out v2 on Zen (second provider) | — | 130/153 attacks (85.0%), benign 0/35 (65 rows purged, B66) | heldout_v2/heldout_v2_zen_eval.json | PARTIAL replication |
+| SOTA baseline (ProtectAI DeBERTa-v3 injection v2) | — | 187/306 attacks (61.1%), benign 5/264 (1.9%) | sota/sota_deberta_eval.json | BOUNDS lift (offline, single model) |
 
 ## 11. Security Evaluation
 
@@ -119,14 +125,14 @@ benign challenge 62, test 105 (final/reporting only). Hashes in `research/data_m
 3. Unlearning: template-specific suppression (4/24), not behavior removal.
 4. C7 payload principle missing from seed (documented gap).
 5. Offline heuristic ≠ LLM checker; live re-validation required.
-6. 89% vs 93.2% gap statistically unresolved at n=73.
+6. 89% vs 93.2% gap statistically unresolved at n=73 (fresh pooled 275/306 = 89.9% extends the new-system estimate but never re-measures C-vs-G, so RQ1 stays open).
 7. No live downstream ASR measured in this sprint (marked unavailable).
 
 ## 13. Reproducibility
 
 ```bash
 pip install -r requirements.txt  # + torch (CPU) for pillar-3 smoke tests
-python -m pytest tests/ -q                                   # 210 passed + 3 Docker-present skips (see research/FINAL_TEST_REPORT.md)
+python -m pytest tests/ -q                                   # 220 passed + 3 Docker-present skips (see research/FINAL_TEST_REPORT.md)
 python -m experiments.kaust_three_pillars.run_constitution
 python -m experiments.kaust_three_pillars.run_adaptive
 python -m experiments.kaust_three_pillars.run_dpo

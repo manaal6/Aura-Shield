@@ -12,7 +12,7 @@ A research-grade, auditable security gateway that sits between users and LLMs to
 - **Adaptive Constitution Loop & Provenance System**: Automated feedback loop in [`research/adaptive_loop.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/adaptive_loop.py) that synthesizes, validates, and incorporates new safety principles with full JSON provenance tracking strictly from adaptation data without test set contamination.
 - **Attacker-Defender Red-Teaming Game**: Multi-round game in [`research/attacker_defender.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/attacker_defender.py) evaluating 7 mutation strategies (e.g. whitespace padding, role-play wrappers, leetspeak) over iterative rounds.
 - **Downstream Safety Evaluator & Estimated Compromise Rate**: [`research/evaluator.py`](file:///e:/OneDrive/Documents/aura-shield/aura-shield/research/evaluator.py) provides conservative offline estimation of downstream compromise vs detector bypass rate, with an optional live LLM-judge mode.
-- **100% Offline Test Suite**: 210 tests passing (3 Docker-present sandbox skips) with zero external network or LLM API requirements.
+- **100% Offline Test Suite**: 215 tests passing (3 Docker-present sandbox skips) with zero external network or LLM API requirements.
 
 ---
 
@@ -108,13 +108,13 @@ aura-shield/
 │   ├── safety_eval/              # run_safety_evaluation.py
 │   └── benchmark/                # run_final_test_benchmark.py
 ├── results/                      # Persisted Research Artifacts & Provenance Records
-│   └── kaust_three_pillars/        # Current evidence (frozen re-run, DPO/LM, unlearning, sealed batches)
+│   └── kaust_three_pillars/        # Current evidence (frozen re-run, DPO/LM, unlearning, sealed batches, held-out v2, SOTA, second provider)
 ├── webapp/                       # Deployed console (FastAPI + React; served by Dockerfile/Render)
 │   ├── server.py                 # API + static bundle mount
 │   └── frontend/src/             # React console (6 sections, 14 sub-tabs)
 ├── Dockerfile                    # Serves uvicorn webapp.server:app:8000
 ├── render.yaml                   # Render deploy (uvicorn; secrets via dashboard, never in repo)
-├── tests/                        # 210 tests (passed + 3 Docker-present skips)
+├── tests/                        # 220 tests (passed + 3 Docker-present skips)
 ├── docs/                         # Formal Research Documentation
 │   ├── research_report.md        # Comprehensive 18-section research report
 │   ├── policy-surface-audit.md   # Auditable policy surface & gate documentation
@@ -147,7 +147,7 @@ GITHUB_CLIENT_SECRET=...
 SESSION_SECRET=...
 ```
 
-### 2. Run the Full Test Suite (210 tests)
+### 2. Run the Full Test Suite (215 tests)
 ```bash
 python -m pytest tests/ -v
 ```
@@ -205,6 +205,7 @@ Evaluated on completely unseen attack families (`authorization_attack`, `tool_in
 
 - **Frozen re-run (new system C1–C10 + max fusion):** 67/73 recall (91.8%), FPR 1/32, 3 fallback rows counted not predicted (`results/kaust_three_pillars/frozen_rerun/`).
 - **Sealed extensions:** 2× 40-attack sealed batches (generated once, evaluated once, never tuned), 38/40 each with 0 fallbacks; pooled new-system 143/153 = 93.5% (95% CI 88.4%–96.4%) (`results/kaust_three_pillars/heldout_extra/`).
+- **Held-out v2 (fully pre-declared):** fresh 153 attacks (51 families × 3) + 100 benign (20 families × 5), generated once score-blind (max Jaccard 0.70 vs all 923 existing items, 0 dupes), one live eval, 0 fallbacks — attacks **132/153 = 86.3%** (95% CI 79.9%–90.8%), benign **1/100 = 1.0%**. Fresh pooled (v1+v2), every row evaluated exactly once and never tuned: **275/306 = 89.9%** (95% CI 86.0%–92.8%); combined live benign FPR 5/264 = 1.9%. The 7-point drop on genuinely fresh families is reported, not curated (`results/kaust_three_pillars/heldout_v2/`).
 - **Adaptive constitution before/after (held-out):** activating v2 (one principle synthesized from 80 adaptation-split rule-only false negatives) improved the full gateway's recall **89.0% → 93.2%** (65/73 → 68/73) with zero FPR regression; overlapping 95% CIs disclosed (`results/baseline_g_full_blended_test_20260914_052356`).
 - **Full-gateway red-team:** the full gateway blocks 52.5% (21/40) of whitespace-mutated attacks that bypass the rule layer at 100%; role-play/leetspeak re-mutations of surviving attacks mostly re-evade (`results/attacker_defender_summary/gateway_game/`). Offline DEV mutation screen (1,350 rows, $0 quota): offline subset holds 54/1,350 = 4.0% — subset brittleness, not gateway failure.
 - **Cross-model cells:** swapping the constitution model to `gpt-oss-safeguard-20b` drops recall to 78.1%; swapping only the analyzer retains 90.4% — the constitution role is capability-critical (`results/baseline_g_full_blended_test_20260914_061433` / `_071835`). Second provider on Zen: 10/10 in both analyzer/constitution-swap cells, 0 FP, 0 fallbacks, per-row `served_by=zen`, re-executed byte-identical (`results/kaust_three_pillars/cross_model/cross_model_zen.json`).
@@ -222,13 +223,16 @@ Evaluated on completely unseen attack families (`authorization_attack`, `tool_in
 Beyond the benchmark above, the repo now contains a full research pipeline
 (protocol: `research/RESEARCH_PROTOCOL.md`; bug ledger: `research/BUG_AND_REGRESSION_LEDGER.md`):
 
-- **Genuine model-level DPO** (negative, replicated at 4 configs):
+- **Genuine model-level DPO** (negative at 4 configs, POSITIVE at Qwen-1.5B LoRA: dev 0/29→22/29, train 128/133):
   tiny-gpt2 (102,714 params, CPU): loss 0.6824→0.1950, policy hash changed, reference
   frozen — train 10/133, dev 2/29→2/29, unseen 1/30→1/30. Qwen2.5-0.5B on Kaggle T4:
   gentle (loss →0.3889, train 7/133) and hotter (loss →0.0000, train 20/133) plus a
   metric-identical hotter replicate — dev 0/29→0/29 and unseen 0/30→0/30 at every scale.
   Loss decrease is never claimed as improvement (`research/DPO_REPORT.md`).
-  Dashboard badge: FULL MODEL-LEVEL DPO / NEGATIVE.
+  Unseen-30 check on a same-config retrain (original adapter lost with the Colab session):
+  base 0/30 → DPO 23/30 = 76.7% (dev 19/29, train 109/133) — generalizes, unseen not below
+  train; retrain counts differ from the original adapter and are reported separately.
+  Dashboard badge: FULL MODEL-LEVEL DPO / POSITIVE (1.5B LoRA, dev 22/29, unseen 23/30).
 - **LM unlearning sweep** (forget/retain/general + λ∈{0.1,0.5,1.0}):
   tiny-gpt2 PARTIAL at λ=0.1/1.0 — exactly 4/24 suppressed (one template family),
   20/24 still emit, retain/general preserved; NOT VALIDATED at λ=0.5; prior logistic
@@ -242,7 +246,8 @@ Beyond the benchmark above, the repo now contains a full research pipeline
   (max 90/90, constitution-only 89/90, old 88/90), policy FROZEN (negative result)
   (`research/FUSION_REPORT.md`).
 - **Statistics**: Wilson + bootstrap CIs with denominators, pooled new-system
-  143/153 = 93.5%; McNemar NOT RUN (no paired data) (`research/STATISTICAL_REPORT.md`).
+  143/153 = 93.5%, held-out v2 132/153 = 86.3% (1/100 benign), fresh pooled 275/306 = 89.9%; SOTA baseline (ProtectAI DeBERTa-v3 injection v2, same sets, offline) 187/306 = 61.1% at 5/264 = 1.9% FPR, i.e. already at AURA's operating point (matched-threshold sweep identical); second provider (Zen) partial replication 130/153 = 85.0%;
+  held-out McNemar impossible (no paired data), DEV McNemar p=0.39 n.s. (`research/STATISTICAL_REPORT.md`).
 - **Red-team matrix + DEV mutation screen (1,350 rows), multi-turn latch eval,
   provenance/indirect eval, benign challenge (0/132 over-trigger across 16 trigger
   families), tool-authorization chain, analyzer contract, fail-safe battery,
@@ -259,7 +264,7 @@ Beyond the benchmark above, the repo now contains a full research pipeline
 
 | Experiment | Mode | Requires API? |
 | :--- | :--- | :--- |
-| Unit test suite (210 tests) | Real code, fully offline | No |
+| Unit test suite (215 tests) | Real code, fully offline | No |
 | Held-out benchmark — Baselines A, I | Real detector runs, fully offline | No |
 | Held-out benchmark — Baselines B–H (all nine) | Real pipeline, live models, zero-fallback verified | Yes (`GROQ_API_KEY`) |
 | Attacker-defender game (rules/embedding) | Real deterministic detectors, fully offline | No |

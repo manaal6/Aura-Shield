@@ -24,7 +24,7 @@ Code: `app/pipeline.py`, `app/engine/risk_engine.py`, `app/engine/policy_engine.
                         ┌──────────────────────┐
                         │ SECURITY CONSTITUTION │  Pillar 1 (inference-time defense)
                         │ versioned principles  │  app/engine/constitution.py
-                        │ C1..C6 (+C7 payload)  │  + app/engine/constitution_utils.py
+                        │ C1..C10 seed v2 (+C11..C15 adaptive)  │  + app/engine/constitution_utils.py
                         └──────────┬───────────┘
                                    │ per-principle verdicts → risk/policy gate
                                    ▼

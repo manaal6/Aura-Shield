@@ -84,6 +84,14 @@ class Settings(BaseSettings):
     analyzer_providers: str = Field(default="groq", description="Comma-separated provider priority for analyzer role")
     constitution_providers: str = Field(default="groq", description="Comma-separated provider priority for constitution role")
 
+    # --- OpenCode Zen (optional OpenAI-compatible provider) ---
+    # Set OPENCODE_ZEN_KEY (oc_sk_...) in .env to route the "openai" provider
+    # slot at Zen's OpenAI-compatible endpoint. The key is a credential: keep
+    # it in .env (gitignored) or the process environment, never in source.
+    opencode_zen_key: str = Field(default="", description="Optional OpenCode Zen API key (oc_sk_-prefixed)")
+    opencode_zen_model: str = Field(default="space-bunny-free", description="Model to use on OpenCode Zen")
+    opencode_zen_base_url: str = Field(default="https://opencode.ai/zen/v1", description="OpenCode Zen OpenAI-compatible base URL")
+
     # --- GitHub OAuth login (authenticated approvals) ---
     # Register an OAuth App (GitHub Settings → Developer settings → OAuth Apps) with
     # callback <public-base-url>/auth/callback. Login binds approvals to verified usernames.

@@ -30,8 +30,20 @@
 
 ## New small-n experiments
 - DPO-LM dev preference: 2/29=6.9% (95% CI 1.9%-22.0%) (unchanged by DPO → negative)
+- DPO Qwen-1.5B LoRA dev preference: 22/29=75.9% (95% CI 57.9%-87.8%) (FIRST POSITIVE, β=0.1)
+- DPO Qwen-1.5B unseen-30: 23/30=76.7% (95% CI 59.1%-88.2%) (base 0/30; retrain, train 109/133 → generalizes)
 - Unlearning still emitting (λ=0.1): 20/24=83.3% (95% CI 64.1%-93.3%) (only 4/24 suppressed)
 - Pooled new-system attacks: 143/153=93.5% (95% CI 88.4%-96.4%) (frozen 67/73 + sealed batches 38/40, 38/40; FPR 1/32 from frozen run)
+- Benign live combined: 5/264=1.9% (95% CI 0.8%-4.4%) (frozen 1/32 + live132 3/132 + held-out v2 1/100 (all one eval each, 0 fb))
+- Held-out v2 (one-shot, 153+100): attacks 132/153=86.3% (95% CI 79.9%-90.8%), benign FPR 1/100=1.0% (95% CI 0.2%-5.5%) — fresh 153 attacks + 100 benign, generated once score-blind, evaluated once (frozen config, no tuning, 0 fallbacks)
+- Pooled fresh attacks (v1+v2): 275/306=89.9% (95% CI 86.0%-92.8%) (n_attacks=306, every row evaluated once, never tuned)
+- Second provider (Zen, PARTIAL): 130/153=85.0% (95% CI 78.5%-89.8%) attacks, benign FPR 0/35=0.0% (95% CI 0.0%-9.9%) — Zen space-bunny-free (both LLM layers) on 188/253 rows: attacks 130/153, benign 0/35; 65 rows purged (provider outage, B66 rule)
+
+## SOTA baseline (same sets, offline)
+- ProtectAI/deberta-v3-base-prompt-injection-v2: attacks 187/306=61.1% (95% CI 55.5%-66.4%), benign FPR 5/264=1.9% (95% CI 0.8%-4.4%) (n_attacks=306, n_benign=264, 187/306 attacks flagged, 5/264 benign flagged, 0 errors; offline default threshold, never tuned on AURA data)
+- AURA pooled fresh: 275/306=89.9% (95% CI 86.0%-92.8%) | benign FPR 5/264=1.9% (95% CI 0.8%-4.4%)
+- Matched FPR (oracle threshold 0.571): 187/306=61.1% (95% CI 55.5%-66.4%) attacks at 5/264=1.9% (95% CI 0.8%-4.4%) benign — threshold 0.5710 chosen post hoc on the benign set to flag ≤5/264 (oracle, not deployable); default threshold already sits at this FPR, so the headline comparison is not threshold-unfair
+- Caveat: Single pretrained classifier at its default threshold, run offline over the same 306 attacks / 264 benign; AURA is an LLM ensemble with policy thresholds. The comparison bounds AURA's lift, it is not a head-to-head deployment test.
 
 ## McNemar limitation (explicit)
 - Held-out McNemar: NOT RUN. Reason: the committed held-out eval stored only aggregate counts

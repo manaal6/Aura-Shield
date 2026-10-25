@@ -31,11 +31,11 @@ function ReliabilityPage() {
           <p className="muted">Legitimate trigger-word prompts the offline subset holds (0 = no lexical
             over-triggering). Live FPR is measured separately on the frozen run (1/32).</p>
           {(data as Record<string, { has_data: boolean; data?: Record<string, unknown> }>).benign_live?.has_data && (
-            <p>Live benign (16 families × 3, full gateway):{' '}
+            <p>Live benign (full 132-prompt challenge set, full gateway):{' '}
               {(() => {
                 const d = ((data as Record<string, { has_data: boolean; data?: Record<string, unknown> }>).benign_live?.data ?? {}) as Record<string, string | number>;
                 return `${String(d.held ?? '—')}/${String(d.n ?? '—')} held, ${String(d.fallback ?? '—')} fallbacks`;
-              })()} — combined live FPR 2/80 = 2.5% with the frozen run.</p>
+              })()} — plus held-out v2 benign 1/100 held; combined live FPR 5/264 = 1.9% (frozen run + live132 + v2: badge-reader request, test-suite order, scanner-noise question, and 1 v2 item held; all kept visible).</p>
           )}
         </div>
       )}

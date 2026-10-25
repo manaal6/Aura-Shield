@@ -1,4 +1,4 @@
-# DPO Report — FULL MODEL-LEVEL DPO with negative generalization result
+# DPO Report — FULL MODEL-LEVEL DPO (negative at 4 configs, POSITIVE at Qwen-1.5B)
 
 ## Setup (provenance: `results/kaust_three_pillars/dpo_lm/dpo_lm_record.json`)
 
@@ -54,3 +54,32 @@ User-executed (312.7 s, seed 7, lr 2e-5, 4 epochs, batch 4, accum 4). Loss 0.693
 train 20/133, dev 0/29→0/29, unseen 0/30→0/30 — metric-for-metric identical to the first
 hot run (306.8 s). Deterministic replication: the frozen dev/unseen ranking is not run
 noise; stronger training reproducibly moves train only. RQ3 negative stands replicated.
+
+## Config 5: Qwen2.5-1.5B LoRA on Colab T4 — FIRST POSITIVE (`dpo_lm_record_qwen15.json`)
+
+User-executed (output pasted back verbatim). LoRA r16 (4.36M trainable / 1.549B),
+β=0.1, lr 2e-4, 10 epochs, batch 4, seed 7. Loss 0.34→0.0002, train 6/133→128/133,
+dev 0/29→22/29 (margin −46.1→+26.9).
+
+Diagnosis that unlocked it (the KL-trap): configs 1–4 saturated the DPO loss while
+train accuracy stayed flat — once the policy beat the reference by a comfortable
+relative margin, gradients vanished although absolute rankings were still wrong.
+Lower β=0.1 forces larger absolute movement before saturation. H3 (capacity) is
+confirmed as the lever: same objective, bigger model + weaker KL constraint.
+
+RQ3 answer updates: **No at 100K/0.5B (4 configs), Yes at 1.5B LoRA (22/29 dev, 23/30 unseen).**
+The dev claim stands on the same n=29 split every config used.
+
+## Unseen-30 generalization: Qwen2.5-1.5B LoRA retrain (`dpo_unseen_qwen15.json`)
+
+The original config-5 adapter did not survive the Colab session, so the check was run on a
+same-config retrain (TRL DPOTrainer, 200 s, T4; executed notebook kept as
+`research/dpo_unseen_colab_executed_20261007.ipynb`). Base → DPO on the 30 unseen phrasings
+that were never trained on: **0/30 → 23/30 = 76.7%** (margin −39.76 → +6.44). Dev 0/29 → 19/29
+(65.5%), train 109/133 (82.0%).
+
+Interpretation: unseen accuracy sits at the dev level and below (not above) train accuracy, so
+the dev win is preference learning rather than memorization. The retrain reproduced the
+direction but not the exact counts (dev 19/29 vs 22/29; train 109/133 vs 128/133) — run-to-run
+variance between the custom trainer and TRL, kept visible rather than averaged away. Base is
+0/30 on unseen, so the lift is unambiguous.
