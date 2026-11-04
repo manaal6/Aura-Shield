@@ -114,7 +114,7 @@ aura-shield/
 │   └── frontend/src/             # React console (6 sections, 14 sub-tabs)
 ├── Dockerfile                    # Serves uvicorn webapp.server:app:8000
 ├── render.yaml                   # Render deploy (uvicorn; secrets via dashboard, never in repo)
-├── tests/                        # 220 tests (passed + 3 Docker-present skips)
+├── tests/                        # 221 tests (passed + 3 Docker-present skips)
 ├── docs/                         # Formal Research Documentation
 │   ├── research_report.md        # Comprehensive 18-section research report
 │   ├── policy-surface-audit.md   # Auditable policy surface & gate documentation
@@ -248,6 +248,10 @@ Beyond the benchmark above, the repo now contains a full research pipeline
 - **Statistics**: Wilson + bootstrap CIs with denominators, pooled new-system
   143/153 = 93.5%, held-out v2 132/153 = 86.3% (1/100 benign), fresh pooled 275/306 = 89.9%; SOTA baseline (ProtectAI DeBERTa-v3 injection v2, same sets, offline) 187/306 = 61.1% at 5/264 = 1.9% FPR, i.e. already at AURA's operating point (matched-threshold sweep identical); second provider (Zen) partial replication 130/153 = 85.0%;
   held-out McNemar impossible (no paired data), DEV McNemar p=0.39 n.s. (`research/STATISTICAL_REPORT.md`).
+- **Live adaptive red-team**: 24 DEV seeds × 3 rounds, attacker `qwen3.8-27b` vs frozen
+  `gpt-oss-120b` G; unmodified 24/24 held, adapted 37/38 = 97.4% held (2 raw ALLOW, 1 counted
+  after manual intent audit; 9 attacker refusals excluded). Detector bypass only — downstream
+  not run, so never an ASR (`results/kaust_three_pillars/adaptive_live/`).
 - **Red-team matrix + DEV mutation screen (1,350 rows), multi-turn latch eval,
   provenance/indirect eval, benign challenge (0/132 over-trigger across 16 trigger
   families), tool-authorization chain, analyzer contract, fail-safe battery,

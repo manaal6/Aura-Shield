@@ -15,7 +15,7 @@
 
 ```bash
 pip install -r requirements.txt          # + torch, transformers, huggingface_hub (CPU)
-python -m pytest tests/ -q              # 220 passed + 3 Docker-present skips, offline (live-API scripts excluded: canary_asr, fusion_forensics)
+python -m pytest tests/ -q              # 221 passed + 3 Docker-present skips, offline (live-API scripts excluded: canary_asr, fusion_forensics)
 python -m training.dpo.expand_dataset   # idempotent; 29 -> 59 pairs (v1)
 python -m training.dpo.expand_dataset_v3  # 59 -> 102 (IDs, rationale, threat types; archives v1)
 python -m training.dpo.expand_dataset_v4  # 102 -> 150
@@ -31,6 +31,8 @@ python -m research.benign_live132        # live benign 132 (one eval each, check
 python -m research.eval_sealed_v2        # sealed batch 2, ONE shot (already consumed)
 python data/gen_heldout_v2.py            # generate held-out v2 (153+100) score-blind, ONCE
 python -m research.eval_heldout_v2       # held-out v2, ONE shot (already consumed; resumes by row)
+python -m research.adaptive_live         # live adaptive red-team, 24 seeds x 3 rounds (checkpointed; needs GROQ keys)
+python -m research.statistical_eval      # rebuilds adaptive_live block from the artifact + bypass_audit.json
 python -m research.indirect_eval
 python -m research.canary_asr          # needs GROQ_API_KEY for live downstream; else NOT RUN rows
 python -m research.redteam_matrix

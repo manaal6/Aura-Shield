@@ -92,5 +92,5 @@ AURA Shield has been successfully transformed from a prompt-injection proof-of-c
 All 215 tests pass cleanly (3 Docker-present sandbox skips):
 ```bash
 python -m pytest tests/ -v
-============================= 220 passed, 3 skipped in ~2m ==============================
+============================= 221 passed, 3 skipped in ~2m ==============================
 ```

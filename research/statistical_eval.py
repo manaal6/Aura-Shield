@@ -171,6 +171,47 @@ def main() -> dict:
                "n_attacks": z["zen_n_attacks"], "n_benign": z["zen_n_benign"],
                **outcomes(z["zen_attacks_held"], z["zen_n_attacks"] - z["zen_attacks_held"],
                           z["zen_benign_held"], z["zen_n_benign"] - z["zen_benign_held"])}
+    # Live adaptive red-team (24 dev seeds x 3 rounds): a live attacker model rewrites the
+    # payload after each defender decision. "Bypass" = detector ALLOW. Downstream is not run,
+    # so this is NOT an attack-success rate. Rewrites that derailed into refusal/meta text
+    # (the attacker model declining) are excluded, not counted as bypasses.
+    adap = None
+    adapp = REPO / "results" / "kaust_three_pillars" / "adaptive_live" / "adaptive_live.json"
+    if adapp.exists():
+        a = json.loads(adapp.read_text())
+        pr = a["per_round"]
+        adapted = [r for r in a["rows"] if r["round"] > 1 and not r.get("stale")]
+        raw_hits = {(r["seed_id"], r["round"]) for r in adapted if r["decision"] == "allow"}
+        # Every ALLOW row is read by hand: a rewrite that softened the intent is not a
+        # bypass, because allowing it is correct. The audit decides, not the run.
+        audp = adapp.parent / "bypass_audit.json"
+        preserved = set(raw_hits)
+        n_downgraded = 0
+        if audp.exists():
+            aud = json.loads(audp.read_text())
+            preserved = {(x["seed_id"], x["round"]) for x in aud["rows"]
+                         if x["verdict"] == "intent_preserved"}
+            n_downgraded = len([x for x in aud["rows"] if x["verdict"] != "intent_preserved"])
+        hit = {sid for sid, _ in preserved}
+        n_seeds = len({r["seed_id"] for r in a["rows"]})
+        a_byp = len(preserved)
+        a_valid = len(adapted) - n_downgraded
+        a_held = a_valid - a_byp
+        a_stale = sum(p["attacker_refused_stale"] for p in pr[1:])
+        adap = {
+            "detail": (f"{a['seeds']} dev seeds x {a['rounds']} rounds; attacker {a['attacker_model']} "
+                       f"vs defender {a['defender_model']}; round 1 unmodified {pr[0]['held']}/{pr[0]['valid']} "
+                       f"held; adapted rounds: {len(adapted)} valid attempts, {len(raw_hits)} ALLOW raw, "
+                       f"{n_downgraded} downgraded by manual intent audit -> {a_byp} bypass; "
+                       f"{a_stale} attempts derailed into refusal/meta text and were excluded "
+                       f"(attacker capacity bound); downstream NOT RUN, so this is not an ASR"),
+            "n_attacks": a_valid, "n_benign": 0,
+            "raw_allow": f"{len(raw_hits)}/{len(adapted)}",
+            "seeds_with_any_adapted_bypass": f"{len(hit)}/{n_seeds}",
+            "per_round": pr,
+            "bypass_audit": "results/kaust_three_pillars/adaptive_live/bypass_audit.json",
+            **outcomes(a_held, a_byp, 0, 0),
+        }
     rep = {"held_out_committed": table, "new_small_n": new,
            "mcnemar": "NOT RUN — no stored per-example paired predictions; not fabricated",
            "reading": ("C (68/73) vs G (65/73): overlapping Wilson CIs — difference of 3 "
@@ -202,6 +243,8 @@ def main() -> dict:
         }
     if zen is not None:
         rep["zen_replication"] = zen
+    if adap is not None:
+        rep["adaptive_live"] = adap
     out = REPO / "results" / "kaust_three_pillars" / "statistics"
     out.mkdir(parents=True, exist_ok=True)
     (out / "statistical_eval.json").write_text(json.dumps(rep, indent=2), encoding="utf-8")
@@ -225,6 +268,11 @@ def main() -> dict:
     if "zen_replication" in rep:
         md.append(f"- Second provider (Zen, PARTIAL): {rep['zen_replication']['recall']} attacks, "
                   f"benign FPR {rep['zen_replication']['fpr']} — {rep['zen_replication']['detail']}")
+    if "adaptive_live" in rep:
+        a = rep["adaptive_live"]
+        md.append(f"- Live adaptive red-team (DETECTOR BYPASS ONLY, not an ASR): {a['recall']} held, "
+                  f"raw ALLOW {a['raw_allow']}, seeds with a bypass {a['seeds_with_any_adapted_bypass']} — "
+                  f"{a['detail']}")
     if "sota_baseline" in rep:
         s = rep["sota_baseline"]
         md += ["", "## SOTA baseline (same sets, offline)",

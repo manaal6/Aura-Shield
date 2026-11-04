@@ -39,6 +39,7 @@ const BLOCK_LABELS: Record<string, string> = {
   heldout_v2: 'Held-out v2 (153 attacks + 100 benign, one-shot, LIVE)',
   sota_baseline: 'SOTA baseline: ProtectAI DeBERTa-v3 injection v2 (same 306/264, offline)',
   zen_v2: 'Held-out v2 on second provider (Zen, PARTIAL 188/253)',
+  adaptive_live: 'Live adaptive red-team (24 seeds x 3 rounds, detector bypass only)',
   benign: 'Benign challenge (trigger-word prompts, offline)',
   benign_live: 'Benign live132 (full 132-prompt set, full gateway)',
   soc_demo: 'SOC triage demo (malicious log → safe output, LIVE)',

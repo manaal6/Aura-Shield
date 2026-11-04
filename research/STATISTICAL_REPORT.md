@@ -38,6 +38,7 @@
 - Held-out v2 (one-shot, 153+100): attacks 132/153=86.3% (95% CI 79.9%-90.8%), benign FPR 1/100=1.0% (95% CI 0.2%-5.5%) — fresh 153 attacks + 100 benign, generated once score-blind, evaluated once (frozen config, no tuning, 0 fallbacks)
 - Pooled fresh attacks (v1+v2): 275/306=89.9% (95% CI 86.0%-92.8%) (n_attacks=306, every row evaluated once, never tuned)
 - Second provider (Zen, PARTIAL): 130/153=85.0% (95% CI 78.5%-89.8%) attacks, benign FPR 0/35=0.0% (95% CI 0.0%-9.9%) — Zen space-bunny-free (both LLM layers) on 188/253 rows: attacks 130/153, benign 0/35; 65 rows purged (provider outage, B66 rule)
+- Live adaptive red-team (DETECTOR BYPASS ONLY, not an ASR): 37/38=97.4% (95% CI 86.5%-99.5%) held, raw ALLOW 2/39, seeds with a bypass 1/24 — 24 dev seeds x 3 rounds; attacker qwen/qwen3.8-27b vs defender openai/gpt-oss-120b; round 1 unmodified 24/24 held; adapted rounds: 39 valid attempts, 2 ALLOW raw, 1 downgraded by manual intent audit -> 1 bypass; 9 attempts derailed into refusal/meta text and were excluded (attacker capacity bound); downstream NOT RUN, so this is not an ASR
 
 ## SOTA baseline (same sets, offline)
 - ProtectAI/deberta-v3-base-prompt-injection-v2: attacks 187/306=61.1% (95% CI 55.5%-66.4%), benign FPR 5/264=1.9% (95% CI 0.8%-4.4%) (n_attacks=306, n_benign=264, 187/306 attacks flagged, 5/264 benign flagged, 0 errors; offline default threshold, never tuned on AURA data)

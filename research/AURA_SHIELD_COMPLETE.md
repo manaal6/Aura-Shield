@@ -85,6 +85,14 @@ offline default threshold, never tuned on AURA data): 187/306 = 61.1% (95% CI 55
 that FPR; a post-hoc matched-threshold sweep is identical, and 2.65% FPR only buys 65.4%). Bounds the lift; not a head-to-head
 deployment test (ensemble + policy thresholds vs single classifier).
 
+Adaptive red-team (LIVE, 2026-11-02): 24 DEV seeds × 3 rounds, attacker `qwen3.8-27b` rewrites the
+payload (document body for indirect-injection seeds) after each frozen-G decision. Unmodified round:
+24/24 held. Adapted rounds: 39 valid attempts (9 attacker refusals/meta rewrites excluded as an
+attacker capacity bound), 2 raw ALLOW, 1 counted after a manual intent audit → 37/38 = 97.4% held
+(95% CI 86.5%–99.5%), 1/24 seeds. That single bypass was transient (allowed in round 2, blocked in
+round 3). Downstream is NOT executed, so this is a detector-bypass rate, never an ASR. Artifact:
+`results/kaust_three_pillars/adaptive_live/adaptive_live.json` (+ `bypass_audit.json`).
+
 ## 5. Frozen re-run (new system C1–C10 + max fusion, single live eval, 2026-09-22)
 
 67/73 recall (91.8%), 1/32 FPR (3.1%), 3 fallback rows (MIXED status, counted not predicted).
@@ -185,13 +193,13 @@ constitution-only 89/90 (98.9%), FPR 0. jb-dev-007 flipped ALLOW→BLOCK across 
 - First `/api/constitution` call after deploy runs the additive C7–C10 migration.
 - Key endpoints: `/api/analyze`, `/api/constitution`, `/api/benchmark`, `/api/measured`, `/api/evidence`, `/api/audit/verify`.
 - Reproduce: `pip install -r requirements.txt` (+ torch/transformers), `python -m pytest tests/ -q`
-  (220 passed + 3 Docker-present skips), `python -m experiments.kaust_three_pillars.run_all`; research commands in
+  (221 passed + 3 Docker-present skips), `python -m experiments.kaust_three_pillars.run_all`; research commands in
   `research/REPRODUCIBILITY.md`. Train/test isolation enforced in code.
 - Live evaluations need Groq quota (8-key rotation pool; all keys share one org daily pool).
 
 ## 14. Status and limits (binding)
 
-- Overall: PARTIAL — ready for review on executed scope. 220 passed + 3 skipped (Docker-present) green.
+- Overall: PARTIAL — ready for review on executed scope. 221 passed + 3 skipped (Docker-present) green.
 - Per-pillar: DPO IMPLEMENTED (negative ×4, POSITIVE at 1.5B LoRA 22/29) · Unlearning IMPLEMENTED (partial → negative → VALIDATED hot, replicated) ·
   Fusion IMPLEMENTED (mechanism found, gap kept) · Adaptive IMPLEMENTED (caveated) ·
   Red-team/ASR/tools/audit/latency/dashboard IMPLEMENTED (scopes labeled).

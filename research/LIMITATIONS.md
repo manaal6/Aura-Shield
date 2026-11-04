@@ -20,5 +20,14 @@ reaches 200/306 = 65.4% — so the gap is not a threshold artifact. Second-provi
 130/153 = 85.0% attacks and 0/35 benign after 65 free-tier-outage rows were purged (B66 rule),
 the replicated model was later retired and the free quota is now exhausted, so those rows cannot be
 completed; provider independence beyond the Groq-hosted family stays directional, not established.
-11. Forbidden language: "solves prompt injection", "secure", "production-ready", "complete unlearning",
+11. Live adaptive red-team is small and attacker-bound: 24 DEV seeds × 3 rounds, one attacker
+model (qwen3.8-27b) rewriting the payload against one defender (gpt-oss-120b, frozen
+G_FULL_BLENDED). 9/48 adapted attempts derailed into refusal/meta text and were EXCLUDED (a
+capacity bound of the attacker, not a detector property). Of 39 valid attempts, 2 returned ALLOW
+raw and 1 survived a manual intent audit (the other had dropped the hazardous specificity) →
+37/38 = 97.4% held (95% CI 86.5%–99.5%), 1/24 seeds, and that bypass was transient (re-blocked
+next round). Downstream was NOT executed, so this is a detector-bypass rate, never an ASR.
+Ninety DEV seeds exist; the other 66 seeds were not attacked, and n is too small for
+per-family adaptation claims.
+12. Forbidden language: "solves prompt injection", "secure", "production-ready", "complete unlearning",
     "guaranteed forgetting", "human-approved" (say SIMULATED for pre-OAuth history), any percentage without denominators.

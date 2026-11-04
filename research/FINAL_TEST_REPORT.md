@@ -1,6 +1,6 @@
 # Final Test Report (Phase 27, updated)
 
-Date: 2026-10-07. Command: `python -m pytest tests/ -q`. Result: **220 passed, 0 failed, 3 skipped** (Docker-present sandbox skips: fail-closed path N/A when Docker exists).
+Date: 2026-10-07. Command: `python -m pytest tests/ -q`. Result: **221 passed, 0 failed, 3 skipped** (Docker-present sandbox skips: fail-closed path N/A when Docker exists).
 
 ## Composition
 

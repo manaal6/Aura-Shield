@@ -7,6 +7,7 @@
 - C11 rename? Old adaptive C7 collided with seed C7; the older row became C11 with a changelog entry. Frozen artifacts keep the old ID as recorded history.
 - DPO negative? Loss falls at 4 configs (tiny + Qwen gentle/hot/hot-replicate) while rankings freeze exactly — then config 5 (Qwen-1.5B LoRA, β=0.1) breaks the freeze: dev 0/29→22/29, train 128/133; a same-config retrain then generalized to the 30 unseen phrasings (0/30→23/30, dev 19/29) with unseen not below train, so it is preference learning rather than memorization — retrain drift is reported, not smoothed.
 - Malware loop? Payload requests held 10/10 live; benign explainers allowed 10/10, safe 10/10, full explanations 3/10 (downstream terse, not refusing).
+- Adaptive attacker? A live round now exists: 24 DEV seeds × 3 rounds, qwen3.8-27b rewrites the payload after each frozen decision. Unmodified 24/24 held; of 39 valid adapted rewrites (9 attacker refusals excluded) 2 returned ALLOW and 1 survived a manual intent audit → 37/38 = 97.4% held (CI 86.5%–99.5%), 1/24 seeds, transient (re-blocked next round). Downstream not run, so it is a bypass rate, never an ASR.
 
 ## Demo checklist (deployed URL, hard-refresh first)
 1. Overview hero → frozen re-run → ASR. 2. Live Analyze one attack. 3. Fusion live compare.

@@ -99,6 +99,7 @@ function OverviewPage() {
           <li>Held-out v2 (fresh 153 attacks + 100 benign, generated once score-blind, evaluated once, 0 fallbacks): attacks 132/153 = 86.3% (95% CI 79.9%–90.8%), benign FPR 1/100 = 1.0%; pooled fresh attacks (v1+v2) 275/306 = 89.9% (95% CI 86.0%–92.8%).</li>
           <li>Benign challenge: 0/132 held offline across 16 trigger-word families; live 3/132 held (badge-reader request, test-suite order, scanner-noise question) + v2 1/100; combined live FPR 5/264 = 1.9%.</li>
           <li>SOTA baseline (ProtectAI DeBERTa-v3 injection v2, same 306 attacks / 264 benign, offline): attacks 187/306 = 61.1%, benign 5/264 = 1.9% — AURA pooled 89.9% at equal FPR (bounds the lift; not a head-to-head deployment test). Second provider (Zen) partial replication: 130/153 = 85.0%, benign 0/35, 65 rows purged under the outage rule.</li>
+          <li>Live adaptive red-team (24 dev seeds x 3 rounds, attacker qwen3.8-27b vs defender gpt-oss-120b): unmodified 24/24 held; 39 valid adapted attempts, 2 raw ALLOW, 1 counted after manual intent audit - 37/38 = 97.4% held, 1/24 seeds, one transient bypass that re-blocked next round. 9 attacker refusals excluded. Detector bypass only, not an ASR.</li>
           <li>SOC path live: malicious log → triage → safe output demonstrated (3/5 held, 2/2 safe).</li>
           <li>Detector bypass ≠ downstream success (ASR measured separately with canaries).</li>
           <li>Malware loop closed: payload requests held 10/10, benign explainers safe 10/10.</li>
@@ -129,7 +130,7 @@ function OverviewPage() {
 
       <div className="panel">
         <h3>Overall status: PARTIAL (ready for review on executed scope)</h3>
-        <p className="muted">220 passed + 3 skipped (Docker-present skips). Every number traces to a persisted artifact.
+        <p className="muted">221 passed + 3 skipped (Docker-present skips). Every number traces to a persisted artifact.
           Negative results kept. Nothing here claims production readiness.</p>
       </div>
     </div>

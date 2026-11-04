@@ -189,7 +189,7 @@ Evaluated in `experiments/soc_workflow/` over 100 prompts with the full blended 
 All 215 tests execute completely offline without network or API dependencies (3 Docker-present sandbox skips):
 ```bash
 python -m pytest tests/ -v
-============================= 220 passed, 3 skipped in ~2m ==============================
+============================= 221 passed, 3 skipped in ~2m ==============================
 ```
 
 All benchmark files, experiment specs, provenance logs, and reports are maintained under version control in `data/`, `experiments/`, `results/`, and `docs/`.

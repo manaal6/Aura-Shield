@@ -119,6 +119,21 @@ and the combined estimate across every fresh attack row ever evaluated once is
 132-prompt challenge set (3/132), and v2 (1/100) combines to **5/264 = 1.9% (0.8–4.4)**; the
 five flagged items are named in the dashboard rather than filtered.
 
+**Adaptive red-team (live).** Generalization under feedback is a different question from
+generalization to fresh families, so we ran the detector against a live attacker. Twenty-four
+DEV seeds (8 indirect-injection, 9 direct-injection, 7 persona jailbreaks) were fed to a frozen
+G pipeline; after each decision, `qwen3.8-27b` rewrote the payload — the document body for
+indirect seeds, the prompt otherwise — and the rewrite was evaluated again, for three rounds
+(72 evaluations, zero fallbacks, all Groq-served). Unmodified seeds were held 24/24. Nine of the
+48 adapted rewrites derailed into refusal or meta-commentary ("it is not possible to create a
+rephrased version…"); those are a capacity bound of the attacker and were excluded rather than
+counted. Of the 39 valid adapted attempts, 2 returned ALLOW; a manual intent audit kept 1 (the
+other had dropped the hazardous specificity, so allowing it was correct), giving **37/38 =
+97.4% (86.5–99.5)** held, **1/24** seeds. That bypass was transient: the same seed was blocked
+in the next round. Downstream execution was not run, so these are detector-bypass rates, not
+attack-success rates. The result does not show adaptation is harmless — one attacker, one
+defender, 24 seeds — but it does not reproduce the offline mutation-screen's brittleness either.
+
 ## 6. RQ3: Alignment
 
 **DPO.** The dataset is 162 preference pairs (133 train / 29 dev) plus 30 unseen phrasings.
@@ -188,8 +203,9 @@ PARTIAL everywhere; independence beyond the primary hosted family is directional
   threat model); cross-taxonomy transfer is untested.
 - Training-scale claims stop at 1.5B LoRA; the unseen-30 result comes from a retrain, not the
   original adapter.
-- The adaptive red-team live round is pending provider availability; offline bypass rates are
-  lower bounds.
+- The adaptive red-team is live but small (24 DEV seeds, one attacker, one defender); 19% of its
+  adapted rewrites were attacker refusals and were excluded, so the bypass rate is bounded from
+  below by attacker capacity, and the other 66 DEV seeds were not attacked.
 - ASR is measured separately from detection (0/21 live canary); detection success is not
   claimed as attack-success prevention.
 
@@ -209,5 +225,5 @@ PARTIAL everywhere; independence beyond the primary hosted family is directional
 | Unlearning | 24/24 hot, 4/24 tiny | `results/kaust_three_pillars/unlearning_lm/*.json` |
 | Fallback fix | B66 | `research/BUG_AND_REGRESSION_LEDGER.md` |
 
-Reproduce offline with `python -m pytest tests/ -q` (220 passed, 3 skipped) and
+Reproduce offline with `python -m pytest tests/ -q` (221 passed, 3 skipped) and
 `python -m research.statistical_eval`.

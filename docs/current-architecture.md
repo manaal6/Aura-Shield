@@ -142,7 +142,7 @@ Evaluates input against the active principles (seed v2 C1–C10, persisted in Po
 
 ## 4. Test Suite
 
-The system includes 223 collected tests across all 32 `tests/*.py` files —
+The system includes 224 collected tests across all 32 `tests/*.py` files —
 220 pass + 3 skip (Docker-present sandbox skips):
 
 | File | Tests | File | Tests |

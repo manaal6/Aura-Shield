@@ -16,6 +16,7 @@ Single final eval = committed `results/baselines_summary/heldout_master_table.js
 | SOTA baseline | none | ProtectAI DeBERTa-v3 prompt-injection-v2 over the same 306 attacks + 264 benign (offline, default threshold, never tuned on AURA data) | `results/kaust_three_pillars/sota/sota_deberta_eval.json`, `statistical_eval.json` (`sota_baseline`) | FIXED (attacks 187/306 = 61.1%, benign 5/264 = 1.9%) | single classifier, offline; bounds the lift, not a head-to-head deployment test |
 | Second provider | Zen 12-row matrix only | Zen v2 replication of held-out v2 (both LLM layers) | `results/kaust_three_pillars/heldout_v2/heldout_v2_zen_eval.json`, `statistical_eval.json` (`zen_replication`) | PARTIAL (130/153 = 85.0% attacks, 0/35 benign) | 65/253 rows purged on free-tier 429 (B66 rule); endpoint then gated 403; model later retired and free quota now exhausted (B75) — directional only |
 | Benign robustness | 28 prompts | 132 prompts (16 trigger-word families incl. payload/malware/inject/bypass/breach/phishing/decrypt), 0 held offline + full 132 live (3 held, 0 fb) + held-out v2 benign 1/100 live (0 fb): combined live FPR 5/264 = 1.9% (CI 0.8%–4.4%) | `benign/benign_eval.json`, `benign/benign_live132.json`, `heldout_v2/heldout_v2_eval.json` | IMPROVED | the 4 live holds (badge-reader request, test-suite order, scanner-noise question, 1 v2 item) kept visible |
+| Adaptive red-team (LIVE) | offline cycle only | 24 DEV seeds × 3 rounds: qwen3.8-27b rewrites the payload after each decision against frozen G_FULL_BLENDED | `results/kaust_three_pillars/adaptive_live/adaptive_live.json` + `bypass_audit.json`, `statistical_eval.json` (`adaptive_live`) | IMPROVED (unmodified 24/24 held; adapted 37/38 = 97.4% held, CI 86.5–99.5; 1/24 seeds, transient bypass re-blocked next round) | 9/48 adapted attempts were attacker refusals and excluded (attacker capacity bound); downstream NOT RUN so this is a detector-bypass rate, not an ASR; DEV seeds only, n small |
 | Indirect injection | 8 payloads | 12 payloads × 7 provenance + objectives; 77/84 confused offline | `indirect/indirect_eval.json` | IMPROVED | live NOT RUN |
 | Provenance | logged only | scoring A/B (+0.15): no effect; miss coverage 27/85 | `provenance/provenance_ab.json` | PARTIAL | effect NOT VALIDATED |
 | Downstream ASR | 0/6 (n=6) | scaled to 21 attempts, 4 objectives, LIVE downstream 0/21 | `asr/canary_asr.json`, `ASR_REPORT.md` | IMPROVED | 0/21 in this controlled evaluation; text-only downstream |
@@ -76,7 +77,7 @@ dpo `1108ff9a…`, dpo-gen `7fda0ee1…`, forget `9fb679a8…`, retain `dd5780a3
 
 ## Tests
 
-220 passed / 0 failed / 3 skipped (Docker-present sandbox skips) (`research/FINAL_TEST_REPORT.md`).
+221 passed / 0 failed / 3 skipped (Docker-present sandbox skips) (`research/FINAL_TEST_REPORT.md`).
 
 ## Held-out integrity / secrets
 

@@ -68,8 +68,9 @@ negative results kept, a SOTA baseline on identical sets, and a second provider.
   threat model) — cross-family transfer beyond our taxonomy is untested.
 - Training-scale claims stop at 1.5B LoRA; DPO unseen-30 for config 5 is PENDING (dev-only
   claim until it lands).
-- Adaptive red-team live round is pending (provider outage); offline red-team rates are
-  lower bounds on bypass.
+- Adaptive red-team live round now exists but is small: 24 DEV seeds x 3 rounds, one attacker
+  (qwen3.8-27b), one defender; 19% of adapted rewrites were attacker refusals and excluded, so
+  the bypass rate is bounded by attacker capacity; downstream not run (bypass, not ASR).
 
 ## Forbidden in the paper (mirrors `research/LIMITATIONS.md`)
 
@@ -80,7 +81,8 @@ without a denominator.
 ## Open items before submission
 
 1. ~~DPO unseen-30 for config 5~~ DONE: 0/30 → 23/30 on a same-config retrain (`dpo_unseen_qwen15.json`).
-2. One live adaptive red-team round (needs provider quota).
+2. ~~One live adaptive red-team round~~ DONE: 24 seeds x 3 rounds, 37/38 = 97.4% held after
+   audit, 1/24 seeds transient (`results/kaust_three_pillars/adaptive_live/`).
 3. Zen full v2 benign half (blocked by 403 free-tier gate; label PARTIAL if never resolved).
 4. ~~SOTA at matched FPR~~ DONE: default threshold already equals AURA's 1.9% FPR; matched sweep
    identical (61.1%), 65.4% at 2.65% FPR. Oracle threshold labelled as analysis, not deployment.

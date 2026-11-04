@@ -190,6 +190,7 @@ HELD_EXTRA_V2_PATH = K3 / "heldout_extra" / "heldout_extra_v2_eval.json"
 HELD_V2_PATH = K3 / "heldout_v2" / "heldout_v2_eval.json"
 SOTA_PATH = K3 / "sota" / "sota_deberta_eval.json"
 ZEN_V2_PATH = K3 / "heldout_v2" / "heldout_v2_zen_eval.json"
+ADAPTIVE_LIVE_PATH = K3 / "adaptive_live" / "adaptive_live.json"
 BENIGN_PATH = K3 / "benign" / "benign_eval.json"
 BENIGN_LIVE_PATH = K3 / "benign" / "benign_live132.json"
 MULTITURN_EVAL_PATH = K3 / "multiturn" / "multiturn_eval.json"
@@ -590,6 +591,7 @@ def evidence():
         "heldout_v2": block(HELD_V2_PATH),
         "sota_baseline": block(SOTA_PATH),
         "zen_v2": block(ZEN_V2_PATH),
+        "adaptive_live": block(ADAPTIVE_LIVE_PATH),
         "multiturn_eval": block(MULTITURN_EVAL_PATH),
         "latency_detail": block(LATENCY_DETAIL_PATH),
         "outage_test": block(OUTAGE_PATH),
