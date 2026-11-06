@@ -43,8 +43,6 @@ function ReproducibilityPage() {
 
   return (
     <div>
-      <div className="kicker">07 · Reproducibility &amp; reference</div>
-      <h2>Reproduce every number</h2>
       <p className="muted">All benchmark inputs are version-controlled JSONL; training runs on CPU or free
         Kaggle GPUs. Train/test isolation is enforced in code, not by convention.</p>
 

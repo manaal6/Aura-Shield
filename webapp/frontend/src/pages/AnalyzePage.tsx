@@ -43,10 +43,9 @@ function AnalyzePage() {
 
   return (
     <div>
-      <h2>Analyze</h2>
       <p className="muted">
-        Submit a prompt (and optionally untrusted source content) through the full
-        pipeline: rule engine → LLM classifier → constitution check.
+        Submit a prompt — and optionally the untrusted source it will read — through the full
+        pipeline: rule engine, LLM classifier, constitution check.
       </p>
       <div className="panel">
         <label htmlFor="prompt">User prompt</label>

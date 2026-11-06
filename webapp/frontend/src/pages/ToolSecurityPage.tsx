@@ -7,7 +7,6 @@ function ToolSecurityPage() {
 
   return (
     <div>
-      <h2>Tool security — authorization boundary</h2>
       <div className="panel">
         <p className="mono">LLM → intent → authorize → validate args → security gate → sandbox → execute</p>
         <Cards items={[

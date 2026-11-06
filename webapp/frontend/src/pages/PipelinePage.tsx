@@ -9,9 +9,6 @@ function PipelinePage() {
 
   return (
     <div>
-      <div className="kicker">02 · System architecture</div>
-      <h2>How AURA Shield works: detection × policy</h2>
-
       <div className="plain-words">
         <h4>In plain words</h4>
         <p style={{ margin: 0 }}>Three independent detectors examine every request. A versioned

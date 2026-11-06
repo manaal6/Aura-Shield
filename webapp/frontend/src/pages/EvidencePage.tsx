@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface EvidenceBlock {
   has_data: boolean;
@@ -46,8 +46,6 @@ const BLOCK_LABELS: Record<string, string> = {
   payload_explain: 'Refuse-payload-but-explain (20 paired, LIVE)',
 };
 
-// Pull one or two headline fields out of an artifact's data so the collapsed
-// row shows something meaningful instead of forcing an open JSON dump.
 function summarize(data: unknown): string | null {
   if (!data || typeof data !== 'object') return null;
   const d = data as Record<string, unknown>;
@@ -69,10 +67,10 @@ function Block({ name, block }: { name: string; block: EvidenceBlock }) {
 
   if (!block.has_data) {
     return (
-      <div className="panel evidence-row">
+      <div className="panel evidence-row head-empty">
         <div className="evidence-row-head">
-          <h3 style={{ margin: 0 }}>{label}</h3>
-          <span className="muted">NOT AVAILABLE — not run</span>
+          <h3>{label}</h3>
+          <span className="tag">not run</span>
         </div>
       </div>
     );
@@ -83,15 +81,15 @@ function Block({ name, block }: { name: string; block: EvidenceBlock }) {
   return (
     <div className="panel evidence-row">
       <div className="evidence-row-head">
-        <h3 style={{ margin: 0 }}>{label}</h3>
+        <h3>{label}</h3>
         <div className="evidence-row-actions">
-          {summary && <span className="mono muted">{summary}</span>}
-          <button className="btn" onClick={() => setOpen((o) => !o)}>
+          {summary && <span className="summary">{summary}</span>}
+          <button className="btn" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
             {open ? 'Hide raw' : 'View raw'}
           </button>
         </div>
       </div>
-      {open && <pre className="mono json" style={{ marginTop: '0.75rem' }}>{JSON.stringify(block.data, null, 2)}</pre>}
+      {open && <pre className="mono json">{JSON.stringify(block.data, null, 2)}</pre>}
     </div>
   );
 }
@@ -99,6 +97,7 @@ function Block({ name, block }: { name: string; block: EvidenceBlock }) {
 function EvidencePage() {
   const [data, setData] = useState<EvidenceData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     fetch('/api/evidence')
@@ -110,19 +109,48 @@ function EvidencePage() {
       .catch((e: Error) => setError(e.message));
   }, []);
 
+  const entries = useMemo(() => (data ? Object.entries(data) : []), [data]);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return entries;
+    return entries.filter(([name, block]) => {
+      const label = BLOCK_LABELS[name] ?? name;
+      return label.toLowerCase().includes(q) || name.toLowerCase().includes(q) || (q === 'available' && block.has_data) || (q === 'missing' && !block.has_data);
+    });
+  }, [entries, query]);
+
   if (error) return <div className="panel"><p className="error">Failed to load evidence: {error}</p></div>;
-  if (!data) return <div className="panel"><p className="muted">Loading evidence artifacts…</p></div>;
+  if (!data) return <div className="panel"><p className="loading">Loading evidence artifacts…</p></div>;
+
+  const available = entries.filter(([, b]) => b.has_data).length;
 
   return (
     <div>
-      <h2>Research evidence</h2>
       <p className="muted">
         Every row comes from a persisted experiment artifact via <span className="mono">/api/evidence</span>.
-        Missing artifacts show as NOT AVAILABLE — never invented numbers. Expand a row for the full record.
+        Missing artifacts show as <span className="mono">not run</span> — never invented numbers. Expand a
+        row for the full record.
       </p>
-      {Object.entries(data).map(([name, block]) => (
-        <Block key={name} name={name} block={block} />
-      ))}
+
+      <div className="evidence-toolbar">
+        <label className="visually-hidden" htmlFor="evidence-filter">Filter artifacts</label>
+        <input
+          id="evidence-filter"
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Filter by name, or type available / missing"
+        />
+        <span className="muted mono">
+          {filtered.length} of {entries.length} shown · {available} with data
+        </span>
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="muted">No artifact matches “{query}”.</p>
+      ) : (
+        filtered.map(([name, block]) => <Block key={name} name={name} block={block} />)
+      )}
     </div>
   );
 }

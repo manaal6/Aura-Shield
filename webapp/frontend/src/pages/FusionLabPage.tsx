@@ -17,7 +17,6 @@ function FusionLabPage() {
 
   return (
     <div>
-      <h2>Fusion Lab — DEV vs HELD-OUT strictly separated</h2>
       <p className="muted">Test tuning is blocked by design: strategies compare on DEV only; held-out was evaluated once, frozen.</p>
       <h3>Live DEV strategy comparison (clean rows, n={cmp.clean_rows_only?.n ?? '—'})</h3>
       {Object.keys(strats).length === 0 ? <Missing label="Fusion live compare" /> : (

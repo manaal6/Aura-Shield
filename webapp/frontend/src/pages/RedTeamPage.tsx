@@ -14,7 +14,6 @@ function RedTeamPage() {
 
   return (
     <div>
-      <h2>Red team — matrix &amp; multi-turn</h2>
       <h3>Offline matrix (lower bound only)</h3>
       {!mx.offline_subset_matrix ? <Missing label="Red-team matrix" /> : (
         <div className="table-wrap panel">

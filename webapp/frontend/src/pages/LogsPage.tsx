@@ -42,7 +42,6 @@ function LogsPage() {
 
   return (
     <div>
-      <h2>Audit logs</h2>
       <p className="muted">Every request processed by the shield, newest first. Flag false negatives for human review.</p>
 
       <div className="btn-row">
@@ -80,7 +79,7 @@ function LogsPage() {
                   <td className="mono">{fmt(r.rule_signal)}</td>
                   <td className="mono">{fmt(r.llm_signal)}{r.llm_used_fallback ? '*' : ''}</td>
                   <td className="mono">{fmt(r.constitution_signal)}{r.constitution_fallback ? '*' : ''}</td>
-                  <td>{r.human_flagged ? '🚩 human' : ''}</td>
+                  <td>{r.human_flagged ? <span className="tag">flagged</span> : ''}</td>
                   <td>
                     {!r.human_flagged && (
                       <button className="btn" disabled={flagging === r.request_id} onClick={() => flag(r.request_id)}>

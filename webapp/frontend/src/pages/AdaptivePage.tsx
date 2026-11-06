@@ -10,7 +10,6 @@ function AdaptivePage() {
 
   return (
     <div>
-      <h2>Adaptive constitution — v1 → v2 → v3</h2>
       <p className="muted"><strong>Pre-OAuth approvals: SIMULATED HUMAN APPROVAL</strong> (C7, C8 cycles — historical fact).
         New approvals: named human + HMAC-signed token + offline verification (<span className="mono">Security → Constitution → verify</span>).
         With GitHub OAuth configured, approvals require login and bind to the verified username (see the login button

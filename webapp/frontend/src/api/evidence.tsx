@@ -33,13 +33,14 @@ export function Missing({ label }: { label: string }) {
   );
 }
 
-export function Cards({ items }: { items: { k: string; v: string }[] }) {
+export function Cards({ items }: { items: { k: string; v: string; sub?: string }[] }) {
   return (
     <div className="cards">
       {items.map((c) => (
         <div className="card" key={c.k}>
           <div className="k">{c.k}</div>
           <div className="v">{c.v}</div>
+          {c.sub && <div className="sub">{c.sub}</div>}
         </div>
       ))}
     </div>

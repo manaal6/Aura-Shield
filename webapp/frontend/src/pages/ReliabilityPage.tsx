@@ -9,7 +9,6 @@ function ReliabilityPage() {
   const benData = (ben?.data ?? {}) as { n?: number; held_benign?: number; over_trigger_rate?: number; by_trigger_word?: Record<string, string> };
   return (
     <div>
-      <h2>Reliability — latency, load, outage</h2>
       <h3>Fail-safe contract</h3>
       <div className="panel">
         <Cards items={[

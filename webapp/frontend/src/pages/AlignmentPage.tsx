@@ -23,8 +23,8 @@ export function DpoPanel({ data }: { data: NonNullable<ReturnType<typeof useEvid
         <p className="muted">Configs 1–4 hit the KL-trap (loss saturated, train flat). Config 5 (β=0.1) broke it.</p>
         {data.dpo_eval.has_data ? (
           <Cards items={[
-            { k: 'dev pref', v: `${String(dpo.dpo?.preference_accuracy ?? '—')} (base ${String(dpo.base?.preference_accuracy ?? '—')})` },
-            { k: 'unseen', v: `${String(dpo.dpo?.unseen_pref_accuracy ?? '—')} (base ${String(dpo.base?.unseen_pref_accuracy ?? '—')})` },
+            { k: 'dev pref', v: String(dpo.dpo?.preference_accuracy ?? '—'), sub: `base ${String(dpo.base?.preference_accuracy ?? '—')}` },
+            { k: 'unseen', v: String(dpo.dpo?.unseen_pref_accuracy ?? '—'), sub: `base ${String(dpo.base?.unseen_pref_accuracy ?? '—')}` },
             { k: 'attack resistance', v: String(dpo.dpo?.attack_resistance ?? '—') },
             { k: 'over-refusal', v: String(dpo.dpo?.over_refusal_rate ?? '—') },
           ]} />

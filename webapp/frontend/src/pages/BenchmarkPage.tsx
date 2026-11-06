@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchBenchmark, fetchMeasured } from '../api/client';
 import type { BenchmarkData, MeasuredData, HeldoutBaselineRow } from '../api/client';
+import { Accordion } from '../components/Accordion';
 
 const CATEGORY_LABELS: Record<string, string> = {
   direct_injection: 'Direct injection',
@@ -30,19 +31,6 @@ function fmtPct(v: number | null | undefined) {
   return v === null || v === undefined ? '—' : `${(v * 100).toFixed(1)}%`;
 }
 
-function Collapsible({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className="panel collapsible">
-      <button className="collapsible-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <span>{title}</span>
-        <span className="collapsible-chevron">{open ? '−' : '+'}</span>
-      </button>
-      {open && <div className="collapsible-body">{children}</div>}
-    </div>
-  );
-}
-
 function HeldoutMatrix({ rows }: { rows: HeldoutBaselineRow[] }) {
   return (
     <div className="table-wrap panel">
@@ -52,7 +40,7 @@ function HeldoutMatrix({ rows }: { rows: HeldoutBaselineRow[] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.key} style={r.key === 'G' ? { background: 'var(--bg-raised)' } : undefined}>
+            <tr key={r.key} className={r.key === 'G' ? 'row-emphasis' : undefined}>
               <td><strong>{r.key}</strong> — {r.name}</td>
               <td className="mono">{fmtPct(r.recall)}{r.true_positives !== null ? ` (${r.true_positives}/${r.n_attacks})` : ''}</td>
               <td className="mono">{fmtPct(r.precision)}</td>
@@ -81,17 +69,14 @@ function BenchmarkPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div><h2>Benchmark</h2><p className="loading">Loading…</p></div>;
-  if (error) return <div><h2>Benchmark</h2><p className="error">{error}</p></div>;
+  if (loading) return <div className="panel"><p className="loading">Loading benchmark artifacts…</p></div>;
+  if (error) return <div className="panel"><p className="error">{error}</p></div>;
   const hb = measured?.heldout_baselines;
   const ab = measured?.adaptive_before_after;
   const soc = measured?.soc;
 
   return (
     <div>
-      <h2>Benchmark</h2>
-      {error && <p className="error">{error}</p>}
-
       {hb?.rows?.length ? (
         <section>
           <h3>Held-out baseline matrix — live model runs (105 prompts: {hb.rows[0].n_attacks} attacks, {hb.rows[0].n_benign} benign)</h3>
@@ -133,9 +118,9 @@ function BenchmarkPage() {
 
       {/* Superseded by the live held-out matrix above — kept for reproducibility, collapsed by default. */}
       {data && (
-        <Collapsible title="Offline safety evaluation (legacy artifacts)">
+        <Accordion title="Offline safety evaluation (legacy artifacts)">
           <LegacyBenchmarkSection data={data} />
-        </Collapsible>
+        </Accordion>
       )}
     </div>
   );
@@ -200,7 +185,7 @@ function LegacyBenchmarkSection({ data }: { data: BenchmarkData }) {
             <div className="card"><div className="k">LLM signal alone</div><div className="v">{attr.llm_only}</div></div>
             <div className="card">
               <div className="k">Constitution alone</div>
-              <div className="v" style={{ fontSize: '1rem', color: 'var(--text-dim)' }}>n/a</div>
+              <div className="v" style={{ fontSize: '1rem', color: 'var(--ink-3)' }}>n/a</div>
             </div>
           </div>
           <p className="muted">

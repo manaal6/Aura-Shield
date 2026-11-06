@@ -127,12 +127,11 @@ function ConstitutionPage() {
     if (!isError) load();
   }
 
-  if (loading) return <div><h2>Constitution</h2><p className="loading">Loading…</p></div>;
-  if (!data) return <div><h2>Constitution</h2>{notice && <p className="error">{notice.msg}</p>}</div>;
+  if (loading) return <div className="panel"><p className="loading">Loading constitution…</p></div>;
+  if (!data) return <div className="panel">{notice && <p className="error">{notice.msg}</p>}</div>;
 
   return (
     <div>
-      <h2>Constitution</h2>
       {loginConfigured ? (
         user ? (
           <p className="muted">Logged in as <span className="mono">{user}</span> — approvals are signed to this identity. <a href="/auth/logout">Log out</a></p>
